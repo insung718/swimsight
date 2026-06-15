@@ -1,0 +1,56 @@
+{
+  "name": "swimsight",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A data-driven swim analytics platform for competitive swimmers, coaches, and teams.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.31.0",
+    "@prisma/client": "^6.9.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.3",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "@eslint/js": "^8.57.1",
+    "eslint": "^8.57.1",
+    "globals": "^15.14.0",
+    "postcss": "^8.4.49",
+    "prisma": "^6.9.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2",
+    "vitest": "^2.1.8"
+  },
+  "allowScripts": {
+    "@clerk/shared@3.47.7": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.21.5": true,
+    "fsevents@2.3.2": true,
+    "fsevents@2.3.3": true,
+    "prisma@6.19.3": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
+  }
+}
