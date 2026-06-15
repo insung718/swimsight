@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-  --background: #f8fbfd;
-  --foreground: #061827;
+  color-scheme: dark;
+  --background: #081424;
+  --foreground: #d8e3fa;
 }
 
 .dark {
@@ -30,6 +30,52 @@ body {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+}
+
+@layer components {
+  .stitch-panel {
+    @apply rounded-lg border border-white/10 bg-stitch-panel/[0.88] shadow-stitch backdrop-blur;
+  }
+
+  .stitch-panel-soft {
+    @apply rounded-lg border border-white/10 bg-stitch-panel2/[0.80] backdrop-blur;
+  }
+
+  .stitch-label {
+    @apply text-xs font-bold uppercase tracking-[0.16em] text-stitch-muted;
+  }
+
+  .stitch-data {
+    @apply font-mono text-stitch-cyan;
+  }
+
+  .pool-visual {
+    background:
+      linear-gradient(90deg, rgba(0, 251, 255, 0.22) 1px, transparent 1px),
+      repeating-linear-gradient(
+        180deg,
+        rgba(216, 227, 250, 0.16) 0,
+        rgba(216, 227, 250, 0.16) 2px,
+        transparent 2px,
+        transparent 54px
+      ),
+      linear-gradient(135deg, rgba(0, 251, 255, 0.28), rgba(3, 168, 232, 0.08) 44%, rgba(4, 14, 30, 0.18)),
+      #063252;
+    background-size:
+      12.5% 100%,
+      100% 56px,
+      100% 100%,
+      100% 100%;
+  }
+
+  .lane-rope {
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.86) 0 10px,
+      rgba(0, 251, 255, 0.95) 10px 20px,
+      rgba(255, 118, 95, 0.9) 20px 26px
+    );
+  }
 }
 
 button,

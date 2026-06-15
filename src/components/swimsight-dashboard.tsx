@@ -1,6 +1,15 @@
 "use client";
 
-import { Activity, Medal, TrendingUp, Waves } from "lucide-react";
+import {
+  Activity,
+  Gauge,
+  Medal,
+  Radio,
+  Target,
+  Timer,
+  TrendingUp,
+  Waves
+} from "lucide-react";
 import { CsvImporter } from "@/components/csv-importer";
 import { CommunityHub } from "@/components/community-hub";
 import { EventRankings } from "@/components/event-rankings";
@@ -34,23 +43,86 @@ export function SwimSightDashboard({
   const overview = analytics.overview;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(34,201,232,0.16),transparent_32rem),linear-gradient(180deg,#f8fbfd_0%,#eef6fa_100%)] text-navy-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,201,232,0.14),transparent_28rem),linear-gradient(180deg,#04111d_0%,#061827_100%)] dark:text-white">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
-        <header className="flex flex-col gap-4 rounded-lg border border-white/70 bg-white/80 p-4 shadow-panel backdrop-blur dark:border-white/10 dark:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
+    <main className="dark min-h-screen overflow-hidden bg-stitch-bg text-stitch-text">
+      <div className="pointer-events-none fixed inset-0 opacity-90">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(0,251,255,0.18),transparent_32rem),radial-gradient(circle_at_90%_10%,rgba(3,168,232,0.14),transparent_28rem),linear-gradient(180deg,#081424_0%,#040e1e_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-stitch-cyan/50" />
+      </div>
+
+      <div className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <header className="stitch-panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-navy-950 text-aqua-400 dark:bg-aqua-400 dark:text-navy-950">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded bg-stitch-cyan text-stitch-abyss shadow-glow">
               <Waves aria-hidden className="h-6 w-6" />
             </span>
             <div>
-              <h1 className="text-2xl font-black text-navy-950 dark:text-white">SwimSight</h1>
-              <p className="text-sm text-navy-500 dark:text-navy-100">Competitive swim analytics dashboard</p>
+              <p className="stitch-label">Elite aquatic intelligence</p>
+              <h1 className="text-2xl font-black text-white">SwimSight</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-stitch-cyan/30 bg-stitch-cyan/10 px-3 text-xs font-bold uppercase tracking-[0.14em] text-stitch-cyan">
+              <span className="h-2 w-2 rounded-full bg-stitch-cyan shadow-glow" />
+              Live analytics
+            </span>
             <ThemeToggle />
             <UserActions />
           </div>
         </header>
+
+        <section className="grid gap-4 xl:grid-cols-[1.18fr_0.82fr]">
+          <div className="stitch-panel relative min-h-[360px] overflow-hidden p-5 sm:p-6">
+            <div className="absolute inset-0 pool-visual opacity-75" />
+            <div className="absolute inset-x-8 top-[23%] h-1 rounded-full lane-rope opacity-90" />
+            <div className="absolute inset-x-8 top-[39%] h-1 rounded-full lane-rope opacity-90" />
+            <div className="absolute inset-x-8 top-[55%] h-1 rounded-full lane-rope opacity-90" />
+            <div className="absolute inset-x-8 top-[71%] h-1 rounded-full lane-rope opacity-90" />
+            <div className="absolute left-6 top-6 grid grid-cols-6 gap-2 opacity-90">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <span className="h-8 w-10 rounded-sm border border-white/30 bg-white/12" key={index} />
+              ))}
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-stitch-abyss via-stitch-abyss/70 to-transparent" />
+            <div className="relative flex h-full max-w-2xl flex-col justify-between gap-8">
+              <div>
+                <p className="stitch-label text-stitch-cyan">Olympic pool command center</p>
+                <h2 className="mt-3 max-w-xl text-4xl font-black leading-tight text-white sm:text-5xl">
+                  Race faster with every split, goal, and friend comparison in one cockpit.
+                </h2>
+                <p className="mt-4 max-w-lg text-base leading-7 text-stitch-muted">
+                  Account-backed analytics, manual entries, CSV imports, upcoming meets, communities, and predictions wired into the v1 backend.
+                </p>
+              </div>
+              <div className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="stitch-panel-soft p-3">
+                  <Timer aria-hidden className="h-5 w-5 text-stitch-cyan" />
+                  <div className="stitch-data mt-3 text-2xl font-bold">{overview.totalSwims}</div>
+                  <div className="mt-1 text-xs text-stitch-muted">Swims</div>
+                </div>
+                <div className="stitch-panel-soft p-3">
+                  <Gauge aria-hidden className="h-5 w-5 text-stitch-cyan" />
+                  <div className="stitch-data mt-3 text-2xl font-bold">{analytics.swimPowerIndex.score}</div>
+                  <div className="mt-1 text-xs text-stitch-muted">SPI</div>
+                </div>
+                <div className="stitch-panel-soft p-3">
+                  <Target aria-hidden className="h-5 w-5 text-stitch-cyan" />
+                  <div className="stitch-data mt-3 text-2xl font-bold">{overview.yearlyImprovement}%</div>
+                  <div className="mt-1 text-xs text-stitch-muted">Year gain</div>
+                </div>
+                <div className="stitch-panel-soft p-3">
+                  <Radio aria-hidden className="h-5 w-5 text-stitch-cyan" />
+                  <div className="stitch-data mt-3 text-2xl font-bold">V1</div>
+                  <div className="mt-1 text-xs text-stitch-muted">Backend</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
+            <UpcomingMeetPanel />
+          </div>
+        </section>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -83,8 +155,8 @@ export function SwimSightDashboard({
           />
         </section>
 
-        <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-          <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
+        <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+          <MotivationPanel />
           <ProgressionChart swims={swims} />
         </div>
 
@@ -98,11 +170,6 @@ export function SwimSightDashboard({
         <GoalTracker initialGoal={goals[0]} swims={swims} />
 
         <ManualTimeEntry />
-
-        <div className="grid min-w-0 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-          <UpcomingMeetPanel />
-          <MotivationPanel />
-        </div>
 
         <div className="grid min-w-0 gap-4 xl:grid-cols-[1fr_1fr]">
           <CsvImporter />
