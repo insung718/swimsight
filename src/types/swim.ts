@@ -30,6 +30,8 @@ export interface SwimResult {
   course: Course;
   timeSeconds: number;
   meetName: string;
+  source?: "MANUAL" | "CSV" | "MEET_IMPORT";
+  notes?: string | null;
 }
 
 export interface Goal {
@@ -122,4 +124,56 @@ export interface TeamMemberAnalytics extends Athlete {
   swimPowerIndex: number;
   totalImprovementPercent: number;
   fastestEventTime: number;
+}
+
+export interface CommunityMember {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  role: "OWNER" | "MEMBER";
+  joinedAt: string;
+  analytics: {
+    totalSwims: number;
+    strongestEvent?: SwimEvent;
+    swimPowerIndex: number;
+    yearlyImprovement: number;
+  };
+}
+
+export interface CommunitySummary {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  joinCode: string;
+  memberCount: number;
+}
+
+export interface FriendComparison {
+  user: CommunityMember;
+  friend: CommunityMember;
+  sharedEvents: {
+    event: SwimEvent;
+    userBest: number;
+    friendBest: number;
+    gapSeconds: number;
+  }[];
+}
+
+export interface UpcomingMeet {
+  id: string;
+  userId: string;
+  name: string;
+  location?: string | null;
+  startDate: string;
+  targetEvents: SwimEvent[];
+  notes?: string | null;
+  daysUntil: number;
+}
+
+export interface MotivationTip {
+  id: string;
+  title: string;
+  body: string;
+  tone: "focus" | "confidence" | "recovery" | "race";
 }

@@ -8,30 +8,38 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
+  id        String    @id @default(cuid())
+  clerkId   String    @unique
+  email     String    @unique
   name      String
-  role      UserRole @default(ATHLETE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  imageUrl  String?
+  role      UserRole  @default(ATHLETE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  swims       SwimResult[]
-  goals       Goal[]
-  predictions Prediction[]
-  memberships TeamMembership[]
+  swims                    SwimResult[]
+  goals                    Goal[]
+  predictions              Prediction[]
+  memberships              TeamMembership[]
+  ownedCommunities         Community[]           @relation("CommunityOwner")
+  communityMemberships     CommunityMembership[]
+  sentFriendRequests       Friendship[]          @relation("FriendRequester")
+  receivedFriendRequests   Friendship[]          @relation("FriendAddressee")
+  upcomingMeets            UpcomingMeet[]
 }
 
 model SwimResult {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   userId      String
   date        DateTime
   event       SwimEvent
   course      Course
   timeSeconds Float
   meetName    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  source      SwimSource @default(MANUAL)
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -87,6 +95,67 @@ model TeamMembership {
   @@unique([teamId, userId])
 }
 
+model Community {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  slug        String   @unique
+  description String?
+  joinCode    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User                  @relation("CommunityOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships CommunityMembership[]
+
+  @@index([ownerId])
+}
+
+model CommunityMembership {
+  id          String        @id @default(cuid())
+  communityId String
+  userId      String
+  role        CommunityRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@index([userId])
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  requester User @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+model UpcomingMeet {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  location    String?
+  startDate   DateTime
+  targetEvents SwimEvent[]
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startDate])
+}
+
 enum UserRole {
   ATHLETE
   COACH
@@ -99,10 +168,27 @@ enum TeamRole {
   OWNER
 }
 
+enum CommunityRole {
+  OWNER
+  MEMBER
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
 enum Course {
   SCM
   LCM
   SCY
+}
+
+enum SwimSource {
+  MANUAL
+  CSV
+  MEET_IMPORT
 }
 
 enum SwimEvent {

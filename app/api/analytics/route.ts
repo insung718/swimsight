@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
-import { buildDashboardAnalytics } from "@/lib/analytics";
-import { sampleGoals, sampleSwims } from "@/lib/sample-data";
+import { getAuthContext } from "@/lib/auth-context";
+import { hasDatabaseConfig } from "@/lib/prisma";
+import { getDashboardAnalyticsForUser } from "@/lib/services/swim-service";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const analytics = buildDashboardAnalytics(sampleSwims, sampleGoals[0]);
+  const context = await getAuthContext();
+  const analytics = await getDashboardAnalyticsForUser(context?.userId);
 
-  return NextResponse.json({ analytics });
+  return NextResponse.json({
+    mode: context && hasDatabaseConfig() ? "account" : "demo",
+    analytics
+  });
 }

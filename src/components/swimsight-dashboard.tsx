@@ -2,15 +2,19 @@
 
 import { Activity, Medal, TrendingUp, Waves } from "lucide-react";
 import { CsvImporter } from "@/components/csv-importer";
+import { CommunityHub } from "@/components/community-hub";
 import { EventRankings } from "@/components/event-rankings";
 import { GoalTracker } from "@/components/goal-tracker";
+import { ManualTimeEntry } from "@/components/manual-time-entry";
 import { MetricCard } from "@/components/metric-card";
+import { MotivationPanel } from "@/components/motivation-panel";
 import { PersonalBestTable } from "@/components/personal-best-table";
 import { PredictionGrid } from "@/components/prediction-grid";
 import { ProgressionChart } from "@/components/progression-chart";
 import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { TeamDashboard } from "@/components/team-dashboard";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import type { DashboardAnalytics, Goal, SwimResult, TeamMemberAnalytics } from "@/types/swim";
 
@@ -93,10 +97,19 @@ export function SwimSightDashboard({
 
         <GoalTracker initialGoal={goals[0]} swims={swims} />
 
+        <ManualTimeEntry />
+
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+          <UpcomingMeetPanel />
+          <MotivationPanel />
+        </div>
+
         <div className="grid min-w-0 gap-4 xl:grid-cols-[1fr_1fr]">
           <CsvImporter />
           <TeamDashboard members={teamMembers} />
         </div>
+
+        <CommunityHub />
       </div>
     </main>
   );

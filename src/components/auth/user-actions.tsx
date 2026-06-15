@@ -20,7 +20,7 @@ export function UserActions() {
         <SignInButton mode="modal">
           <button className="inline-flex h-10 items-center gap-2 rounded-md bg-navy-900 px-3 text-sm font-semibold text-white transition hover:bg-navy-700 dark:bg-aqua-400 dark:text-navy-950">
             <LogIn aria-hidden className="h-4 w-4" />
-            Sign in
+            Sign in with Google
           </button>
         </SignInButton>
       </SignedOut>

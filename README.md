@@ -20,6 +20,11 @@ SwimSight is a modern swim analytics MVP for competitive swimmers, coaches, and 
 - Analytics engine for improvement rate, rankings, consistency, trends, predictions, goal pace, and SPI
 - Regression predictions for 30, 90, 180, and 365 days
 - Goal tracker with required weekly/monthly improvement, current pace, and likelihood
+- Google-ready Clerk authentication and per-user account sync
+- Manual time entry plus CSV upload/import
+- Upcoming meet countdowns with target events
+- Communities, join codes, friend requests, and comparison-ready community analytics
+- Motivational tips generated from training data and upcoming meets
 - Coach/team dashboard with leaderboard, most improved swimmer, fastest swimmer, and team progress
 - CSV upload and validation for `Date,Event,Time`
 - Light/dark mode and responsive layouts
@@ -39,7 +44,11 @@ The app runs in demo mode without Clerk keys. Add Clerk values to `.env.local` t
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL="/"
+NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL="/"
 ```
+
+Enable Google OAuth in the Clerk dashboard under **User & Authentication > Social connections**. Once enabled, the app's sign-in button creates a real user account and the backend upserts that user into PostgreSQL.
 
 ## Database
 
@@ -52,25 +61,36 @@ npm run db:migrate
 
 The Prisma schema includes users, swim results, goals, predictions, teams, and memberships. The current UI uses seed data so the MVP is immediately demoable.
 
+The v1 schema also includes:
+
+- `Community` and `CommunityMembership` for swim groups and join codes
+- `Friendship` for friend requests and accepted connections
+- `UpcomingMeet` for countdowns and target events
+- `SwimSource` for distinguishing manual, CSV, and meet-import results
+
 ## API
+
+All write endpoints require Clerk auth and `DATABASE_URL`. Read endpoints fall back to demo data when auth/database config is missing.
+
+### `GET /api/me`
+
+Returns the current account, or demo account metadata.
 
 ### `GET /api/swims`
 
-Returns demo swim results.
+Returns the signed-in user's swims, or demo swim results.
+
+### `POST /api/swims`
+
+Creates a manual swim result.
 
 ```json
 {
-  "swims": [
-    {
-      "id": "swim-004",
-      "userId": "demo-athlete",
-      "date": "2026-03-16",
-      "event": "50 Freestyle",
-      "course": "LCM",
-      "timeSeconds": 25.56,
-      "meetName": "BIS HCMC Time Trial"
-    }
-  ]
+  "date": "2026-03-16",
+  "event": "100 Butterfly",
+  "course": "LCM",
+  "timeSeconds": 63.8,
+  "meetName": "BIS HCMC Time Trial"
 }
 ```
 
@@ -80,7 +100,7 @@ Returns dashboard analytics: overview, PBs, rankings, predictions, goal projecti
 
 ### `POST /api/import`
 
-Validates CSV text.
+Validates CSV text. Pass `"persist": true` to save valid rows to the signed-in account.
 
 Request:
 
@@ -107,6 +127,66 @@ Response:
 }
 ```
 
+### `POST /api/goals`
+
+Creates a goal for the signed-in user.
+
+### `GET /api/meets`
+
+Returns upcoming meets with `daysUntil`.
+
+### `POST /api/meets`
+
+Creates an upcoming meet.
+
+```json
+{
+  "name": "City Championships",
+  "location": "Ho Chi Minh City",
+  "startDate": "2027-03-01",
+  "targetEvents": ["50 Freestyle", "100 Butterfly"]
+}
+```
+
+### `GET /api/motivation`
+
+Returns short motivational tips based on swims and the next meet.
+
+### `GET /api/communities`
+
+Lists communities for the signed-in user.
+
+### `POST /api/communities`
+
+Creates a community and owner membership.
+
+```json
+{
+  "name": "BIS HCMC Swim Team",
+  "description": "School swim team comparison group"
+}
+```
+
+### `POST /api/communities/join`
+
+Joins a community by join code.
+
+### `GET /api/communities/:communityId/compare`
+
+Returns comparison-ready member analytics for a community.
+
+### `GET /api/friends`
+
+Lists friend requests and accepted connections.
+
+### `POST /api/friends`
+
+Creates a friend request by email.
+
+### `PATCH /api/friends`
+
+Accepts or blocks an incoming friend request.
+
 ## Tests
 
 ```bash
@@ -128,7 +208,7 @@ tests/e2e/            Playwright smoke tests
 
 ## Next Steps
 
-1. Replace demo data with Prisma-backed queries scoped by Clerk user ID.
-2. Add coach-created teams and invitations.
-3. Persist CSV imports into PostgreSQL.
-4. Add AI training recommendations and time-standard comparisons after the MVP is stable.
+1. Add real Clerk and production Postgres env vars in Vercel.
+2. Run Prisma migrations against the production database.
+3. Connect the Google Stitch frontend to the v1 API contracts.
+4. Add AI training recommendations and time-standard comparisons after v1 is stable.
