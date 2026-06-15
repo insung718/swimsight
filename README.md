@@ -59,6 +59,12 @@ npm run db:generate
 npm run db:migrate
 ```
 
+For production deploys, run:
+
+```bash
+npm run db:deploy
+```
+
 The Prisma schema includes users, swim results, goals, predictions, teams, and memberships. The current UI uses seed data so the MVP is immediately demoable.
 
 The v1 schema also includes:
