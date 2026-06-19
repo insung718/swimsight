@@ -1,13 +1,22 @@
 import Image from "next/image";
-import { ArrowRight, BarChart3, CalendarDays, ShieldCheck, Users, Waves } from "lucide-react";
+import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users, Waves } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import DisplayCards from "@/components/ui/display-cards";
+import { Typewriter } from "@/components/ui/typewriter-text";
 
 const features = [
   [BarChart3, "01", "See every race become progress.", "Personal bests, event trends, consistency, and future projections update from the times you actually enter."],
   [CalendarDays, "02", "Train toward something real.", "Set a goal, add your next meet, and understand the pace required to arrive ready."],
   [Users, "03", "Better together.", "Build private communities, add friends, and compare progress without turning training into noise."]
 ] as const;
+
+const seasonCards = [
+  { icon: <Trophy aria-hidden className="h-4 w-4" />, title: "Personal best", description: "Detected from every result", detail: "Automatic" },
+  { icon: <Flag aria-hidden className="h-4 w-4" />, title: "Goal pace", description: "Recalculated as you improve", detail: "Always current" },
+  { icon: <CalendarCheck2 aria-hidden className="h-4 w-4" />, title: "Next meet", description: "Your countdown, in focus", detail: "Ready when you are" },
+];
 
 export function LandingPage() {
   return (
@@ -56,18 +65,32 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="performance" className="overflow-hidden bg-[#050505] py-24 text-white sm:py-36">
-        <div className="mx-auto max-w-6xl px-5">
-          <Reveal className="text-center"><p className="text-sm font-semibold text-cyan-300">Precision without the clutter.</p><h2 className="mx-auto mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Add one time. See the entire picture move.</h2></Reveal>
-          <Reveal className="relative mx-auto mt-16 max-w-5xl" delay={120}>
-            <div className="overflow-hidden rounded-[28px] border border-white/15 bg-[#0d1117] shadow-[0_50px_120px_rgba(0,190,230,0.15)]">
+      <section className="overflow-hidden bg-[#dff8ff] py-24 sm:py-36">
+        <div className="mx-auto max-w-6xl px-5 text-center">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-800">Built around your season.</p>
+            <h2 className="mx-auto mt-5 max-w-5xl text-balance text-4xl font-semibold leading-tight sm:text-7xl">Every result becomes</h2>
+            <div className="mt-2 min-h-[1.25em] text-4xl font-semibold leading-tight text-[#0067b9] sm:text-7xl">
+              <Typewriter text={["a clearer trend.", "a smarter goal.", "your next breakthrough."]} loop />
+            </div>
+          </Reveal>
+          <Reveal className="mt-12" delay={120}>
+            <p className="mx-auto max-w-2xl text-lg leading-8 text-black/58">One entry updates the story around it, while your account stays completely empty until you decide what belongs there.</p>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="performance" className="overflow-hidden bg-[#050505] text-white">
+        <ContainerScroll title={<><p className="text-sm font-semibold text-cyan-300">Precision without the clutter.</p><h2 className="mx-auto mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Add one time. See the entire picture move.</h2></>}>
               <div className="flex h-12 items-center gap-2 border-b border-white/10 px-5"><span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-cyan-400" /><span className="ml-auto text-xs text-white/40">Your season</span></div>
               <div className="grid min-h-[420px] gap-8 p-6 md:grid-cols-[0.36fr_0.64fr] md:p-10">
                 <div><p className="text-xs font-medium uppercase text-white/40">Current best</p><div className="mt-3 font-mono text-5xl font-medium text-cyan-300">--:--.--</div><p className="mt-7 text-sm leading-6 text-white/45">Your dashboard begins empty. Every number appears only after you add it.</p></div>
                 <div className="relative min-h-[250px] overflow-hidden rounded-2xl bg-white/[0.035]"><div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:25%_25%]" /><svg aria-hidden className="absolute inset-0 h-full w-full" viewBox="0 0 600 300"><path d="M30 238 C120 220, 155 232, 230 184 S360 175, 420 108 S510 92, 570 50" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeWidth="5" /></svg></div>
               </div>
-            </div>
-          </Reveal>
+        </ContainerScroll>
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-28 lg:grid-cols-[0.8fr_1.2fr] lg:items-center sm:pb-36">
+          <Reveal><p className="text-sm font-semibold text-cyan-300">A closer look</p><h2 className="mt-4 text-balance text-4xl font-semibold leading-tight sm:text-6xl">The moments that move your season.</h2><p className="mt-6 max-w-xl text-lg leading-8 text-white/55">SwimSight keeps the important changes visible and lets everything else get out of the way.</p></Reveal>
+          <Reveal delay={100}><DisplayCards cards={seasonCards} /></Reveal>
         </div>
       </section>
 
