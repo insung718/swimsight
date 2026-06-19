@@ -24,6 +24,10 @@ export function serverError(message = "Something went wrong.") {
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
+export function serviceUnavailable(message = "Service is not configured.") {
+  return NextResponse.json({ error: message }, { status: 503 });
+}
+
 export function validationError(details: unknown) {
   return badRequest("Validation failed.", details);
 }

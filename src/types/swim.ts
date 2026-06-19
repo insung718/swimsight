@@ -97,8 +97,8 @@ export interface DashboardAnalytics {
   overview: {
     totalSwims: number;
     personalBestCount: number;
-    bestEvent: SwimEvent;
-    mostImprovedEvent: SwimEvent;
+    bestEvent?: SwimEvent;
+    mostImprovedEvent?: SwimEvent;
     weeklyImprovement: number;
     monthlyImprovement: number;
     yearlyImprovement: number;
@@ -108,7 +108,7 @@ export interface DashboardAnalytics {
   strongestEvents: EventRanking[];
   weakestEvents: EventRanking[];
   predictions: Prediction[];
-  goalProjection: GoalProjection;
+  goalProjection?: GoalProjection;
   swimPowerIndex: SwimPowerIndex;
 }
 

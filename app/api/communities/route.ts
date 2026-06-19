@@ -1,59 +1,28 @@
 import { NextResponse } from "next/server";
-import { badRequest, created, unauthorized, validationError } from "@/lib/api";
-import { getAuthContext } from "@/lib/auth-context";
-import { hasDatabaseConfig } from "@/lib/prisma";
+import { created } from "@/lib/api";
+import { requireApiAccount } from "@/lib/security/api-auth";
+import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createCommunity, listCommunitiesForUser } from "@/lib/services/community-service";
-import { communityCreateSchema, parseJsonBody } from "@/lib/validation";
+import { communityCreateSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const context = await getAuthContext();
-
-  if (!context || !hasDatabaseConfig()) {
-    return NextResponse.json({
-      mode: "demo",
-      communities: [
-        {
-          id: "demo-community",
-          name: "BIS HCMC Swim Team",
-          slug: "bis-hcmc-swim-team",
-          description: "Demo community for comparing swimmers.",
-          joinCode: "DEMO24",
-          memberCount: 4
-        }
-      ]
-    });
-  }
-
-  const communities = await listCommunitiesForUser(context.userId);
-
-  return NextResponse.json({
-    mode: "account",
-    communities
-  });
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  return NextResponse.json({ communities: await listCommunitiesForUser(account.context.userId) });
 }
 
 export async function POST(request: Request) {
-  const context = await getAuthContext();
-
-  if (!context) {
-    return unauthorized("Sign in with Google before creating communities.");
-  }
-
-  if (!hasDatabaseConfig()) {
-    return badRequest("DATABASE_URL is required before communities can be saved.");
-  }
-
-  const body = await request.json().catch(() => null);
-  const parsed = parseJsonBody(communityCreateSchema, body);
-
-  if (!parsed.ok) {
-    return validationError(parsed.errors);
-  }
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, communityCreateSchema);
+  if (!parsed.ok) return parsed.response;
 
   const community = await createCommunity({
-    ownerId: context.userId,
+    ownerId: account.context.userId,
     ...parsed.data
   });
 

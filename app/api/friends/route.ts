@@ -1,78 +1,48 @@
 import { NextResponse } from "next/server";
-import { badRequest, created, notFound, unauthorized, validationError } from "@/lib/api";
-import { getAuthContext } from "@/lib/auth-context";
-import { hasDatabaseConfig } from "@/lib/prisma";
+import { created, notFound, ok } from "@/lib/api";
+import { requireApiAccount } from "@/lib/security/api-auth";
+import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createFriendRequest, listFriendships, updateFriendship } from "@/lib/services/friend-service";
-import { friendActionSchema, friendRequestSchema, parseJsonBody } from "@/lib/validation";
+import { friendActionSchema, friendRequestSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const context = await getAuthContext();
-
-  if (!context || !hasDatabaseConfig()) {
-    return NextResponse.json({
-      mode: "demo",
-      friendships: []
-    });
-  }
-
-  return NextResponse.json({
-    mode: "account",
-    friendships: await listFriendships(context.userId)
-  });
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  return NextResponse.json({ friendships: await listFriendships(account.context.userId) });
 }
 
 export async function POST(request: Request) {
-  const context = await getAuthContext();
-
-  if (!context) {
-    return unauthorized("Sign in with Google before adding friends.");
-  }
-
-  if (!hasDatabaseConfig()) {
-    return badRequest("DATABASE_URL is required before friend requests can be saved.");
-  }
-
-  const body = await request.json().catch(() => null);
-  const parsed = parseJsonBody(friendRequestSchema, body);
-
-  if (!parsed.ok) {
-    return validationError(parsed.errors);
-  }
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, friendRequestSchema);
+  if (!parsed.ok) return parsed.response;
 
   const friendship = await createFriendRequest({
-    requesterId: context.userId,
+    requesterId: account.context.userId,
     email: parsed.data.email
   });
 
   if (!friendship) {
-    return notFound("No SwimSight account exists for that email yet.");
+    return ok({ message: "If that account exists, the request has been processed." }, 202);
   }
 
   return created({ friendship });
 }
 
 export async function PATCH(request: Request) {
-  const context = await getAuthContext();
-
-  if (!context) {
-    return unauthorized("Sign in with Google before responding to friend requests.");
-  }
-
-  if (!hasDatabaseConfig()) {
-    return badRequest("DATABASE_URL is required before friend requests can be saved.");
-  }
-
-  const body = await request.json().catch(() => null);
-  const parsed = parseJsonBody(friendActionSchema, body);
-
-  if (!parsed.ok) {
-    return validationError(parsed.errors);
-  }
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, friendActionSchema);
+  if (!parsed.ok) return parsed.response;
 
   const friendship = await updateFriendship({
-    userId: context.userId,
+    userId: account.context.userId,
     ...parsed.data
   });
 

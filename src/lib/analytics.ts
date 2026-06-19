@@ -330,7 +330,28 @@ function calculateSwimPowerIndex(rankings: EventRanking[]): SwimPowerIndex {
   return { score, level: "Beginner" };
 }
 
-export function buildDashboardAnalytics(swims: SwimResult[], goal: Goal): DashboardAnalytics {
+export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal): DashboardAnalytics {
+  if (!swims.length) {
+    return {
+      overview: {
+        totalSwims: 0,
+        personalBestCount: 0,
+        bestEvent: undefined,
+        mostImprovedEvent: undefined,
+        weeklyImprovement: 0,
+        monthlyImprovement: 0,
+        yearlyImprovement: 0
+      },
+      personalBests: [],
+      rankings: [],
+      strongestEvents: [],
+      weakestEvents: [],
+      predictions: [],
+      goalProjection: undefined,
+      swimPowerIndex: { score: 0, level: "Beginner" }
+    };
+  }
+
   const rankings = rankEvents(swims);
   const personalBests = getPersonalBests(swims);
   const mostImproved = [...rankings].sort((a, b) => b.improvementPercent - a.improvementPercent)[0];
@@ -350,7 +371,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal: Goal): Dashbo
     strongestEvents: rankings.slice(0, 3),
     weakestEvents: rankings.slice(-3).reverse(),
     predictions: generatePredictions(swims),
-    goalProjection: calculateGoalProjection(swims, goal),
+    goalProjection: goal ? calculateGoalProjection(swims, goal) : undefined,
     swimPowerIndex: calculateSwimPowerIndex(rankings)
   };
 }

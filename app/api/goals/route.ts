@@ -1,31 +1,21 @@
-import { badRequest, created, unauthorized, validationError } from "@/lib/api";
-import { getAuthContext } from "@/lib/auth-context";
-import { hasDatabaseConfig } from "@/lib/prisma";
+import { created } from "@/lib/api";
+import { requireApiAccount } from "@/lib/security/api-auth";
+import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createGoal } from "@/lib/services/swim-service";
-import { goalSchema, parseJsonBody } from "@/lib/validation";
+import { goalSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const context = await getAuthContext();
-
-  if (!context) {
-    return unauthorized("Sign in with Google before saving goals.");
-  }
-
-  if (!hasDatabaseConfig()) {
-    return badRequest("DATABASE_URL is required before goals can be saved.");
-  }
-
-  const body = await request.json().catch(() => null);
-  const parsed = parseJsonBody(goalSchema, body);
-
-  if (!parsed.ok) {
-    return validationError(parsed.errors);
-  }
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, goalSchema);
+  if (!parsed.ok) return parsed.response;
 
   const goal = await createGoal({
-    userId: context.userId,
+    userId: account.context.userId,
     ...parsed.data
   });
 

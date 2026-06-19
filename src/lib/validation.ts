@@ -4,51 +4,71 @@ import { supportedEvents } from "@/lib/events";
 export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
 
+const cleanText = (min: number, max: number) => z
+  .string()
+  .trim()
+  .min(min)
+  .max(max)
+  .transform((value) => Array.from(value.normalize("NFKC")).filter((character) => {
+    const code = character.charCodeAt(0);
+    return code === 9 || code === 10 || code === 13 || (code >= 32 && code !== 127);
+  }).join(""));
+
 const dateSchema = z
   .string()
-  .min(1)
-  .refine((value) => !Number.isNaN(new Date(value).getTime()), "Date must be valid.");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must use YYYY-MM-DD.")
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }, "Date must be valid.");
 
 export const manualSwimSchema = z.object({
   date: dateSchema,
   event: swimEventSchema,
   course: courseSchema.default("LCM"),
-  timeSeconds: z.number().positive().max(7_200),
-  meetName: z.string().trim().min(1).max(120),
-  notes: z.string().trim().max(500).optional()
-});
+  timeSeconds: z.number().finite().positive().max(7_200),
+  meetName: cleanText(1, 120),
+  notes: cleanText(1, 500).optional()
+}).strict();
 
 export const goalSchema = z.object({
   event: swimEventSchema,
-  targetTime: z.number().positive().max(7_200),
+  targetTime: z.number().finite().positive().max(7_200),
   targetDate: dateSchema
-});
+}).strict();
 
 export const communityCreateSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-  description: z.string().trim().max(240).optional()
-});
+  name: cleanText(2, 80),
+  description: cleanText(1, 240).optional()
+}).strict();
 
 export const communityJoinSchema = z.object({
-  joinCode: z.string().trim().min(5).max(24)
-});
+  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{5,24}$/)
+}).strict();
 
 export const friendRequestSchema = z.object({
-  email: z.string().trim().email()
-});
+  email: z.string().trim().toLowerCase().email().max(254)
+}).strict();
 
 export const friendActionSchema = z.object({
-  friendshipId: z.string().trim().min(1),
+  friendshipId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
   action: z.enum(["accept", "block"])
-});
+}).strict();
 
 export const upcomingMeetSchema = z.object({
-  name: z.string().trim().min(2).max(120),
-  location: z.string().trim().max(120).optional(),
+  name: cleanText(2, 120),
+  location: cleanText(1, 120).optional(),
   startDate: dateSchema,
   targetEvents: z.array(swimEventSchema).max(8).default([]),
-  notes: z.string().trim().max(500).optional()
-});
+  notes: cleanText(1, 500).optional()
+}).strict();
+
+export const csvImportSchema = z.object({
+  csv: z.string().min(1).max(100_000),
+  persist: z.boolean().default(false)
+}).strict();
+
+export const communityIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/);
 
 export function parseJsonBody<T>(schema: z.ZodSchema<T>, body: unknown) {
   const parsed = schema.safeParse(body);

@@ -1,28 +1,28 @@
 "use client";
 
 import { Save } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supportedEvents } from "@/lib/events";
-import { formatTime, parseTimeInput } from "@/lib/utils";
-import type { Course, SwimEvent, SwimResult } from "@/types/swim";
+import { parseTimeInput } from "@/lib/utils";
+import type { Course, SwimEvent } from "@/types/swim";
 
 const courses: Course[] = ["LCM", "SCM", "SCY"];
 
 export function ManualTimeEntry() {
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const [date, setDate] = useState(today);
-  const [event, setEvent] = useState<SwimEvent>("100 Butterfly");
+  const router = useRouter();
+  const [date, setDate] = useState("");
+  const [event, setEvent] = useState<SwimEvent | "">("");
   const [course, setCourse] = useState<Course>("LCM");
-  const [time, setTime] = useState("1:03.80");
-  const [meetName, setMeetName] = useState("Practice time trial");
-  const [status, setStatus] = useState("Ready to add a swim.");
-  const [drafts, setDrafts] = useState<SwimResult[]>([]);
+  const [time, setTime] = useState("");
+  const [meetName, setMeetName] = useState("");
+  const [status, setStatus] = useState("");
 
   async function submitTime() {
     const timeSeconds = parseTimeInput(time);
 
-    if (!Number.isFinite(timeSeconds) || timeSeconds <= 0) {
-      setStatus("Enter a valid time like 25.56 or 1:03.80.");
+    if (!date || !event || !meetName.trim() || !Number.isFinite(timeSeconds) || timeSeconds <= 0) {
+      setStatus("Complete every field with a valid result.");
       return;
     }
 
@@ -41,23 +41,13 @@ export function ManualTimeEntry() {
     const result = await response.json();
 
     if (response.ok) {
-      setDrafts((current) => [result.swim, ...current].slice(0, 3));
       setStatus("Saved to your SwimSight account.");
+      setTime("");
+      setMeetName("");
+      router.refresh();
       return;
     }
-
-    const draft: SwimResult = {
-      id: `draft-${Date.now()}`,
-      userId: "draft",
-      date,
-      event,
-      course,
-      timeSeconds,
-      meetName,
-      source: "MANUAL"
-    };
-    setDrafts((current) => [draft, ...current].slice(0, 3));
-    setStatus(`${result.error ?? "Validated locally."} Draft shown below.`);
+    setStatus(result.error ?? "Could not save result.");
   }
 
   return (
@@ -92,8 +82,9 @@ export function ManualTimeEntry() {
           <select
             className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
             value={event}
-            onChange={(changeEvent) => setEvent(changeEvent.target.value as SwimEvent)}
+            onChange={(changeEvent) => setEvent(changeEvent.target.value as SwimEvent | "")}
           >
+            <option value="">Select event</option>
             {supportedEvents.map((swimEvent) => (
               <option key={swimEvent} value={swimEvent}>
                 {swimEvent}
@@ -119,6 +110,7 @@ export function ManualTimeEntry() {
           Time
           <input
             className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            placeholder="e.g. 1:03.80"
             value={time}
             onChange={(changeEvent) => setTime(changeEvent.target.value)}
           />
@@ -127,6 +119,7 @@ export function ManualTimeEntry() {
           Meet
           <input
             className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            placeholder="Meet name"
             value={meetName}
             onChange={(changeEvent) => setMeetName(changeEvent.target.value)}
           />
@@ -134,18 +127,6 @@ export function ManualTimeEntry() {
       </div>
 
       <p className="mt-3 text-sm text-navy-500 dark:text-navy-100">{status}</p>
-      {drafts.length > 0 && (
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {drafts.map((draft) => (
-            <div className="rounded-md bg-navy-50 p-3 text-sm dark:bg-white/[0.08]" key={draft.id}>
-              <div className="font-semibold text-navy-950 dark:text-white">{draft.event}</div>
-              <div className="mt-1 text-navy-600 dark:text-navy-100">
-                {formatTime(draft.timeSeconds)} · {draft.course}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

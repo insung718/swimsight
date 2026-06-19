@@ -1,29 +1,19 @@
 import { NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/auth-context";
-import { hasDatabaseConfig, prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { requireApiAccount } from "@/lib/security/api-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const context = await getAuthContext();
-
-  if (!context || !hasDatabaseConfig()) {
-    return NextResponse.json({
-      mode: "demo",
-      user: {
-        id: "demo-athlete",
-        name: "Demo Athlete",
-        email: "demo@swimsight.app"
-      }
-    });
-  }
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
 
   const user = await prisma.user.findUnique({
-    where: { id: context.userId }
+    where: { id: account.context.userId },
+    select: { id: true, name: true, email: true, imageUrl: true, role: true, createdAt: true }
   });
 
   return NextResponse.json({
-    mode: "account",
     user
   });
 }

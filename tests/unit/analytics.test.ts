@@ -7,7 +7,7 @@ import {
   getPersonalBests,
   linearRegression
 } from "@/lib/analytics";
-import { sampleGoals, sampleSwims } from "@/lib/sample-data";
+import { sampleGoals, sampleSwims } from "../fixtures/sample-data";
 
 describe("analytics engine", () => {
   it("calculates personal best improvements by event", () => {
@@ -48,6 +48,16 @@ describe("analytics engine", () => {
     expect(analytics.weakestEvents).toHaveLength(3);
     expect(analytics.predictions.length).toBeGreaterThan(3);
     expect(analytics.swimPowerIndex.score).toBeGreaterThan(0);
+  });
+
+  it("keeps a new account genuinely empty", () => {
+    const analytics = buildDashboardAnalytics([]);
+
+    expect(analytics.overview.totalSwims).toBe(0);
+    expect(analytics.overview.bestEvent).toBeUndefined();
+    expect(analytics.personalBests).toEqual([]);
+    expect(analytics.predictions).toEqual([]);
+    expect(analytics.goalProjection).toBeUndefined();
   });
 
   it("fits a simple regression line", () => {

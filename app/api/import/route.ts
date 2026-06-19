@@ -1,33 +1,23 @@
-import { NextResponse } from "next/server";
-import { badRequest, created, unauthorized } from "@/lib/api";
-import { getAuthContext } from "@/lib/auth-context";
+import { badRequest, created } from "@/lib/api";
 import { validateSwimCsv } from "@/lib/csv";
-import { hasDatabaseConfig } from "@/lib/prisma";
+import { requireApiAccount } from "@/lib/security/api-auth";
+import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createManySwims } from "@/lib/services/swim-service";
+import { csvImportSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, csvImportSchema, 120_000);
+  if (!parsed.ok) return parsed.response;
+  const result = validateSwimCsv(parsed.data.csv);
 
-  if (!body?.csv || typeof body.csv !== "string") {
-    return NextResponse.json({ error: "Request body must include a csv string." }, { status: 400 });
-  }
-
-  const result = validateSwimCsv(body.csv);
-
-  if (!body.persist) {
-    return NextResponse.json(result);
-  }
-
-  const context = await getAuthContext();
-
-  if (!context) {
-    return unauthorized("Sign in with Google before importing swims.");
-  }
-
-  if (!hasDatabaseConfig()) {
-    return badRequest("DATABASE_URL is required before imported swims can be saved.");
+  if (!parsed.data.persist) {
+    return Response.json(result);
   }
 
   if (result.errors.length) {
@@ -36,7 +26,7 @@ export async function POST(request: Request) {
 
   const swims = await createManySwims(
     result.validRows.map((row) => ({
-      userId: context.userId,
+      userId: account.context.userId,
       ...row,
       notes: row.notes ?? undefined,
       source: "CSV"

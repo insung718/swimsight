@@ -6,17 +6,17 @@ import type { CommunitySummary } from "@/types/swim";
 
 export function CommunityHub() {
   const [communities, setCommunities] = useState<CommunitySummary[]>([]);
-  const [name, setName] = useState("My swim crew");
+  const [name, setName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [friendEmail, setFriendEmail] = useState("");
-  const [status, setStatus] = useState("Create a community or invite friends after sign-in.");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     fetch("/api/communities")
       .then((response) => response.json())
       .then((data) => {
         setCommunities(data.communities ?? []);
-        setStatus(data.mode === "account" ? "Community data synced." : "Demo community shown.");
+        setStatus("");
       })
       .catch(() => setStatus("Could not load communities."));
   }, []);
@@ -81,6 +81,7 @@ export function CommunityHub() {
         <div className="space-y-2">
           <input
             className="h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            placeholder="Community name"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
@@ -128,11 +129,12 @@ export function CommunityHub() {
 
       <p className="mt-3 text-sm text-navy-500 dark:text-navy-100">{status}</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {communities.length === 0 && <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-white/38 sm:col-span-2">No communities yet.</div>}
         {communities.slice(0, 4).map((community) => (
           <div className="rounded-lg bg-navy-50 p-3 dark:bg-white/[0.08]" key={community.id}>
             <div className="font-semibold text-navy-950 dark:text-white">{community.name}</div>
             <div className="mt-1 text-sm text-navy-500 dark:text-navy-100">
-              {community.memberCount} members · code {community.joinCode}
+              {community.memberCount} members{community.joinCode ? ` · code ${community.joinCode}` : ""}
             </div>
           </div>
         ))}

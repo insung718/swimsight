@@ -6,10 +6,11 @@ export async function listFriendships(userId: string) {
       OR: [{ requesterId: userId }, { addresseeId: userId }]
     },
     include: {
-      requester: true,
-      addressee: true
+      requester: { select: { id: true, name: true, imageUrl: true } },
+      addressee: { select: { id: true, name: true, imageUrl: true } }
     },
-    orderBy: { updatedAt: "desc" }
+    orderBy: { updatedAt: "desc" },
+    take: 100
   });
 }
 

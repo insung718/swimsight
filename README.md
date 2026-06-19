@@ -39,11 +39,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-The app runs in demo mode without Clerk keys. Add Clerk values to `.env.local` to enable sign-in controls:
+Without Clerk keys, the public product page remains available but account features stay locked. Add Clerk values to `.env.local` to enable sign-in:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL="/"
 NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL="/"
 ```
@@ -65,7 +66,7 @@ For production deploys, run:
 npm run db:deploy
 ```
 
-The Prisma schema includes users, swim results, goals, predictions, teams, and memberships. The current UI uses seed data so the MVP is immediately demoable.
+The Prisma schema includes users, swim results, goals, predictions, teams, and memberships. New accounts start empty and all displayed performance data comes from that authenticated user.
 
 The v1 schema also includes:
 
@@ -76,15 +77,31 @@ The v1 schema also includes:
 
 ## API
 
-All write endpoints require Clerk auth and `DATABASE_URL`. Read endpoints fall back to demo data when auth/database config is missing.
+All account API endpoints require Clerk auth and `DATABASE_URL`. They fail closed with `401` or `503` when auth/database configuration is missing.
 
 ### `GET /api/me`
 
-Returns the current account, or demo account metadata.
+Returns the current authenticated account.
 
 ### `GET /api/swims`
 
-Returns the signed-in user's swims, or demo swim results.
+Returns the signed-in user's swims.
+
+## Security
+
+- Every `/api/*` request is rate limited by IP; authenticated requests also receive a user quota.
+- Production should configure Upstash Redis for distributed limits:
+
+```bash
+UPSTASH_REDIS_REST_URL="https://..."
+UPSTASH_REDIS_REST_TOKEN="..."
+```
+
+- Local development falls back to an in-memory limiter.
+- JSON writes enforce content type, body-size limits, same-origin checks, strict Zod schemas, allowlisted enums, normalized text, and unknown-field rejection.
+- CSV imports are capped at 500 rows and reject unsupported or duplicate headers.
+- Secrets belong only in `.env.local` and Vercel environment variables. Never prefix server secrets with `NEXT_PUBLIC_`.
+- See [SECURITY.md](./SECURITY.md) for reporting and operational guidance.
 
 ### `POST /api/swims`
 

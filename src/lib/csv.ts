@@ -44,6 +44,10 @@ export function validateSwimCsv(csv: string): CsvImportResult {
     .filter(Boolean);
   const result: CsvImportResult = { validRows: [], errors: [] };
 
+  if (lines.length > 501) {
+    return { validRows: [], errors: [{ row: 1, message: "CSV imports are limited to 500 results." }] };
+  }
+
   if (lines.length < 2) {
     return {
       validRows: [],
@@ -52,6 +56,11 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   }
 
   const headers = splitCsvLine(lines[0]).map((header) => header.toLowerCase());
+  const allowedHeaders = new Set(["date", "event", "time", "course", "meet"]);
+  const unexpectedHeader = headers.find((header) => !allowedHeaders.has(header));
+  if (unexpectedHeader || new Set(headers).size !== headers.length) {
+    return { validRows: [], errors: [{ row: 1, message: "CSV contains duplicate or unsupported headers." }] };
+  }
   const dateIndex = headers.indexOf("date");
   const eventIndex = headers.indexOf("event");
   const timeIndex = headers.indexOf("time");
@@ -68,13 +77,17 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   lines.slice(1).forEach((line, index) => {
     const rowNumber = index + 2;
     const cells = splitCsvLine(line);
+    if (cells.length !== headers.length || cells.some((cell) => cell.length > 500)) {
+      result.errors.push({ row: rowNumber, message: "Row has an invalid column count or value length." });
+      return;
+    }
     const date = cells[dateIndex];
     const event = normalizeEvent(cells[eventIndex] ?? "");
     const timeSeconds = parseTimeInput(cells[timeIndex] ?? "");
     const course = (cells[courseIndex] || "LCM").toUpperCase() as Course;
     const meetName = cells[meetIndex] || "Imported meet";
 
-    if (!date || Number.isNaN(new Date(date).getTime())) {
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T00:00:00.000Z`).getTime())) {
       result.errors.push({ row: rowNumber, message: "Date must be a valid ISO date." });
       return;
     }

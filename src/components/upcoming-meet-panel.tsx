@@ -1,33 +1,32 @@
 "use client";
 
 import { CalendarPlus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supportedEvents } from "@/lib/events";
 import type { SwimEvent, UpcomingMeet } from "@/types/swim";
 
 export function UpcomingMeetPanel() {
-  const defaultDate = useMemo(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-    return date.toISOString().slice(0, 10);
-  }, []);
   const [meets, setMeets] = useState<UpcomingMeet[]>([]);
-  const [name, setName] = useState("Next championship meet");
-  const [startDate, setStartDate] = useState(defaultDate);
-  const [targetEvent, setTargetEvent] = useState<SwimEvent>("100 Butterfly");
-  const [status, setStatus] = useState("Loading countdown.");
+  const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [targetEvent, setTargetEvent] = useState<SwimEvent | "">("");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     fetch("/api/meets")
       .then((response) => response.json())
       .then((data) => {
         setMeets(data.meets ?? []);
-        setStatus(data.mode === "account" ? "Synced to your account." : "Demo countdown active.");
+        setStatus("");
       })
       .catch(() => setStatus("Could not load meets."));
   }, []);
 
   async function addMeet() {
+    if (!name.trim() || !startDate || !targetEvent) {
+      setStatus("Complete the meet name, date, and target event.");
+      return;
+    }
     const payload = {
       name,
       startDate,
@@ -43,25 +42,11 @@ export function UpcomingMeetPanel() {
     if (response.ok) {
       setMeets((current) => [result.meet, ...current]);
       setStatus("Meet saved to your account.");
+      setName("");
+      setStartDate("");
       return;
     }
-
-    const meetDate = new Date(startDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    meetDate.setHours(0, 0, 0, 0);
-    setMeets((current) => [
-      {
-        id: `draft-meet-${Date.now()}`,
-        userId: "draft",
-        name,
-        startDate,
-        targetEvents: [targetEvent],
-        daysUntil: Math.ceil((meetDate.getTime() - today.getTime()) / 86_400_000)
-      },
-      ...current
-    ]);
-    setStatus(`${result.error ?? "Draft created locally."} Draft shown below.`);
+    setStatus(result.error ?? "Could not save meet.");
   }
 
   return (
@@ -79,6 +64,7 @@ export function UpcomingMeetPanel() {
       <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
         <input
           className="h-10 rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+          placeholder="Meet name"
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
@@ -91,8 +77,9 @@ export function UpcomingMeetPanel() {
         <select
           className="h-10 rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white sm:col-span-2"
           value={targetEvent}
-          onChange={(event) => setTargetEvent(event.target.value as SwimEvent)}
+          onChange={(event) => setTargetEvent(event.target.value as SwimEvent | "")}
         >
+          <option value="">Select target event</option>
           {supportedEvents.map((swimEvent) => (
             <option key={swimEvent} value={swimEvent}>
               {swimEvent}
@@ -110,6 +97,7 @@ export function UpcomingMeetPanel() {
 
       <p className="mt-3 text-sm text-navy-500 dark:text-navy-100">{status}</p>
       <div className="mt-3 space-y-2">
+        {meets.length === 0 && <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-white/38">No upcoming meets added.</div>}
         {meets.slice(0, 3).map((meet) => (
           <div className="rounded-lg bg-navy-50 p-3 dark:bg-white/[0.08]" key={meet.id}>
             <div className="flex items-start justify-between gap-3">

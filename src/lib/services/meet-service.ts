@@ -11,25 +11,9 @@ interface CreateMeetInput {
   notes?: string;
 }
 
-export function getDemoUpcomingMeet(): UpcomingMeet {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() + 24);
-
-  return {
-    id: "demo-meet",
-    userId: "demo-athlete",
-    name: "BIS HCMC Sprint Invitational",
-    location: "Ho Chi Minh City",
-    startDate: startDate.toISOString().slice(0, 10),
-    targetEvents: ["50 Freestyle", "50 Butterfly", "100 Butterfly"],
-    notes: "Sharpen starts, breakouts, and first 15m speed.",
-    daysUntil: 24
-  };
-}
-
-export async function listUpcomingMeets(userId?: string): Promise<UpcomingMeet[]> {
-  if (!hasDatabaseConfig() || !userId) {
-    return [getDemoUpcomingMeet()];
+export async function listUpcomingMeets(userId: string): Promise<UpcomingMeet[]> {
+  if (!hasDatabaseConfig()) {
+    return [];
   }
 
   const today = new Date();
@@ -41,7 +25,8 @@ export async function listUpcomingMeets(userId?: string): Promise<UpcomingMeet[]
         gte: today
       }
     },
-    orderBy: { startDate: "asc" }
+    orderBy: { startDate: "asc" },
+    take: 50
   });
 
   return meets.map(toUpcomingMeet);

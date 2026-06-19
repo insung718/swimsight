@@ -13,7 +13,7 @@ function slugify(value: string) {
 }
 
 function createJoinCode() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
+  return randomBytes(6).toString("base64url").toUpperCase().slice(0, 8);
 }
 
 function communitySummary(community: {
@@ -40,7 +40,7 @@ export async function createCommunity(input: {
   description?: string;
 }) {
   const baseSlug = slugify(input.name);
-  const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+  const slug = `${baseSlug}-${randomUUID().slice(0, 6)}`;
   const community = await prisma.community.create({
     data: {
       ownerId: input.ownerId,
@@ -71,10 +71,14 @@ export async function listCommunitiesForUser(userId: string) {
         }
       }
     },
-    orderBy: { createdAt: "asc" }
+    orderBy: { createdAt: "asc" },
+    take: 100
   });
 
-  return memberships.map((membership) => communitySummary(membership.community));
+  return memberships.map((membership) => ({
+    ...communitySummary(membership.community),
+    joinCode: membership.role === "OWNER" ? membership.community.joinCode : ""
+  }));
 }
 
 export async function joinCommunity(input: { userId: string; joinCode: string }) {
@@ -106,7 +110,7 @@ export async function joinCommunity(input: { userId: string; joinCode: string })
     include: { memberships: true }
   });
 
-  return communitySummary(updated);
+  return { ...communitySummary(updated), joinCode: "" };
 }
 
 function memberAnalytics(member: {
@@ -168,11 +172,13 @@ export async function getCommunityComparison(communityId: string, userId: string
     where: { id: communityId },
     include: {
       memberships: {
+        take: 200,
         include: {
           user: {
             include: {
               swims: {
-                orderBy: { date: "asc" }
+                orderBy: { date: "asc" },
+                take: 2_000
               }
             }
           }
@@ -187,7 +193,10 @@ export async function getCommunityComparison(communityId: string, userId: string
   }
 
   return {
-    community: communitySummary(community),
+    community: {
+      ...communitySummary(community),
+      joinCode: community.ownerId === userId ? community.joinCode : ""
+    },
     members: community.memberships.map(memberAnalytics)
   };
 }
@@ -246,3 +255,4 @@ export async function compareTwoMembers(input: {
     sharedEvents
   };
 }
+import { randomBytes, randomUUID } from "node:crypto";

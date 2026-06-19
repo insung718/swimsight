@@ -1,7 +1,6 @@
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
-import { sampleGoals, sampleSwims } from "@/lib/sample-data";
 import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimResult } from "@/types/swim";
 
 interface CreateSwimInput {
@@ -22,14 +21,15 @@ interface CreateGoalInput {
   targetDate: string;
 }
 
-export async function getSwimsForUser(userId?: string): Promise<SwimResult[]> {
-  if (!hasDatabaseConfig() || !userId) {
-    return sampleSwims;
+export async function getSwimsForUser(userId: string): Promise<SwimResult[]> {
+  if (!hasDatabaseConfig()) {
+    return [];
   }
 
   const swims = await prisma.swimResult.findMany({
     where: { userId },
-    orderBy: [{ date: "asc" }, { createdAt: "asc" }]
+    orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+    take: 2_000
   });
 
   return swims.map(toSwimResult);
@@ -53,13 +53,24 @@ export async function createSwim(input: CreateSwimInput) {
 }
 
 export async function createManySwims(rows: CreateSwimInput[]) {
-  const swims = await Promise.all(rows.map((row) => createSwim(row)));
-  return swims;
+  const swims = await prisma.$transaction(rows.map((input) => prisma.swimResult.create({
+    data: {
+      userId: input.userId,
+      date: new Date(input.date),
+      event: toPrismaEvent(input.event),
+      course: toPrismaCourse(input.course),
+      timeSeconds: input.timeSeconds,
+      meetName: input.meetName,
+      notes: input.notes,
+      source: input.source ?? "CSV"
+    }
+  })));
+  return swims.map(toSwimResult);
 }
 
-export async function getPrimaryGoal(userId?: string): Promise<Goal> {
-  if (!hasDatabaseConfig() || !userId) {
-    return sampleGoals[0];
+export async function getPrimaryGoal(userId: string): Promise<Goal | null> {
+  if (!hasDatabaseConfig()) {
+    return null;
   }
 
   const goal = await prisma.goal.findFirst({
@@ -67,15 +78,7 @@ export async function getPrimaryGoal(userId?: string): Promise<Goal> {
     orderBy: { targetDate: "asc" }
   });
 
-  if (!goal) {
-    return {
-      id: "default-goal",
-      userId,
-      event: "100 Butterfly",
-      targetTime: 59,
-      targetDate: "2027-03-01"
-    };
-  }
+  if (!goal) return null;
 
   return {
     id: goal.id,
@@ -105,9 +108,9 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
   };
 }
 
-export async function getDashboardAnalyticsForUser(userId?: string): Promise<DashboardAnalytics> {
+export async function getDashboardAnalyticsForUser(userId: string): Promise<DashboardAnalytics> {
   const swims = await getSwimsForUser(userId);
   const goal = await getPrimaryGoal(userId);
 
-  return buildDashboardAnalytics(swims.length ? swims : sampleSwims, goal);
+  return buildDashboardAnalytics(swims, goal ?? undefined);
 }

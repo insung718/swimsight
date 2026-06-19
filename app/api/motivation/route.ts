@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/auth-context";
+import { requireApiAccount } from "@/lib/security/api-auth";
 import { getSwimsForUser } from "@/lib/services/swim-service";
 import { listUpcomingMeets } from "@/lib/services/meet-service";
 import { generateMotivationTips } from "@/lib/services/motivation-service";
@@ -7,10 +7,11 @@ import { generateMotivationTips } from "@/lib/services/motivation-service";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const context = await getAuthContext();
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
   const [swims, meets] = await Promise.all([
-    getSwimsForUser(context?.userId),
-    listUpcomingMeets(context?.userId)
+    getSwimsForUser(account.context.userId),
+    listUpcomingMeets(account.context.userId)
   ]);
 
   return NextResponse.json({

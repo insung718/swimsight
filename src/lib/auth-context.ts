@@ -1,3 +1,4 @@
+import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 
@@ -21,11 +22,11 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   const clerkUser = await currentUser();
   const email =
     clerkUser?.primaryEmailAddress?.emailAddress ??
-    clerkUser?.emailAddresses[0]?.emailAddress ??
-    `${authResult.userId}@swimsight.local`;
+    clerkUser?.emailAddresses[0]?.emailAddress;
+  if (!email) return null;
   const name =
-    clerkUser?.fullName ??
-    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ??
+    clerkUser?.fullName ||
+    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
     "SwimSight Athlete";
 
   if (!hasDatabaseConfig()) {

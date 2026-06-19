@@ -5,18 +5,23 @@ import { useRef, useState } from "react";
 import { validateSwimCsv, type CsvImportResult } from "@/lib/csv";
 import { formatTime } from "@/lib/utils";
 
-const sampleCsv = `Date,Event,Time
-2026-03-16,50 Free,25.56
-2026-03-16,50 Fly,27.46
-2026-03-16,100 Fly,1:03.80`;
-
 export function CsvImporter() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [csv, setCsv] = useState(sampleCsv);
-  const [result, setResult] = useState<CsvImportResult>(() => validateSwimCsv(sampleCsv));
+  const [csv, setCsv] = useState("");
+  const [result, setResult] = useState<CsvImportResult>({ validRows: [], errors: [] });
+  const [status, setStatus] = useState("");
 
   function validate() {
     setResult(validateSwimCsv(csv));
+  }
+
+  async function importRows() {
+    const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true }) });
+    const data = await response.json();
+    if (!response.ok) { setStatus(data.error ?? "Could not import CSV."); return; }
+    setResult(data);
+    setStatus(`${data.swims?.length ?? 0} results imported.`);
+    window.location.reload();
   }
 
   async function handleFile(file: File) {
@@ -61,6 +66,7 @@ export function CsvImporter() {
             <CheckCircle2 aria-hidden className="h-4 w-4" />
             Validate
           </button>
+          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-aqua-400 px-3 text-sm font-semibold text-navy-950 transition hover:bg-white" type="button" onClick={importRows}>Import</button>
         </div>
       </div>
 
@@ -68,6 +74,7 @@ export function CsvImporter() {
         <textarea
           className="min-h-[180px] w-full resize-y rounded-lg border border-navy-100 bg-navy-50 p-3 font-mono text-sm text-navy-950 outline-none transition focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
           value={csv}
+          placeholder={'Date,Event,Time\n2026-03-16,50 Free,25.56'}
           onChange={(event) => setCsv(event.target.value)}
         />
         <div className="rounded-lg border border-navy-50 p-3 dark:border-white/10">
@@ -103,6 +110,7 @@ export function CsvImporter() {
           </div>
         </div>
       </div>
+      {status && <p className="mt-3 text-sm text-white/48">{status}</p>}
     </section>
   );
 }
