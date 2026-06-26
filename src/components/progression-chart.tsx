@@ -44,11 +44,11 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
   }, [selectedEvent, selectedYear, swims]);
 
   return (
-    <section className="rounded-lg border border-navy-100 bg-white p-4 shadow-panel dark:border-white/10 dark:bg-white/[0.04] lg:p-5">
+    <section className="dashboard-glass p-4 lg:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-navy-950 dark:text-white">Progression</h2>
-          <p className="text-sm text-navy-500 dark:text-navy-100">Date vs time by event</p>
+          <h2 className="text-lg font-semibold text-white">Progression</h2>
+          <p className="text-sm text-white/55">Date vs time by event</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <label className="sr-only" htmlFor="event-filter">
@@ -56,7 +56,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </label>
           <select
             id="event-filter"
-            className="h-10 rounded-md border border-navy-100 bg-white px-3 text-sm font-medium text-navy-900 outline-none transition focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
             value={selectedEvent}
             onChange={(event) => setSelectedEvent(event.target.value as SwimEvent)}
           >
@@ -71,7 +71,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </label>
           <select
             id="year-filter"
-            className="h-10 rounded-md border border-navy-100 bg-white px-3 text-sm font-medium text-navy-900 outline-none transition focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
             value={selectedYear}
             onChange={(event) => setSelectedYear(event.target.value)}
           >
@@ -105,7 +105,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
               width={58}
             />
             <Tooltip
-              contentStyle={{ borderRadius: 8, border: "1px solid rgba(9, 174, 202, 0.25)" }}
+              contentStyle={{ borderRadius: 8, border: "1px solid rgba(255,255,255,0.28)", background: "rgba(4,14,30,0.88)", color: "#ffffff", backdropFilter: "blur(20px)" }}
               formatter={(value) => [formatTime(Number(value)), "Time"]}
               labelFormatter={(_, payload) => payload?.[0]?.payload?.meetName ?? selectedEvent}
             />

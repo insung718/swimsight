@@ -34,11 +34,11 @@ body {
 
 @layer components {
   .stitch-panel {
-    @apply rounded-lg border border-white/10 bg-stitch-panel/[0.88] shadow-stitch backdrop-blur;
+    @apply rounded-lg border border-white/35 bg-white/[0.16] shadow-stitch backdrop-blur-2xl;
   }
 
   .stitch-panel-soft {
-    @apply rounded-lg border border-white/10 bg-stitch-panel2/[0.80] backdrop-blur;
+    @apply rounded-lg border border-white/30 bg-white/[0.11] backdrop-blur-2xl;
   }
 
   .stitch-label {
@@ -76,6 +76,38 @@ body {
       rgba(255, 118, 95, 0.9) 20px 26px
     );
   }
+
+  .dashboard-shell {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.26), transparent 28rem),
+      radial-gradient(circle at 82% 8%, rgba(0, 251, 255, 0.24), transparent 30rem),
+      linear-gradient(180deg, #dff9ff 0%, #edf8ff 18%, #d8eef8 38%, #0a1a2e 84%);
+  }
+
+  .dashboard-glass {
+    @apply rounded-lg border border-white/45 bg-white/[0.22] shadow-stitch backdrop-blur-2xl;
+  }
+
+  .dashboard-hero {
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.32) 1px, transparent 1px),
+      repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.30) 0,
+        rgba(255, 255, 255, 0.30) 2px,
+        transparent 2px,
+        transparent 56px
+      ),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(187, 243, 255, 0.72) 36%, rgba(6, 26, 45, 0.82));
+    background-size:
+      12.5% 100%,
+      100% 56px,
+      100% 100%;
+  }
+
+  .premium-hover {
+    @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/[0.24] hover:shadow-glow;
+  }
 }
 
 button,
@@ -110,6 +142,14 @@ textarea {
     transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.dashboard-enter {
+  animation: dashboard-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dashboard-enter-delayed {
+  animation: dashboard-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+}
+
 .reveal-section.is-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
@@ -126,13 +166,26 @@ textarea {
   }
 }
 
+@keyframes dashboard-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
   .landing-hero-copy,
-  .reveal-section {
+  .reveal-section,
+  .dashboard-enter,
+  .dashboard-enter-delayed {
     animation: none;
     opacity: 1;
     transform: none;

@@ -34,16 +34,16 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
   const hasResults = swims.length > 0;
 
   return (
-    <main className="dark min-h-screen bg-[#050b14] text-stitch-text">
-      <header className="sticky top-0 z-40 border-b border-white/8 bg-[#050b14]/88 backdrop-blur-2xl">
+    <main className="dark dashboard-shell min-h-screen text-stitch-text">
+      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/55 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3"><span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-cyan text-stitch-abyss"><Waves aria-hidden className="h-5 w-5" /></span><div><div className="font-semibold text-white">SwimSight</div><div className="text-xs text-white/40">Performance workspace</div></div></div>
+          <div className="flex items-center gap-3"><span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span><div><div className="font-semibold text-stitch-abyss">SwimSight</div><div className="text-xs text-stitch-abyss/55">Performance workspace</div></div></div>
           <UserActions />
         </div>
         <div className="mx-auto max-w-[1440px] overflow-x-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex min-w-max gap-1" aria-label="Dashboard sections">
             {tabs.map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button" onClick={() => setActiveTab(id)} className={cn("inline-flex h-12 items-center gap-2 border-b-2 px-4 text-sm transition", activeTab === id ? "border-stitch-cyan text-white" : "border-transparent text-white/45 hover:text-white/80")}>
+              <button key={id} type="button" onClick={() => setActiveTab(id)} className={cn("inline-flex h-11 items-center gap-2 rounded-t-lg border-b-2 px-4 text-sm font-medium transition", activeTab === id ? "border-stitch-cyan bg-white/45 text-stitch-abyss shadow-sm" : "border-transparent text-stitch-abyss/55 hover:bg-white/30 hover:text-stitch-abyss")}>
                 <Icon aria-hidden className="h-4 w-4" />{label}
               </button>
             ))}
@@ -52,9 +52,26 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
       </header>
 
       <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/55 p-5 text-stitch-abyss shadow-stitch sm:p-7">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold text-aqua-600">Live training workspace</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-5xl">
+              Your season, lit up by the times you enter.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">
+              Add a swim, set your next meet, and SwimSight turns your own race history into trends, goals, predictions, and private comparison.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <MiniStat label="Logged" value={overview.totalSwims.toString()} />
+            <MiniStat label="PB events" value={overview.personalBestCount.toString()} />
+            <MiniStat label="SPI" value={analytics.swimPowerIndex.score.toString()} />
+          </div>
+        </section>
+
         {activeTab === "overview" && (
-          <div className="space-y-5">
-            <div><p className="text-sm text-stitch-cyan">Your season</p><h1 className="mt-1 text-3xl font-semibold text-white sm:text-4xl">Performance overview</h1></div>
+          <div className="dashboard-enter-delayed space-y-5">
+            <SectionHeading eyebrow="Your season" title="Performance overview" />
             {!hasResults ? (
               <EmptyState title="Your dashboard is ready." body="Add your first result to unlock personal bests, trends, predictions, and your Swim Power Index." action="Add a result" onAction={() => setActiveTab("results")} />
             ) : (
@@ -72,18 +89,26 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
           </div>
         )}
 
-        {activeTab === "results" && <div className="space-y-5"><div><p className="text-sm text-stitch-cyan">Race history</p><h1 className="mt-1 text-3xl font-semibold text-white">Results</h1></div><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</div>}
+        {activeTab === "results" && <div className="dashboard-enter-delayed space-y-5"><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</div>}
 
-        {activeTab === "analytics" && <div className="space-y-5"><div><p className="text-sm text-stitch-cyan">Your data</p><h1 className="mt-1 text-3xl font-semibold text-white">Analytics</h1></div>{hasResults ? <><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /><PredictionGrid predictions={analytics.predictions} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</div>}
+        {activeTab === "analytics" && <div className="dashboard-enter-delayed space-y-5"><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /><PredictionGrid predictions={analytics.predictions} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</div>}
 
-        {activeTab === "goals" && <div className="space-y-5"><div><p className="text-sm text-stitch-cyan">What comes next</p><h1 className="mt-1 text-3xl font-semibold text-white">Goals & meets</h1></div><GoalTracker initialGoal={goals[0]} swims={swims} /><UpcomingMeetPanel /></div>}
+        {activeTab === "goals" && <div className="dashboard-enter-delayed space-y-5"><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} swims={swims} /><UpcomingMeetPanel /></div>}
 
-        {activeTab === "community" && <div className="space-y-5"><div><p className="text-sm text-stitch-cyan">Private comparison</p><h1 className="mt-1 text-3xl font-semibold text-white">Community</h1></div><CommunityHub /></div>}
+        {activeTab === "community" && <div className="dashboard-enter-delayed space-y-5"><SectionHeading eyebrow="Private comparison" title="Community" /><CommunityHub /></div>}
       </div>
     </main>
   );
 }
 
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl">{title}</h2></div>;
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl"><div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div><div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">{value}</div></div>;
+}
+
 function EmptyState({ title, body, action, onAction }: { title: string; body: string; action: string; onAction: () => void }) {
-  return <section className="flex min-h-[420px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-cyan/10 text-stitch-cyan"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{title}</h2><p className="mt-4 leading-7 text-white/48">{body}</p><button className="mt-7 h-11 rounded-full bg-stitch-cyan px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-white" type="button" onClick={onAction}>{action}</button></div></section>;
+  return <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{title}</h2><p className="mt-4 leading-7 text-white/62">{body}</p><button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onAction}>{action}</button></div></section>;
 }
