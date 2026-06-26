@@ -4,6 +4,8 @@ import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
+import { MagicBento } from "@/components/ui/magic-bento";
+import { StaggeredMenu } from "@/components/ui/staggered-menu";
 import { Typewriter } from "@/components/ui/typewriter-text";
 
 const features = [
@@ -11,6 +13,20 @@ const features = [
   [CalendarDays, "02", "Train toward something real.", "Set a goal, add your next meet, and understand the pace required to arrive ready."],
   [Users, "03", "Better together.", "Build private communities, add friends, and compare progress without turning training into noise."]
 ] as const;
+
+const navItems = [
+  { label: "Features", href: "#features" },
+  { label: "Performance", href: "#performance" },
+  { label: "Community", href: "#community" },
+  { label: "Privacy", href: "#privacy" }
+];
+
+const bentoCards = features.map(([Icon, number, title, description]) => ({
+  eyebrow: number,
+  title,
+  description,
+  icon: <Icon aria-hidden className="h-5 w-5" />
+}));
 
 const seasonCards = [
   { icon: <Trophy aria-hidden className="h-4 w-4" />, title: "Personal best", description: "Detected from every result", detail: "Automatic" },
@@ -25,12 +41,14 @@ export function LandingPage() {
         <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-5">
           <a className="flex items-center gap-2 text-sm font-semibold" href="#top"><Waves aria-hidden className="h-5 w-5" />SwimSight</a>
           <nav className="hidden items-center gap-7 text-xs text-black/65 md:flex" aria-label="Main navigation">
-            <a className="transition hover:text-black" href="#features">Features</a>
-            <a className="transition hover:text-black" href="#performance">Performance</a>
-            <a className="transition hover:text-black" href="#community">Community</a>
-            <a className="transition hover:text-black" href="#privacy">Privacy</a>
+            {navItems.map((item) => (
+              <a className="transition hover:text-black" href={item.href} key={item.href}>{item.label}</a>
+            ))}
           </nav>
-          <UserActions compact />
+          <div className="flex items-center gap-2">
+            <UserActions compact />
+            <StaggeredMenu className="md:hidden" items={navItems} />
+          </div>
         </div>
       </header>
 
@@ -53,15 +71,9 @@ export function LandingPage() {
       <section id="features" className="bg-white py-24 sm:py-36">
         <div className="mx-auto max-w-6xl px-5">
           <Reveal><p className="text-sm font-semibold text-cyan-700">One place for the whole season.</p><h2 className="mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Less dashboard. More direction.</h2></Reveal>
-          <div className="mt-20 divide-y divide-black/10 border-y border-black/10">
-            {features.map(([Icon, number, title, body], index) => (
-              <Reveal className="grid gap-7 py-12 md:grid-cols-[90px_1fr_1fr] md:items-start" delay={index * 80} key={number}>
-                <div className="text-sm text-black/35">{number}</div>
-                <div className="flex items-start gap-4"><Icon aria-hidden className="mt-1 h-6 w-6 text-cyan-700" /><h3 className="max-w-md text-2xl font-semibold sm:text-3xl">{title}</h3></div>
-                <p className="max-w-lg text-lg leading-8 text-black/58">{body}</p>
-              </Reveal>
-            ))}
-          </div>
+          <Reveal className="mt-16" delay={100}>
+            <MagicBento cards={bentoCards} />
+          </Reveal>
         </div>
       </section>
 

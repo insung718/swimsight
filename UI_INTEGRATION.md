@@ -17,3 +17,11 @@ SwimSight uses a premium glassmorphism system built around dark navy, white glas
 - Respect `prefers-reduced-motion`.
 - Preserve keyboard access, focus states, and ARIA labels for interactive pieces.
 - Keep mobile layouts compact and readable before adding desktop-only visual flair.
+
+## Integrated React Bits-Inspired Components
+
+- `MagicBento`: `src/components/ui/magic-bento.tsx`
+- `StaggeredMenu`: `src/components/ui/staggered-menu.tsx`
+- `Dock`: `src/components/ui/dock.tsx`
+
+These are adapted to SwimSight instead of copied raw. They preserve the requested interaction patterns while using the app's glass panels, aqua highlights, readable navy tinting, accessible focus states, and existing dependency set.

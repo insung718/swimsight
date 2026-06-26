@@ -15,6 +15,7 @@ import { ProgressionChart } from "@/components/progression-chart";
 import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
+import { Dock } from "@/components/ui/dock";
 import { cn } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, SwimResult } from "@/types/swim";
 
@@ -97,6 +98,14 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
 
         {activeTab === "community" && <div className="dashboard-enter-delayed space-y-5"><SectionHeading eyebrow="Private comparison" title="Community" /><CommunityHub /></div>}
       </div>
+      <Dock
+        items={tabs.map(({ id, label, icon: Icon }) => ({
+          active: activeTab === id,
+          icon: <Icon aria-hidden className="h-5 w-5" />,
+          label,
+          onClick: () => setActiveTab(id)
+        }))}
+      />
     </main>
   );
 }
