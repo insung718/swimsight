@@ -176,4 +176,8 @@ export interface MotivationTip {
   title: string;
   body: string;
   tone: "focus" | "confidence" | "recovery" | "race";
+  author?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  kind?: "tip" | "quote";
 }

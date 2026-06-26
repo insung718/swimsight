@@ -1,11 +1,11 @@
 import Image from "next/image";
-import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users, Waves } from "lucide-react";
+import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
+import { SiteNav } from "@/components/landing/site-nav";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
 import { MagicBento } from "@/components/ui/magic-bento";
-import { StaggeredMenu } from "@/components/ui/staggered-menu";
 import { Typewriter } from "@/components/ui/typewriter-text";
 
 const features = [
@@ -13,13 +13,6 @@ const features = [
   [CalendarDays, "02", "Train toward something real.", "Set a goal, add your next meet, and understand the pace required to arrive ready."],
   [Users, "03", "Better together.", "Build private communities, add friends, and compare progress without turning training into noise."]
 ] as const;
-
-const navItems = [
-  { label: "Features", href: "#features" },
-  { label: "Performance", href: "#performance" },
-  { label: "Community", href: "#community" },
-  { label: "Privacy", href: "#privacy" }
-];
 
 const bentoCards = features.map(([Icon, number, title, description]) => ({
   eyebrow: number,
@@ -37,19 +30,11 @@ const seasonCards = [
 export function LandingPage() {
   return (
     <main className="landing-page min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-2xl">
-        <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-5">
-          <a className="flex items-center gap-2 text-sm font-semibold" href="#top"><Waves aria-hidden className="h-5 w-5" />SwimSight</a>
-          <div className="flex items-center gap-2">
-            <UserActions compact />
-            <StaggeredMenu items={navItems} />
-          </div>
-        </div>
-      </header>
+      <SiteNav />
 
       <section id="top" className="relative min-h-[94svh] overflow-hidden bg-black pt-12 text-white">
-        <Image alt="Bird's-eye view of competitive swimmers racing in an Olympic pool" className="object-cover object-[64%_center] opacity-85" fill priority quality={88} sizes="100vw" src="/images/swimsight-pool-hero.jpg" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.68)_38%,rgba(0,0,0,0.08)_72%)]" />
+        <Image alt="Bird's-eye view of competitive swimmers racing in an Olympic pool" className="pointer-events-none object-cover object-[64%_center] opacity-85" fill priority quality={88} sizes="100vw" src="/images/swimsight-pool-hero.jpg" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.68)_38%,rgba(0,0,0,0.08)_72%)]" />
         <div className="relative mx-auto flex min-h-[calc(94svh-3rem)] max-w-6xl items-center px-5 py-16">
           <div className="landing-hero-copy max-w-2xl">
             <p className="mb-5 text-sm font-semibold text-cyan-300">Swim intelligence. Made personal.</p>
@@ -57,7 +42,7 @@ export function LandingPage() {
             <p className="mt-7 max-w-xl text-lg leading-7 text-white/72 sm:text-xl">SwimSight turns every result into a clearer view of where you are, what is improving, and what comes next.</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <UserActions hero />
-              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium transition hover:bg-white hover:text-black" href="#features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
+              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium transition hover:bg-white hover:text-black" href="/features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
             </div>
           </div>
         </div>

@@ -18,9 +18,14 @@ interface StaggeredMenuProps {
 }
 
 export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -50,7 +55,8 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         aria-controls={panelId}
         aria-expanded={open}
         aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600 disabled:cursor-wait disabled:opacity-60"
+        disabled={!mounted}
         type="button"
         onClick={() => setOpen((current) => !current)}
       >

@@ -13,8 +13,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://*.clerk.accounts.dev https://*.clerk.dev",
   "worker-src 'self' blob:",
-  "upgrade-insecure-requests"
-].join("; ");
+  process.env.NODE_ENV === "production" ? "upgrade-insecure-requests" : ""
+].filter(Boolean).join("; ");
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
