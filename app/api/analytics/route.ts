@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { getDashboardAnalyticsForUser } from "@/lib/services/swim-service";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export async function GET() {
   try {
     return NextResponse.json({ analytics: await getDashboardAnalyticsForUser(account.context.userId) });
   } catch (error) {
-    console.error("Could not load analytics", error);
+    logServerError("Could not load analytics", error);
     return databaseUnavailable();
   }
 }

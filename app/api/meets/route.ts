@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { created } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createUpcomingMeet, listUpcomingMeets } from "@/lib/services/meet-service";
 import { upcomingMeetSchema } from "@/lib/validation";
@@ -13,7 +14,7 @@ export async function GET() {
   try {
     return NextResponse.json({ meets: await listUpcomingMeets(account.context.userId) });
   } catch (error) {
-    console.error("Could not load meets", error);
+    logServerError("Could not load meets", error);
     return databaseUnavailable();
   }
 }
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 
     return created({ meet });
   } catch (error) {
-    console.error("Could not create meet", error);
+    logServerError("Could not create meet", error);
     return databaseUnavailable();
   }
 }

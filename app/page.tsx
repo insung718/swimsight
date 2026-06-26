@@ -3,6 +3,7 @@ import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
 import { getAuthContext } from "@/lib/auth-context";
 import { hasDatabaseConfig } from "@/lib/prisma";
+import { logServerError } from "@/lib/security/logging";
 import { getDashboardAnalyticsForUser, getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export default async function Home() {
   try {
     context = await getAuthContext();
   } catch (error) {
-    console.error("Account bootstrap failed", error);
+    logServerError("Account bootstrap failed", error);
     return <DashboardUnavailable reason="Google sign-in worked, but SwimSight could not create your account record in the database yet." />;
   }
 
@@ -40,7 +41,7 @@ export default async function Home() {
       />
     );
   } catch (error) {
-    console.error("Dashboard bootstrap failed", error);
+    logServerError("Dashboard bootstrap failed", error);
     return <DashboardUnavailable reason="Your account is signed in, but SwimSight could not reach the dashboard database yet." />;
   }
 }

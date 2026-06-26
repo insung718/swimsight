@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { getSwimsForUser } from "@/lib/services/swim-service";
 import { listUpcomingMeets } from "@/lib/services/meet-service";
 import { generateMotivationTips } from "@/lib/services/motivation-service";
@@ -17,7 +18,7 @@ export async function GET() {
       listUpcomingMeets(account.context.userId)
     ]);
   } catch (error) {
-    console.error("Could not load motivation data", error);
+    logServerError("Could not load motivation data", error);
     return databaseUnavailable();
   }
 

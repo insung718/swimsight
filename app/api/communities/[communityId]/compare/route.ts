@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { badRequest, notFound } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { getCommunityComparison } from "@/lib/services/community-service";
 import { communityIdSchema } from "@/lib/validation";
 
@@ -22,7 +23,7 @@ export async function GET(
   try {
     comparison = await getCommunityComparison(idResult.data, account.context.userId);
   } catch (error) {
-    console.error("Could not load community comparison", error);
+    logServerError("Could not load community comparison", error);
     return databaseUnavailable();
   }
 

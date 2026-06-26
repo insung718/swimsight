@@ -1,3 +1,4 @@
+import "server-only";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";

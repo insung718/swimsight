@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { created, notFound, ok } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createFriendRequest, listFriendships, updateFriendship } from "@/lib/services/friend-service";
 import { friendActionSchema, friendRequestSchema } from "@/lib/validation";
@@ -13,7 +14,7 @@ export async function GET() {
   try {
     return NextResponse.json({ friendships: await listFriendships(account.context.userId) });
   } catch (error) {
-    console.error("Could not load friendships", error);
+    logServerError("Could not load friendships", error);
     return databaseUnavailable();
   }
 }
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
       email: parsed.data.email
     });
   } catch (error) {
-    console.error("Could not create friend request", error);
+    logServerError("Could not create friend request", error);
     return databaseUnavailable();
   }
 
@@ -59,7 +60,7 @@ export async function PATCH(request: Request) {
       ...parsed.data
     });
   } catch (error) {
-    console.error("Could not update friendship", error);
+    logServerError("Could not update friendship", error);
     return databaseUnavailable();
   }
 

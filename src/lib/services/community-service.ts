@@ -1,3 +1,5 @@
+import "server-only";
+import { randomBytes, randomUUID } from "node:crypto";
 import { rankEvents } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
@@ -255,4 +257,3 @@ export async function compareTwoMembers(input: {
     sharedEvents
   };
 }
-import { randomBytes, randomUUID } from "node:crypto";

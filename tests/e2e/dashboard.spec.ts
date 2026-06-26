@@ -9,6 +9,18 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
   await expect(page.getByText("24", { exact: true })).toHaveCount(0);
 });
 
+test("opens and closes the signed-out staggered menu", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  const menu = page.getByRole("dialog", { name: "SwimSight navigation menu" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Features", exact: true })).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+});
+
 test("protects account APIs when signed out", async ({ request }) => {
   const response = await request.get("/api/swims");
   expect(response.status()).toBe(401);

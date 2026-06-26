@@ -1,3 +1,4 @@
+import "server-only";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { toPrismaEvent, toUpcomingMeet } from "@/lib/prisma-mappers";
 import type { SwimEvent, UpcomingMeet } from "@/types/swim";

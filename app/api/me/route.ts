@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function GET() {
       select: { id: true, name: true, email: true, imageUrl: true, role: true, createdAt: true }
     });
   } catch (error) {
-    console.error("Could not load profile", error);
+    logServerError("Could not load profile", error);
     return databaseUnavailable();
   }
 

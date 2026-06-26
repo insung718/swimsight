@@ -1,5 +1,6 @@
 import { created, notFound } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { joinCommunity } from "@/lib/services/community-service";
 import { communityJoinSchema } from "@/lib/validation";
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       joinCode: parsed.data.joinCode
     });
   } catch (error) {
-    console.error("Could not join community", error);
+    logServerError("Could not join community", error);
     return databaseUnavailable();
   }
 

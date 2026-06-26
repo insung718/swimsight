@@ -1,6 +1,7 @@
 import { badRequest, created } from "@/lib/api";
 import { validateSwimCsv } from "@/lib/csv";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createManySwims } from "@/lib/services/swim-service";
 import { csvImportSchema } from "@/lib/validation";
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
 
     return created({ ...result, swims });
   } catch (error) {
-    console.error("Could not import swims", error);
+    logServerError("Could not import swims", error);
     return databaseUnavailable();
   }
 }

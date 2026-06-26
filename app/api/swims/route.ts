@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { created } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createSwim, getSwimsForUser } from "@/lib/services/swim-service";
 import { manualSwimSchema } from "@/lib/validation";
@@ -13,7 +14,7 @@ export async function GET() {
   try {
     return NextResponse.json({ swims: await getSwimsForUser(account.context.userId) });
   } catch (error) {
-    console.error("Could not load swims", error);
+    logServerError("Could not load swims", error);
     return databaseUnavailable();
   }
 }
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
 
     return created({ swim });
   } catch (error) {
-    console.error("Could not create swim", error);
+    logServerError("Could not create swim", error);
     return databaseUnavailable();
   }
 }

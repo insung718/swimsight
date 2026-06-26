@@ -3,6 +3,16 @@ import type { z } from "zod";
 
 const DEFAULT_MAX_BODY_BYTES = 32_768;
 
+function addAllowedOrigin(allowed: Set<string>, value?: string) {
+  if (!value) return;
+
+  try {
+    allowed.add(new URL(value).origin);
+  } catch {
+    allowed.add(`https://${value}`);
+  }
+}
+
 export async function parseSecureJson<T>(request: Request, schema: z.ZodType<T>, maxBytes = DEFAULT_MAX_BODY_BYTES) {
   const contentType = request.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
   if (contentType !== "application/json") {
@@ -46,8 +56,8 @@ export function enforceSameOrigin(request: Request) {
 
   const requestOrigin = new URL(request.url).origin;
   const allowed = new Set([requestOrigin]);
-  if (process.env.NEXT_PUBLIC_APP_URL) allowed.add(new URL(process.env.NEXT_PUBLIC_APP_URL).origin);
-  if (process.env.VERCEL_URL) allowed.add(`https://${process.env.VERCEL_URL}`);
+  addAllowedOrigin(allowed, process.env.NEXT_PUBLIC_APP_URL);
+  addAllowedOrigin(allowed, process.env.VERCEL_URL);
 
   return allowed.has(origin)
     ? null

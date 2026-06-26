@@ -1,29 +1,48 @@
 "use client";
 
 import { Menu, X, Waves } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface StaggeredMenuItem {
   label: string;
-  href: string;
+  href?: string;
+  link?: string;
+  ariaLabel?: string;
 }
 
 interface StaggeredMenuProps {
   items: StaggeredMenuItem[];
   className?: string;
+  position?: "left" | "right";
 }
 
-export function StaggeredMenu({ items, className }: StaggeredMenuProps) {
+export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
+  const panelSide = position === "right" ? "right-4" : "left-4";
+  const closedTransform = position === "right" ? "translate-x-[112%]" : "-translate-x-[112%]";
 
   return (
     <div className={cn("relative", className)}>
@@ -46,12 +65,25 @@ export function StaggeredMenu({ items, className }: StaggeredMenuProps) {
         )}
         onClick={() => setOpen(false)}
       />
-      <aside
+      <div
+        aria-hidden
         className={cn(
-          "fixed bottom-4 right-4 top-4 z-[90] flex w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.92] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500",
-          open ? "translate-x-0 opacity-100" : "translate-x-[110%] opacity-0"
+          "fixed bottom-4 top-4 z-[85] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          panelSide,
+          open ? "translate-x-0 opacity-100 delay-75" : `${closedTransform} opacity-0`
+        )}
+      />
+      <aside
+        aria-hidden={!open}
+        aria-label="SwimSight navigation menu"
+        aria-modal="true"
+        className={cn(
+          "fixed bottom-4 top-4 z-[90] flex w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          panelSide,
+          open ? "pointer-events-auto translate-x-0 opacity-100 delay-100" : `pointer-events-none ${closedTransform} opacity-0`
         )}
         id={panelId}
+        role="dialog"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-semibold">
@@ -63,6 +95,7 @@ export function StaggeredMenu({ items, className }: StaggeredMenuProps) {
           <button
             aria-label="Close navigation menu"
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+            ref={closeButtonRef}
             type="button"
             onClick={() => setOpen(false)}
           >
@@ -70,23 +103,28 @@ export function StaggeredMenu({ items, className }: StaggeredMenuProps) {
           </button>
         </div>
 
-        <nav aria-label="Mobile navigation" className="mt-12 space-y-2">
-          {items.map((item, index) => (
-            <a
-              className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/10 px-4 py-4 text-lg font-semibold text-white transition hover:border-stitch-cyan/50 hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
-              href={item.href}
-              key={item.href}
-              onClick={() => setOpen(false)}
-              style={{
-                transform: open ? "translateY(0)" : "translateY(16px)",
-                opacity: open ? 1 : 0,
-                transition: `opacity 420ms ease ${index * 70 + 120}ms, transform 420ms ease ${index * 70 + 120}ms`
-              }}
-            >
-              <span>{item.label}</span>
-              <span className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
-            </a>
-          ))}
+        <nav aria-label="Main navigation" className="mt-12 space-y-2">
+          {items.map((item, index) => {
+            const href = item.href ?? item.link ?? "#";
+
+            return (
+              <a
+                aria-label={item.ariaLabel ?? item.label}
+                className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/12 px-4 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition hover:border-stitch-cyan/60 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+                href={href}
+                key={`${href}-${item.label}`}
+                onClick={() => setOpen(false)}
+                style={{
+                  transform: open ? "translateY(0)" : "translateY(18px)",
+                  opacity: open ? 1 : 0,
+                  transition: `opacity 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms, transform 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms`
+                }}
+              >
+                <span>{item.label}</span>
+                <span className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
+              </a>
+            );
+          })}
         </nav>
 
         <div className="mt-auto rounded-lg border border-white/10 bg-white/10 p-4">

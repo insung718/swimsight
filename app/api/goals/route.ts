@@ -1,5 +1,6 @@
 import { created } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createGoal } from "@/lib/services/swim-service";
 import { goalSchema } from "@/lib/validation";
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
 
     return created({ goal });
   } catch (error) {
-    console.error("Could not create goal", error);
+    logServerError("Could not create goal", error);
     return databaseUnavailable();
   }
 }
