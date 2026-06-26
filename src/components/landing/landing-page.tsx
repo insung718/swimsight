@@ -40,14 +40,9 @@ export function LandingPage() {
       <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-5">
           <a className="flex items-center gap-2 text-sm font-semibold" href="#top"><Waves aria-hidden className="h-5 w-5" />SwimSight</a>
-          <nav className="hidden items-center gap-7 text-xs text-black/65 md:flex" aria-label="Main navigation">
-            {navItems.map((item) => (
-              <a className="transition hover:text-black" href={item.href} key={item.href}>{item.label}</a>
-            ))}
-          </nav>
           <div className="flex items-center gap-2">
             <UserActions compact />
-            <StaggeredMenu className="md:hidden" items={navItems} />
+            <StaggeredMenu items={navItems} />
           </div>
         </div>
       </header>

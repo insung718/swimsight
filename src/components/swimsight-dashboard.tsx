@@ -16,7 +16,6 @@ import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import { Dock } from "@/components/ui/dock";
-import { cn } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, SwimResult } from "@/types/swim";
 
 type DashboardTab = "overview" | "results" | "analytics" | "goals" | "community";
@@ -36,27 +35,18 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
 
   return (
     <main className="dark dashboard-shell min-h-screen text-stitch-text">
-      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/55 backdrop-blur-2xl">
+      <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3"><span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span><div><div className="font-semibold text-stitch-abyss">SwimSight</div><div className="text-xs text-stitch-abyss/55">Performance workspace</div></div></div>
           <UserActions />
         </div>
-        <div className="mx-auto max-w-[1440px] overflow-x-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex min-w-max gap-1" aria-label="Dashboard sections">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button" onClick={() => setActiveTab(id)} className={cn("inline-flex h-11 items-center gap-2 rounded-t-lg border-b-2 px-4 text-sm font-medium transition", activeTab === id ? "border-stitch-cyan bg-white/45 text-stitch-abyss shadow-sm" : "border-transparent text-stitch-abyss/55 hover:bg-white/30 hover:text-stitch-abyss")}>
-                <Icon aria-hidden className="h-4 w-4" />{label}
-              </button>
-            ))}
-          </nav>
-        </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
-        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/55 p-5 text-stitch-abyss shadow-stitch sm:p-7">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-32 pt-7 sm:px-6 lg:px-8">
+        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-5 text-stitch-abyss shadow-stitch sm:p-6">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold text-aqua-600">Live training workspace</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-5xl">
+            <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl">
               Your season, lit up by the times you enter.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">

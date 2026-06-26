@@ -79,26 +79,27 @@ body {
 
   .dashboard-shell {
     background:
-      radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.26), transparent 28rem),
-      radial-gradient(circle at 82% 8%, rgba(0, 251, 255, 0.24), transparent 30rem),
-      linear-gradient(180deg, #dff9ff 0%, #edf8ff 18%, #d8eef8 38%, #0a1a2e 84%);
+      radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.92), transparent 26rem),
+      radial-gradient(circle at 82% 10%, rgba(0, 219, 255, 0.28), transparent 30rem),
+      radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.52), transparent 34rem),
+      linear-gradient(180deg, #f8fcff 0%, #e8f8ff 32%, #d7eef8 66%, #eef8fc 100%);
   }
 
   .dashboard-glass {
-    @apply rounded-lg border border-white/25 bg-stitch-abyss/[0.74] shadow-stitch backdrop-blur-2xl;
+    @apply rounded-lg border border-white/30 bg-stitch-abyss/[0.78] shadow-stitch backdrop-blur-2xl;
   }
 
   .dashboard-hero {
     background:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.32) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
       repeating-linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.30) 0,
-        rgba(255, 255, 255, 0.30) 2px,
+        rgba(255, 255, 255, 0.34) 0,
+        rgba(255, 255, 255, 0.34) 2px,
         transparent 2px,
         transparent 56px
       ),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(187, 243, 255, 0.72) 36%, rgba(6, 26, 45, 0.82));
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(206, 247, 255, 0.84) 42%, rgba(238, 250, 255, 0.70));
     background-size:
       12.5% 100%,
       100% 56px,

@@ -17,14 +17,14 @@ interface DockProps {
 
 export function Dock({ items, className }: DockProps) {
   return (
-    <div className={cn("pointer-events-none fixed inset-x-0 bottom-4 z-40 hidden justify-center px-4 md:flex", className)}>
-      <div className="pointer-events-auto flex items-end gap-2 rounded-lg border border-white/25 bg-stitch-abyss/[0.84] px-3 py-2 shadow-stitch backdrop-blur-2xl" role="toolbar" aria-label="Dashboard dock">
+    <div className={cn("pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 sm:bottom-4", className)}>
+      <div className="pointer-events-auto flex max-w-full items-end gap-1.5 overflow-x-auto rounded-lg border border-white/25 bg-stitch-abyss/[0.86] px-2 py-2 shadow-stitch backdrop-blur-2xl sm:gap-2 sm:px-3" role="toolbar" aria-label="Dashboard dock">
         {items.map((item) => (
           <button
             aria-label={item.label}
             aria-pressed={item.active}
             className={cn(
-              "group relative inline-flex h-12 w-12 items-center justify-center rounded-md border text-white transition duration-300 hover:-translate-y-2 hover:scale-110 focus-visible:-translate-y-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan",
+              "group relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border text-white transition duration-300 hover:-translate-y-1.5 hover:scale-105 focus-visible:-translate-y-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan sm:h-12 sm:w-12 sm:hover:-translate-y-2 sm:hover:scale-110 sm:focus-visible:-translate-y-2",
               item.active
                 ? "border-stitch-cyan bg-stitch-cyan text-stitch-abyss shadow-glow"
                 : "border-white/15 bg-white/10 hover:border-stitch-cyan/50 hover:bg-white/15"
