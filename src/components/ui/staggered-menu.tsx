@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu, X, Waves } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface StaggeredMenuItem {
@@ -20,7 +20,7 @@ interface StaggeredMenuProps {
 export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const panelId = useId();
+  const panelId = "swimsight-navigation-menu";
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
       <div
         aria-hidden
         className={cn(
-          "fixed bottom-4 top-4 z-[85] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          "fixed top-4 z-[85] h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
           panelSide,
           open ? "translate-x-0 opacity-100 delay-75" : `${closedTransform} opacity-0`
         )}
@@ -84,7 +84,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         aria-label="SwimSight navigation menu"
         aria-modal="true"
         className={cn(
-          "fixed bottom-4 top-4 z-[90] flex w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
           panelSide,
           open ? "pointer-events-auto translate-x-0 opacity-100 delay-100" : `pointer-events-none ${closedTransform} opacity-0`
         )}

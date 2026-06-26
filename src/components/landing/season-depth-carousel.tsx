@@ -107,8 +107,8 @@ export function SeasonDepthCarousel() {
         className="absolute top-24 h-80 w-80 rounded-full bg-aqua-300/26 blur-3xl"
         style={{ left: haloX }}
       />
-      <div className="relative lg:h-[330svh]">
-        <div className="mx-auto flex min-h-svh max-w-[1500px] flex-col justify-center px-5 py-24 lg:sticky lg:top-0 lg:overflow-hidden lg:py-0">
+      <div className="relative lg:h-[280svh]">
+        <div className="mx-auto flex max-w-[1500px] flex-col justify-start px-5 py-16 sm:py-24 lg:sticky lg:top-0 lg:min-h-svh lg:justify-center lg:overflow-hidden lg:py-0">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
             <div className="relative z-10 max-w-xl">
               <p className="text-sm font-semibold text-cyan-700">Interactive season model</p>
