@@ -60,6 +60,15 @@ describe("analytics engine", () => {
     expect(analytics.goalProjection).toBeUndefined();
   });
 
+  it("creates a low-confidence baseline prediction from the first event result", () => {
+    const analytics = buildDashboardAnalytics([sampleSwims[0]]);
+
+    expect(analytics.predictions).toHaveLength(1);
+    expect(analytics.predictions[0].event).toBe(sampleSwims[0].event);
+    expect(analytics.predictions[0].confidence).toBe(41);
+    expect(analytics.predictions[0].predictedTimes.days365).toBe(sampleSwims[0].timeSeconds);
+  });
+
   it("does not crash when a goal exists before results for that event", () => {
     const analytics = buildDashboardAnalytics(sampleSwims, {
       ...sampleGoals[0],

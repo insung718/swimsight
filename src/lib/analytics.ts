@@ -260,7 +260,7 @@ export function generatePredictions(swims: SwimResult[]) {
   const predictions: Prediction[] = [];
 
   groupByEvent(swims).forEach((eventSwims) => {
-    if (eventSwims.length >= 2) {
+    if (eventSwims.length >= 1) {
       predictions.push(predictEvent(eventSwims));
     }
   });

@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supportedEvents } from "@/lib/events";
 import { formatShortDate, formatTime } from "@/lib/utils";
 import type { SwimEvent, SwimResult } from "@/types/swim";
@@ -30,6 +30,13 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     [swims]
   );
   const [selectedYear, setSelectedYear] = useState("All");
+
+  useEffect(() => {
+    if (availableEvents.length && !availableEvents.includes(selectedEvent)) {
+      setSelectedEvent(availableEvents[0]);
+    }
+  }, [availableEvents, selectedEvent]);
+
   const chartData = useMemo(() => {
     return swims
       .filter((swim) => swim.event === selectedEvent)
@@ -86,7 +93,8 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
       </div>
 
       <div className="mt-5 h-[320px] min-h-[320px]">
-        <ResponsiveContainer height="100%" width="100%">
+        {chartData.length ? (
+          <ResponsiveContainer height="100%" width="100%">
           <LineChart data={chartData} margin={{ top: 12, right: 12, bottom: 8, left: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.12} />
             <XAxis
@@ -119,7 +127,12 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             />
             <Brush dataKey="dateLabel" height={24} stroke="#09aeca" travellerWidth={10} />
           </LineChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-white/12 bg-white/8 text-sm text-white/72">
+            No swims match this filter yet.
+          </div>
+        )}
       </div>
     </section>
   );
