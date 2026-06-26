@@ -4,24 +4,31 @@ import { CheckCircle2, Upload, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { validateSwimCsv, type CsvImportResult } from "@/lib/csv";
 import { formatTime } from "@/lib/utils";
+import { KineticLoader } from "@/components/ui/kinetic-loader";
 
 export function CsvImporter() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [csv, setCsv] = useState("");
   const [result, setResult] = useState<CsvImportResult>({ validRows: [], errors: [] });
   const [status, setStatus] = useState("");
+  const [importing, setImporting] = useState(false);
 
   function validate() {
     setResult(validateSwimCsv(csv));
   }
 
   async function importRows() {
-    const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true }) });
-    const data = await response.json();
-    if (!response.ok) { setStatus(data.error ?? "Could not import CSV."); return; }
-    setResult(data);
-    setStatus(`${data.swims?.length ?? 0} results imported.`);
-    window.location.reload();
+    setImporting(true);
+    try {
+      const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true }) });
+      const data = await response.json();
+      if (!response.ok) { setStatus(data.error ?? "Could not import CSV."); return; }
+      setResult(data);
+      setStatus(`${data.swims?.length ?? 0} results imported.`);
+      window.location.reload();
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function handleFile(file: File) {
@@ -66,7 +73,10 @@ export function CsvImporter() {
             <CheckCircle2 aria-hidden className="h-4 w-4" />
             Validate
           </button>
-          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white" type="button" onClick={importRows}>Import</button>
+          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={importing} type="button" onClick={importRows}>
+            {importing && <KineticLoader className="h-4 text-stitch-abyss" label="Importing CSV" />}
+            {importing ? "Importing" : "Import"}
+          </button>
         </div>
       </div>
 

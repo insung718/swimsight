@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
+import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { Course, SwimEvent } from "@/types/swim";
 
 const courses: Course[] = ["LCM", "SCM", "SCY"];
@@ -17,6 +18,7 @@ export function ManualTimeEntry() {
   const [time, setTime] = useState("");
   const [meetName, setMeetName] = useState("");
   const [status, setStatus] = useState("");
+  const [saving, setSaving] = useState(false);
 
   async function submitTime() {
     const timeSeconds = parseTimeInput(time);
@@ -26,6 +28,7 @@ export function ManualTimeEntry() {
       return;
     }
 
+    setSaving(true);
     const payload = {
       date,
       event,
@@ -33,21 +36,25 @@ export function ManualTimeEntry() {
       timeSeconds,
       meetName
     };
-    const response = await fetch("/api/swims", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const result = await response.json();
+    try {
+      const response = await fetch("/api/swims", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
 
-    if (response.ok) {
-      setStatus("Saved to your SwimSight account.");
-      setTime("");
-      setMeetName("");
-      router.refresh();
-      return;
+      if (response.ok) {
+        setStatus("Saved to your SwimSight account.");
+        setTime("");
+        setMeetName("");
+        router.refresh();
+        return;
+      }
+      setStatus(result.error ?? "Could not save result.");
+    } finally {
+      setSaving(false);
     }
-    setStatus(result.error ?? "Could not save result.");
   }
 
   return (
@@ -58,12 +65,13 @@ export function ManualTimeEntry() {
           <p className="text-sm text-white/70">Manual entry stays beside CSV import</p>
         </div>
         <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70"
+          disabled={saving}
           type="button"
           onClick={submitTime}
         >
-          <Save aria-hidden className="h-4 w-4" />
-          Save Time
+          {saving ? <KineticLoader className="h-4 text-stitch-abyss" label="Saving time" /> : <Save aria-hidden className="h-4 w-4" />}
+          {saving ? "Saving" : "Save Time"}
         </button>
       </div>
 

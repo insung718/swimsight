@@ -59,6 +59,9 @@ const config: Config = {
           "Liberation Mono",
           "monospace"
         ]
+      },
+      animation: {
+        "kinetic-loader": "kinetic-loader 780ms ease-in-out infinite"
       }
     }
   },

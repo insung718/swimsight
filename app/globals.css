@@ -252,6 +252,18 @@ textarea {
   }
 }
 
+@keyframes kinetic-loader {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scaleY(0.45);
+  }
+  45% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

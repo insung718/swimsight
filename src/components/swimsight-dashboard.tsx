@@ -78,7 +78,7 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
               <>
                 <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
                   <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
-                  <SeasonSnapshot overview={overview} />
+                  <SeasonSnapshot overview={overview} prediction={primaryPrediction} onViewPredictions={() => setActiveTab("analytics")} />
                 </section>
                 <ProgressionChart swims={swims} />
               </>
@@ -203,22 +203,54 @@ function PredictionMini({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SeasonSnapshot({ overview }: { overview: DashboardAnalytics["overview"] }) {
+function SeasonSnapshot({
+  onViewPredictions,
+  overview,
+  prediction
+}: {
+  onViewPredictions: () => void;
+  overview: DashboardAnalytics["overview"];
+  prediction?: DashboardAnalytics["predictions"][number];
+}) {
   return (
-    <section className="dashboard-glass p-5">
+    <section className="dashboard-glass overflow-hidden p-5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Season snapshot</h2>
-          <p className="mt-1 text-sm text-white/70">The clean read before you go deeper.</p>
+          <h2 className="text-lg font-semibold text-white">Season intelligence</h2>
+          <p className="mt-1 text-sm text-white/70">A cleaner bento view of what matters first.</p>
         </div>
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-aqua-100">
           {overview.weeklyImprovement}% week
         </span>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <motion.button
+          className="group relative overflow-hidden rounded-lg border border-aqua-200/20 bg-aqua-300/10 p-4 text-left sm:col-span-2 xl:row-span-2"
+          type="button"
+          whileHover={{ y: -3 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={onViewPredictions}
+        >
+          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(78,232,255,0.28),transparent_34%)] opacity-80 transition group-hover:opacity-100" />
+          <div className="relative">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">Prediction lane</span>
+              <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition group-hover:translate-x-0.5" />
+            </div>
+            <div className="mt-10 text-3xl font-semibold leading-tight text-white">
+              {prediction ? prediction.event : "Add a swim to unlock forecasting."}
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />
+              <PredictionMini label="90d" value={prediction ? formatTime(prediction.predictedTimes.days90) : "--"} />
+              <PredictionMini label="365d" value={prediction ? formatTime(prediction.predictedTimes.days365) : "--"} />
+            </div>
+          </div>
+        </motion.button>
         <SnapshotMetric detail={`${overview.personalBestCount} PB events`} icon={Activity} label="Logged" value={overview.totalSwims.toString()} />
         <SnapshotMetric detail={overview.bestEvent ?? "No ranking yet"} icon={Medal} label="Strongest" value={overview.bestEvent ? "Top 1" : "—"} />
         <SnapshotMetric detail={overview.mostImprovedEvent ?? "No trend yet"} icon={TrendingUp} label="Year pace" value={`${overview.yearlyImprovement}%`} />
+        <SnapshotMetric detail={`${overview.monthlyImprovement}% monthly`} icon={Waves} label="Month pace" value={`${overview.monthlyImprovement}%`} />
       </div>
     </section>
   );

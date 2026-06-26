@@ -2,7 +2,7 @@
 
 import { Activity, Gauge, LineChart, TimerReset } from "lucide-react";
 import { motion, type MotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 const moments = [
   {
@@ -38,6 +38,7 @@ const moments = [
 export function RaceTelemetry() {
   const ref = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
+  const [isDesktop, setIsDesktop] = useState(false);
   const [spotlight, setSpotlight] = useState({ x: 50, y: 50 });
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 90, damping: 28, mass: 0.35 });
@@ -50,6 +51,14 @@ export function RaceTelemetry() {
     "--spotlight-x": `${spotlight.x}%`,
     "--spotlight-y": `${spotlight.y}%`
   } as CSSProperties;
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px) and (prefers-reduced-motion: no-preference)");
+    const update = () => setIsDesktop(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   return (
     <section
@@ -68,7 +77,7 @@ export function RaceTelemetry() {
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-80"
       />
-      <div className="relative lg:h-[340svh]">
+      <div className="relative lg:h-[300svh]">
         <div className="flex min-h-svh items-center overflow-hidden lg:sticky lg:top-0">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-20 sm:py-24 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
             <div className="relative z-10">
@@ -86,6 +95,9 @@ export function RaceTelemetry() {
               </div>
             </div>
 
+            {!isDesktop ? (
+              <MobileTelemetryVisual />
+            ) : (
             <motion.div
               className="relative min-h-[900px] overflow-hidden rounded-lg border border-white/15 bg-white/[0.06] shadow-[0_50px_160px_rgba(0,190,230,0.20)] backdrop-blur-2xl sm:min-h-[760px] lg:min-h-[620px]"
               style={{ rotate: graphRotate, scale: graphScale }}
@@ -152,10 +164,38 @@ export function RaceTelemetry() {
                 Scroll to process
               </div>
             </motion.div>
+            )}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function MobileTelemetryVisual() {
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-white/15 bg-white/[0.06] p-4 shadow-[0_28px_90px_rgba(0,190,230,0.16)] backdrop-blur-xl lg:hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:100%_72px,25%_100%]" />
+      <svg aria-hidden className="relative h-44 w-full" preserveAspectRatio="none" viewBox="0 0 420 180">
+        <path d="M20 138 C74 130 92 76 142 80 C198 85 205 38 260 54 C312 69 318 142 362 98 C386 74 396 44 410 34" fill="none" stroke="rgba(78,232,255,0.18)" strokeLinecap="round" strokeWidth="18" />
+        <path d="M20 138 C74 130 92 76 142 80 C198 85 205 38 260 54 C312 69 318 142 362 98 C386 74 396 44 410 34" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeWidth="4" />
+      </svg>
+      <div className="relative grid gap-3 sm:grid-cols-2">
+        {moments.map((moment) => {
+          const Icon = moment.icon;
+          return (
+            <article className="rounded-lg border border-white/14 bg-[#04111d]/86 p-4" key={moment.title}>
+              <div className="flex items-center justify-between">
+                <Icon aria-hidden className="h-4 w-4 text-aqua-200" />
+                <span className="font-mono text-lg text-white">{moment.metric}</span>
+              </div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-aqua-200">{moment.label}</p>
+              <h3 className="mt-2 text-base font-semibold text-white">{moment.title}</h3>
+            </article>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
