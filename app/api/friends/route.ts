@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { created, notFound, ok } from "@/lib/api";
-import { requireApiAccount } from "@/lib/security/api-auth";
+import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createFriendRequest, listFriendships, updateFriendship } from "@/lib/services/friend-service";
 import { friendActionSchema, friendRequestSchema } from "@/lib/validation";
@@ -10,7 +10,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  return NextResponse.json({ friendships: await listFriendships(account.context.userId) });
+  try {
+    return NextResponse.json({ friendships: await listFriendships(account.context.userId) });
+  } catch (error) {
+    console.error("Could not load friendships", error);
+    return databaseUnavailable();
+  }
 }
 
 export async function POST(request: Request) {
@@ -21,10 +26,16 @@ export async function POST(request: Request) {
   const parsed = await parseSecureJson(request, friendRequestSchema);
   if (!parsed.ok) return parsed.response;
 
-  const friendship = await createFriendRequest({
-    requesterId: account.context.userId,
-    email: parsed.data.email
-  });
+  let friendship;
+  try {
+    friendship = await createFriendRequest({
+      requesterId: account.context.userId,
+      email: parsed.data.email
+    });
+  } catch (error) {
+    console.error("Could not create friend request", error);
+    return databaseUnavailable();
+  }
 
   if (!friendship) {
     return ok({ message: "If that account exists, the request has been processed." }, 202);
@@ -41,10 +52,16 @@ export async function PATCH(request: Request) {
   const parsed = await parseSecureJson(request, friendActionSchema);
   if (!parsed.ok) return parsed.response;
 
-  const friendship = await updateFriendship({
-    userId: account.context.userId,
-    ...parsed.data
-  });
+  let friendship;
+  try {
+    friendship = await updateFriendship({
+      userId: account.context.userId,
+      ...parsed.data
+    });
+  } catch (error) {
+    console.error("Could not update friendship", error);
+    return databaseUnavailable();
+  }
 
   if (!friendship) {
     return notFound("Friend request was not found.");

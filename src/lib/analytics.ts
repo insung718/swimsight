@@ -271,6 +271,9 @@ export function generatePredictions(swims: SwimResult[]) {
 export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalProjection {
   const eventSwims = swims.filter((swim) => swim.event === goal.event).sort(byDateAsc);
   const latest = eventSwims[eventSwims.length - 1];
+  if (!latest) {
+    throw new Error("Goal projection requires at least one swim for the goal event.");
+  }
   const best = eventSwims.reduce((fastest, swim) =>
     swim.timeSeconds < fastest.timeSeconds ? swim : fastest
   );
@@ -371,7 +374,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal): Dashb
     strongestEvents: rankings.slice(0, 3),
     weakestEvents: rankings.slice(-3).reverse(),
     predictions: generatePredictions(swims),
-    goalProjection: goal ? calculateGoalProjection(swims, goal) : undefined,
+    goalProjection: goal && swims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(swims, goal) : undefined,
     swimPowerIndex: calculateSwimPowerIndex(rankings)
   };
 }

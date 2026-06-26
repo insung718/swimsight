@@ -1,5 +1,5 @@
 import { created } from "@/lib/api";
-import { requireApiAccount } from "@/lib/security/api-auth";
+import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createGoal } from "@/lib/services/swim-service";
 import { goalSchema } from "@/lib/validation";
@@ -14,10 +14,15 @@ export async function POST(request: Request) {
   const parsed = await parseSecureJson(request, goalSchema);
   if (!parsed.ok) return parsed.response;
 
-  const goal = await createGoal({
-    userId: account.context.userId,
-    ...parsed.data
-  });
+  try {
+    const goal = await createGoal({
+      userId: account.context.userId,
+      ...parsed.data
+    });
 
-  return created({ goal });
+    return created({ goal });
+  } catch (error) {
+    console.error("Could not create goal", error);
+    return databaseUnavailable();
+  }
 }

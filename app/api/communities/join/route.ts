@@ -1,5 +1,5 @@
 import { created, notFound } from "@/lib/api";
-import { requireApiAccount } from "@/lib/security/api-auth";
+import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { joinCommunity } from "@/lib/services/community-service";
 import { communityJoinSchema } from "@/lib/validation";
@@ -14,10 +14,16 @@ export async function POST(request: Request) {
   const parsed = await parseSecureJson(request, communityJoinSchema);
   if (!parsed.ok) return parsed.response;
 
-  const community = await joinCommunity({
-    userId: account.context.userId,
-    joinCode: parsed.data.joinCode
-  });
+  let community;
+  try {
+    community = await joinCommunity({
+      userId: account.context.userId,
+      joinCode: parsed.data.joinCode
+    });
+  } catch (error) {
+    console.error("Could not join community", error);
+    return databaseUnavailable();
+  }
 
   if (!community) {
     return notFound("Community join code was not found.");

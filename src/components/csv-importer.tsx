@@ -31,11 +31,11 @@ export function CsvImporter() {
   }
 
   return (
-    <section className="min-w-0 rounded-lg border border-navy-100 bg-white p-4 shadow-panel dark:border-white/10 dark:bg-white/[0.04] lg:p-5">
+    <section className="stitch-panel min-w-0 p-4 lg:p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-navy-950 dark:text-white">CSV Import</h2>
-          <p className="text-sm text-navy-500 dark:text-navy-100">Date, Event, Time</p>
+          <h2 className="text-lg font-semibold text-white">CSV Import</h2>
+          <p className="text-sm text-white/42">Date, Event, Time</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -51,7 +51,7 @@ export function CsvImporter() {
             }}
           />
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-navy-100 bg-white px-3 text-sm font-semibold text-navy-700 transition hover:border-aqua-400 hover:text-aqua-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
+            className="inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:text-stitch-cyan"
             type="button"
             onClick={() => inputRef.current?.click()}
           >
@@ -59,31 +59,31 @@ export function CsvImporter() {
             Upload CSV
           </button>
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-navy-900 px-3 text-sm font-semibold text-white transition hover:bg-navy-700 dark:bg-aqua-400 dark:text-navy-950"
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-white px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan"
             type="button"
             onClick={validate}
           >
             <CheckCircle2 aria-hidden className="h-4 w-4" />
             Validate
           </button>
-          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-aqua-400 px-3 text-sm font-semibold text-navy-950 transition hover:bg-white" type="button" onClick={importRows}>Import</button>
+          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white" type="button" onClick={importRows}>Import</button>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
         <textarea
-          className="min-h-[180px] w-full resize-y rounded-lg border border-navy-100 bg-navy-50 p-3 font-mono text-sm text-navy-950 outline-none transition focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+          className="min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-stitch-abyss p-3 font-mono text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
           value={csv}
           placeholder={'Date,Event,Time\n2026-03-16,50 Free,25.56'}
           onChange={(event) => setCsv(event.target.value)}
         />
-        <div className="rounded-lg border border-navy-50 p-3 dark:border-white/10">
+        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-navy-950 dark:text-white">
+              <p className="text-sm font-semibold text-white">
                 {result.validRows.length} valid rows
               </p>
-              <p className="text-sm text-navy-500 dark:text-navy-100">{result.errors.length} errors</p>
+              <p className="text-sm text-white/42">{result.errors.length} errors</p>
             </div>
             {result.errors.length ? (
               <XCircle aria-hidden className="h-6 w-6 text-coral-500" />
@@ -95,11 +95,11 @@ export function CsvImporter() {
           <div className="mt-4 space-y-2">
             {result.validRows.slice(0, 4).map((row) => (
               <div
-                className="flex items-center justify-between gap-3 rounded-md bg-navy-50 px-3 py-2 text-sm dark:bg-white/[0.08]"
+                className="flex items-center justify-between gap-3 rounded-md bg-white/[0.06] px-3 py-2 text-sm"
                 key={`${row.date}-${row.event}-${row.timeSeconds}`}
               >
-                <span className="font-medium text-navy-950 dark:text-white">{row.event}</span>
-                <span className="text-navy-600 dark:text-navy-100">{formatTime(row.timeSeconds)}</span>
+                <span className="font-medium text-white">{row.event}</span>
+                <span className="text-white/58">{formatTime(row.timeSeconds)}</span>
               </div>
             ))}
             {result.errors.map((error) => (

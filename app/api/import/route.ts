@@ -1,6 +1,6 @@
 import { badRequest, created } from "@/lib/api";
 import { validateSwimCsv } from "@/lib/csv";
-import { requireApiAccount } from "@/lib/security/api-auth";
+import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { createManySwims } from "@/lib/services/swim-service";
 import { csvImportSchema } from "@/lib/validation";
@@ -24,14 +24,19 @@ export async function POST(request: Request) {
     return badRequest("Fix CSV validation errors before importing.", result.errors);
   }
 
-  const swims = await createManySwims(
-    result.validRows.map((row) => ({
-      userId: account.context.userId,
-      ...row,
-      notes: row.notes ?? undefined,
-      source: "CSV"
-    }))
-  );
+  try {
+    const swims = await createManySwims(
+      result.validRows.map((row) => ({
+        userId: account.context.userId,
+        ...row,
+        notes: row.notes ?? undefined,
+        source: "CSV"
+      }))
+    );
 
-  return created({ ...result, swims });
+    return created({ ...result, swims });
+  } catch (error) {
+    console.error("Could not import swims", error);
+    return databaseUnavailable();
+  }
 }

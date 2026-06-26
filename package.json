@@ -5,7 +5,8 @@
   "description": "A data-driven swim analytics platform for competitive swimmers, coaches, and teams.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/build.mjs",
+    "vercel-build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",

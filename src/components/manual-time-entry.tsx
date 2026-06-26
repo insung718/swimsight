@@ -51,14 +51,14 @@ export function ManualTimeEntry() {
   }
 
   return (
-    <section className="min-w-0 rounded-lg border border-navy-100 bg-white p-4 shadow-panel dark:border-white/10 dark:bg-white/[0.04] lg:p-5">
+    <section className="stitch-panel min-w-0 p-4 lg:p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-navy-950 dark:text-white">Add A Time</h2>
-          <p className="text-sm text-navy-500 dark:text-navy-100">Manual entry stays beside CSV import</p>
+          <h2 className="text-lg font-semibold text-white">Add A Time</h2>
+          <p className="text-sm text-white/42">Manual entry stays beside CSV import</p>
         </div>
         <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-navy-900 px-3 text-sm font-semibold text-white transition hover:bg-navy-700 dark:bg-aqua-400 dark:text-navy-950"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white"
           type="button"
           onClick={submitTime}
         >
@@ -68,19 +68,19 @@ export function ManualTimeEntry() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-100">
+        <label className="text-sm font-medium text-white/65">
           Date
           <input
-            className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             type="date"
             value={date}
             onChange={(changeEvent) => setDate(changeEvent.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-100">
+        <label className="text-sm font-medium text-white/65">
           Event
           <select
-            className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             value={event}
             onChange={(changeEvent) => setEvent(changeEvent.target.value as SwimEvent | "")}
           >
@@ -92,10 +92,10 @@ export function ManualTimeEntry() {
             ))}
           </select>
         </label>
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-100">
+        <label className="text-sm font-medium text-white/65">
           Course
           <select
-            className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             value={course}
             onChange={(changeEvent) => setCourse(changeEvent.target.value as Course)}
           >
@@ -106,19 +106,19 @@ export function ManualTimeEntry() {
             ))}
           </select>
         </label>
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-100">
+        <label className="text-sm font-medium text-white/65">
           Time
           <input
-            className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
             placeholder="e.g. 1:03.80"
             value={time}
             onChange={(changeEvent) => setTime(changeEvent.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-100">
+        <label className="text-sm font-medium text-white/65">
           Meet
           <input
-            className="mt-1 h-10 w-full rounded-md border border-navy-100 bg-white px-3 text-sm text-navy-950 outline-none focus:border-aqua-400 dark:border-white/10 dark:bg-navy-950 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
             placeholder="Meet name"
             value={meetName}
             onChange={(changeEvent) => setMeetName(changeEvent.target.value)}
@@ -126,7 +126,7 @@ export function ManualTimeEntry() {
         </label>
       </div>
 
-      <p className="mt-3 text-sm text-navy-500 dark:text-navy-100">{status}</p>
+      <p className="mt-3 text-sm text-white/48">{status}</p>
     </section>
   );
 }

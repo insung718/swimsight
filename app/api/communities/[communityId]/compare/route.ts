@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { badRequest, notFound } from "@/lib/api";
-import { requireApiAccount } from "@/lib/security/api-auth";
+import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { getCommunityComparison } from "@/lib/services/community-service";
 import { communityIdSchema } from "@/lib/validation";
 
@@ -18,7 +18,13 @@ export async function GET(
     return badRequest("Community id is required.");
   }
 
-  const comparison = await getCommunityComparison(idResult.data, account.context.userId);
+  let comparison;
+  try {
+    comparison = await getCommunityComparison(idResult.data, account.context.userId);
+  } catch (error) {
+    console.error("Could not load community comparison", error);
+    return databaseUnavailable();
+  }
 
   if (!comparison) {
     return notFound("Community was not found or you are not a member.");

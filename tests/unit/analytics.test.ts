@@ -60,6 +60,15 @@ describe("analytics engine", () => {
     expect(analytics.goalProjection).toBeUndefined();
   });
 
+  it("does not crash when a goal exists before results for that event", () => {
+    const analytics = buildDashboardAnalytics(sampleSwims, {
+      ...sampleGoals[0],
+      event: "200 Breaststroke"
+    });
+
+    expect(analytics.goalProjection).toBeUndefined();
+  });
+
   it("fits a simple regression line", () => {
     const regression = linearRegression([
       { x: 0, y: 10 },
