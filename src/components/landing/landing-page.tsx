@@ -5,6 +5,7 @@ import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
 import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
 import { SectionTransition } from "@/components/landing/section-transition";
+import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
 import { SiteNav } from "@/components/landing/site-nav";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
@@ -64,6 +65,8 @@ export function LandingPage() {
           </Reveal>
         </div>
       </section>
+
+      <SeasonDepthCarousel />
 
       <section className="overflow-hidden bg-[#dff8ff] py-24 sm:py-36">
         <div className="mx-auto max-w-6xl px-5 text-center">

@@ -172,6 +172,49 @@ textarea {
     linear-gradient(180deg, #03070e 0%, #071a29 42%, #03070e 100%);
 }
 
+.season-depth {
+  background:
+    radial-gradient(circle at 16% 4%, rgba(255, 255, 255, 0.96), transparent 21rem),
+    radial-gradient(circle at 72% 14%, rgba(34, 201, 232, 0.22), transparent 29rem),
+    linear-gradient(180deg, #ffffff 0%, #eafaff 42%, #f7fcff 100%);
+}
+
+.depth-track {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.depth-card {
+  contain: layout paint;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.depth-card::before {
+  background:
+    linear-gradient(90deg, rgba(4, 17, 29, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(4, 17, 29, 0.05) 1px, transparent 1px);
+  background-size: 25% 100%, 100% 28%;
+  content: "";
+  inset: 0;
+  opacity: 0.58;
+  position: absolute;
+}
+
+.depth-card-shine {
+  background: radial-gradient(
+    circle at calc(50% + var(--depth-x, 0px)) calc(50% + var(--depth-y, 0px)),
+    rgba(255, 255, 255, 0.82),
+    rgba(34, 201, 232, 0.18) 24%,
+    transparent 58%
+  );
+}
+
+.depth-card:hover .depth-card-shine {
+  opacity: 1;
+}
+
 .landing-page section {
   scroll-margin-top: 4rem;
 }
@@ -180,6 +223,10 @@ textarea {
   .landing-page h1,
   .landing-page h2 {
     overflow-wrap: anywhere;
+  }
+
+  .depth-card {
+    min-height: auto;
   }
 }
 
@@ -213,7 +260,9 @@ textarea {
   .landing-hero-copy,
   .reveal-section,
   .dashboard-enter,
-  .dashboard-enter-delayed {
+  .dashboard-enter-delayed,
+  .depth-card,
+  .depth-track {
     animation: none;
     opacity: 1;
     transform: none;

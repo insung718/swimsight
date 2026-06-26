@@ -17,6 +17,8 @@ const config: Config = {
         aqua: {
           50: "#e9fbff",
           100: "#c8f4fb",
+          200: "#8cecff",
+          300: "#4ee8ff",
           400: "#22c9e8",
           500: "#09aeca",
           600: "#078ca5"
