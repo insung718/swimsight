@@ -20,13 +20,13 @@ export function MetricCard({ label, value, detail, icon: Icon, tone = "aqua" }: 
   return (
     <article className="dashboard-glass premium-hover p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-white/68">{label}</span>
+        <span className="text-sm font-medium text-white/82">{label}</span>
         <span className={cn("inline-flex h-9 w-9 items-center justify-center rounded-md", toneClasses[tone])}>
           <Icon aria-hidden className="h-5 w-5" />
         </span>
       </div>
       <div className="mt-4 text-3xl font-bold text-white">{value}</div>
-      <p className="mt-1 text-sm text-white/58">{detail}</p>
+      <p className="mt-1 text-sm text-white/76">{detail}</p>
     </article>
   );
 }

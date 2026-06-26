@@ -26,7 +26,7 @@ function RankingList({
       <div className="space-y-3">
         {rankings.map((ranking, index) => (
           <article
-            className="premium-hover rounded-lg border border-white/15 bg-white/[0.08] p-3"
+            className="premium-hover rounded-lg border border-white/15 bg-white/10 p-3"
             key={ranking.event}
           >
             <div className="flex items-start justify-between gap-3">
@@ -34,7 +34,7 @@ function RankingList({
                 <p className="text-sm font-semibold text-white">
                   {index + 1}. {ranking.event}
                 </p>
-                <p className="mt-1 text-xs text-white/52">
+                <p className="mt-1 text-xs text-white/74">
                   {ranking.trend} · {ranking.improvementPercent}% improvement
                 </p>
               </div>
@@ -65,21 +65,21 @@ export function EventRankings({ strongestEvents, weakestEvents }: EventRankingsP
           </span>
           <div>
             <h2 className="text-lg font-semibold">Event Ranking Model</h2>
-            <p className="text-sm text-white/58">Improvement, consistency, and recent trend</p>
+            <p className="text-sm text-white/76">Improvement, consistency, and recent trend</p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-3 gap-3 text-center">
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">40%</div>
-            <div className="mt-1 text-xs text-white/55">Improvement</div>
+            <div className="mt-1 text-xs text-white/74">Improvement</div>
           </div>
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">30%</div>
-            <div className="mt-1 text-xs text-white/55">Consistency</div>
+            <div className="mt-1 text-xs text-white/74">Consistency</div>
           </div>
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">30%</div>
-            <div className="mt-1 text-xs text-white/55">Trend</div>
+            <div className="mt-1 text-xs text-white/74">Trend</div>
           </div>
         </div>
       </div>

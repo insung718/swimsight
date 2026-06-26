@@ -60,8 +60,8 @@ function DashboardUnavailable({ reason }: { reason: string }) {
           <h1 className="mt-4 text-4xl font-semibold tracking-normal text-white sm:text-6xl">
             The dashboard connection needs one last backend step.
           </h1>
-          <p className="mt-6 text-lg leading-8 text-white/60">{reason}</p>
-          <div className="mt-8 rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-white/64">
+          <p className="mt-6 text-lg leading-8 text-white/78">{reason}</p>
+          <div className="mt-8 rounded-lg border border-white/20 bg-white/10 p-5 text-sm leading-7 text-white/78">
             Make sure Vercel has `DATABASE_URL`, then redeploy so Prisma migrations run. Once the database is ready, this page becomes your empty personal dashboard with manual entry, CSV import, goals, meets, communities, and analytics.
           </div>
         </div>

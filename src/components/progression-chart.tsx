@@ -48,7 +48,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Progression</h2>
-          <p className="text-sm text-white/55">Date vs time by event</p>
+          <p className="text-sm text-white/74">Date vs time by event</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <label className="sr-only" htmlFor="event-filter">

@@ -57,13 +57,13 @@ export function UpcomingMeetPanel() {
         </span>
         <div>
           <h2 className="text-lg font-semibold text-white">Upcoming Meet</h2>
-          <p className="text-sm text-white/42">Countdown and target event</p>
+          <p className="text-sm text-white/70">Countdown and target event</p>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
         <input
-          className="h-10 rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
+          className="h-10 rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
           placeholder="Meet name"
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -95,15 +95,15 @@ export function UpcomingMeetPanel() {
         </button>
       </div>
 
-      <p className="mt-3 text-sm text-white/48">{status}</p>
+      <p className="mt-3 text-sm text-white/72">{status}</p>
       <div className="mt-3 space-y-2">
-        {meets.length === 0 && <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-white/38">No upcoming meets added.</div>}
+        {meets.length === 0 && <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-white/80">No upcoming meets added.</div>}
         {meets.slice(0, 3).map((meet) => (
-          <div className="rounded-lg bg-white/[0.06] p-3" key={meet.id}>
+          <div className="rounded-lg bg-white/10 p-3" key={meet.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="font-semibold text-white">{meet.name}</div>
-                <div className="mt-1 text-sm text-white/48">
+                <div className="mt-1 text-sm text-white/72">
                   {meet.targetEvents.join(", ")}
                 </div>
               </div>
@@ -111,7 +111,7 @@ export function UpcomingMeetPanel() {
                 <div className="text-2xl font-bold text-stitch-cyan">
                   {Math.max(meet.daysUntil, 0)}
                 </div>
-                <div className="text-xs text-white/42">days</div>
+                <div className="text-xs text-white/70">days</div>
               </div>
             </div>
           </div>

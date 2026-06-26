@@ -55,7 +55,7 @@ export function ManualTimeEntry() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Add A Time</h2>
-          <p className="text-sm text-white/42">Manual entry stays beside CSV import</p>
+          <p className="text-sm text-white/70">Manual entry stays beside CSV import</p>
         </div>
         <button
           className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white"
@@ -68,7 +68,7 @@ export function ManualTimeEntry() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <label className="text-sm font-medium text-white/65">
+        <label className="text-sm font-medium text-white/80">
           Date
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
@@ -77,7 +77,7 @@ export function ManualTimeEntry() {
             onChange={(changeEvent) => setDate(changeEvent.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-white/65">
+        <label className="text-sm font-medium text-white/80">
           Event
           <select
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
@@ -92,7 +92,7 @@ export function ManualTimeEntry() {
             ))}
           </select>
         </label>
-        <label className="text-sm font-medium text-white/65">
+        <label className="text-sm font-medium text-white/80">
           Course
           <select
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
@@ -106,19 +106,19 @@ export function ManualTimeEntry() {
             ))}
           </select>
         </label>
-        <label className="text-sm font-medium text-white/65">
+        <label className="text-sm font-medium text-white/80">
           Time
           <input
-            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
             placeholder="e.g. 1:03.80"
             value={time}
             onChange={(changeEvent) => setTime(changeEvent.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-white/65">
+        <label className="text-sm font-medium text-white/80">
           Meet
           <input
-            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
             placeholder="Meet name"
             value={meetName}
             onChange={(changeEvent) => setMeetName(changeEvent.target.value)}
@@ -126,7 +126,7 @@ export function ManualTimeEntry() {
         </label>
       </div>
 
-      <p className="mt-3 text-sm text-white/48">{status}</p>
+      <p className="mt-3 text-sm text-white/72">{status}</p>
     </section>
   );
 }

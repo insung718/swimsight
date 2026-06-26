@@ -11,14 +11,14 @@ export function PersonalBestTable({ personalBests }: { personalBests: PersonalBe
         </span>
         <div>
           <h2 className="text-lg font-semibold text-white">Personal Bests</h2>
-          <p className="text-sm text-white/55">Current PB and PB-to-PB gains</p>
+          <p className="text-sm text-white/74">Current PB and PB-to-PB gains</p>
         </div>
       </div>
 
       <div className="max-w-full overflow-x-auto">
         <table className="w-full min-w-[620px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-white/15 text-xs uppercase text-white/50">
+            <tr className="border-b border-white/15 text-xs uppercase text-white/72">
               <th className="py-3 pr-3 font-semibold">Event</th>
               <th className="px-3 py-3 font-semibold">Current PB</th>
               <th className="px-3 py-3 font-semibold">Date</th>
@@ -30,9 +30,9 @@ export function PersonalBestTable({ personalBests }: { personalBests: PersonalBe
             {personalBests.map((pb) => (
               <tr key={pb.event} className="border-b border-white/10 last:border-0">
                 <td className="py-3 pr-3 font-semibold text-white">{pb.event}</td>
-                <td className="px-3 py-3 text-white/65">{formatTime(pb.currentPb)}</td>
-                <td className="px-3 py-3 text-white/65">{formatDate(pb.dateAchieved)}</td>
-                <td className="px-3 py-3 text-white/65">
+                <td className="px-3 py-3 text-white/80">{formatTime(pb.currentPb)}</td>
+                <td className="px-3 py-3 text-white/80">{formatDate(pb.dateAchieved)}</td>
+                <td className="px-3 py-3 text-white/80">
                   {pb.previousPb ? formatTime(pb.previousPb) : "First swim"}
                 </td>
                 <td className="py-3 pl-3 font-semibold text-mint-500">

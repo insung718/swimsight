@@ -34,11 +34,11 @@ body {
 
 @layer components {
   .stitch-panel {
-    @apply rounded-lg border border-white/35 bg-white/[0.16] shadow-stitch backdrop-blur-2xl;
+    @apply rounded-lg border border-white/25 bg-stitch-abyss/[0.76] shadow-stitch backdrop-blur-2xl;
   }
 
   .stitch-panel-soft {
-    @apply rounded-lg border border-white/30 bg-white/[0.11] backdrop-blur-2xl;
+    @apply rounded-lg border border-white/20 bg-stitch-panel/[0.70] backdrop-blur-2xl;
   }
 
   .stitch-label {
@@ -85,7 +85,7 @@ body {
   }
 
   .dashboard-glass {
-    @apply rounded-lg border border-white/45 bg-white/[0.22] shadow-stitch backdrop-blur-2xl;
+    @apply rounded-lg border border-white/25 bg-stitch-abyss/[0.74] shadow-stitch backdrop-blur-2xl;
   }
 
   .dashboard-hero {
@@ -106,7 +106,15 @@ body {
   }
 
   .premium-hover {
-    @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/[0.24] hover:shadow-glow;
+    @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:border-stitch-cyan/55 hover:bg-stitch-panel/[0.82] hover:shadow-glow;
+  }
+
+  .readable-muted {
+    @apply text-white/75;
+  }
+
+  .readable-subtle {
+    @apply text-white/65;
   }
 }
 

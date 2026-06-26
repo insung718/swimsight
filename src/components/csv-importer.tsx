@@ -35,7 +35,7 @@ export function CsvImporter() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">CSV Import</h2>
-          <p className="text-sm text-white/42">Date, Event, Time</p>
+          <p className="text-sm text-white/70">Date, Event, Time</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -51,7 +51,7 @@ export function CsvImporter() {
             }}
           />
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:text-stitch-cyan"
+            className="inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/10 px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:text-stitch-cyan"
             type="button"
             onClick={() => inputRef.current?.click()}
           >
@@ -72,18 +72,18 @@ export function CsvImporter() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
         <textarea
-          className="min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-stitch-abyss p-3 font-mono text-sm text-white outline-none transition placeholder:text-white/25 focus:border-stitch-cyan"
+          className="min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-stitch-abyss p-3 font-mono text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
           value={csv}
           placeholder={'Date,Event,Time\n2026-03-16,50 Free,25.56'}
           onChange={(event) => setCsv(event.target.value)}
         />
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
+        <div className="rounded-lg border border-white/10 bg-white/10 p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">
                 {result.validRows.length} valid rows
               </p>
-              <p className="text-sm text-white/42">{result.errors.length} errors</p>
+              <p className="text-sm text-white/70">{result.errors.length} errors</p>
             </div>
             {result.errors.length ? (
               <XCircle aria-hidden className="h-6 w-6 text-coral-500" />
@@ -95,11 +95,11 @@ export function CsvImporter() {
           <div className="mt-4 space-y-2">
             {result.validRows.slice(0, 4).map((row) => (
               <div
-                className="flex items-center justify-between gap-3 rounded-md bg-white/[0.06] px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-3 rounded-md bg-white/10 px-3 py-2 text-sm"
                 key={`${row.date}-${row.event}-${row.timeSeconds}`}
               >
                 <span className="font-medium text-white">{row.event}</span>
-                <span className="text-white/58">{formatTime(row.timeSeconds)}</span>
+                <span className="text-white/76">{formatTime(row.timeSeconds)}</span>
               </div>
             ))}
             {result.errors.map((error) => (
@@ -110,7 +110,7 @@ export function CsvImporter() {
           </div>
         </div>
       </div>
-      {status && <p className="mt-3 text-sm text-white/48">{status}</p>}
+      {status && <p className="mt-3 text-sm text-white/72">{status}</p>}
     </section>
   );
 }

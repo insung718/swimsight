@@ -20,7 +20,7 @@ export function ThemeToggle() {
   return (
     <button
       aria-label="Toggle dark mode"
-      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-navy-100 bg-white text-navy-700 transition hover:border-aqua-400 hover:text-aqua-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-navy-100 bg-white text-navy-700 transition hover:border-aqua-400 hover:text-aqua-600 dark:border-white/10 dark:bg-white/10 dark:text-white"
       title="Toggle dark mode"
       type="button"
       onClick={toggleTheme}

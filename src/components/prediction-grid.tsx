@@ -22,17 +22,17 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
         </span>
         <div>
           <h2 className="text-lg font-semibold text-white">Predictions</h2>
-          <p className="text-sm text-white/55">Regression-based future times</p>
+          <p className="text-sm text-white/74">Regression-based future times</p>
         </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         {featured.map((prediction) => (
-          <article className="premium-hover rounded-lg border border-white/15 bg-white/[0.08] p-3" key={prediction.event}>
+          <article className="premium-hover rounded-lg border border-white/15 bg-white/10 p-3" key={prediction.event}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-semibold text-white">{prediction.event}</h3>
-                <p className="mt-1 text-sm text-white/52">
+                <p className="mt-1 text-sm text-white/74">
                   Current {formatTime(prediction.currentTime)}
                 </p>
               </div>
@@ -43,7 +43,7 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {horizonLabels.map(([label, key]) => (
                 <div className="rounded-md bg-white/[0.12] p-2" key={key}>
-                  <div className="text-xs text-white/50">{label}</div>
+                  <div className="text-xs text-white/72">{label}</div>
                   <div className="mt-1 font-bold text-white">
                     {formatTime(prediction.predictedTimes[key])}
                   </div>
