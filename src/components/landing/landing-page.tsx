@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
+import { RaceTelemetry } from "@/components/landing/race-telemetry";
 import { SiteNav } from "@/components/landing/site-nav";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
@@ -47,6 +48,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <RaceTelemetry />
 
       <section id="features" className="bg-white py-24 sm:py-36">
         <div className="mx-auto max-w-6xl px-5">
