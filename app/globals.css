@@ -137,6 +137,7 @@ textarea {
 
 .landing-page {
   letter-spacing: 0;
+  background: #03070e;
 }
 
 .landing-hero-copy {
@@ -162,6 +163,24 @@ textarea {
 .reveal-section.is-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+.race-telemetry > [aria-hidden] {
+  background:
+    radial-gradient(circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(34, 201, 232, 0.28), transparent 24rem),
+    radial-gradient(circle at 12% 16%, rgba(255, 255, 255, 0.08), transparent 18rem),
+    linear-gradient(180deg, #03070e 0%, #071a29 42%, #03070e 100%);
+}
+
+.landing-page section {
+  scroll-margin-top: 4rem;
+}
+
+@media (max-width: 767px) {
+  .landing-page h1,
+  .landing-page h2 {
+    overflow-wrap: anywhere;
+  }
 }
 
 @keyframes landing-enter {

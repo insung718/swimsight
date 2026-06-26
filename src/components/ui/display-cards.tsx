@@ -15,7 +15,7 @@ function DisplayCard({ className, icon, title, description, detail }: DisplayCar
   return (
     <article
       className={cn(
-        "relative flex h-40 w-[min(20rem,calc(100vw-3rem))] -skew-y-[5deg] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition duration-500 hover:-translate-y-3 hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80",
+        "relative flex h-40 w-full max-w-[22rem] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition duration-500 hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80 sm:-skew-y-[5deg] sm:hover:-translate-y-3",
         className,
       )}
     >
@@ -31,15 +31,15 @@ function DisplayCard({ className, icon, title, description, detail }: DisplayCar
 
 export default function DisplayCards({ cards }: { cards: DisplayCardProps[] }) {
   return (
-    <div className="grid min-h-[25rem] [grid-template-areas:'stack'] place-items-center pr-8 sm:pr-24">
+    <div className="grid gap-4 pr-0 sm:min-h-[25rem] sm:[grid-template-areas:'stack'] sm:place-items-center sm:pr-24">
       {cards.map((card, index) => (
         <DisplayCard
           {...card}
           className={cn(
-            "[grid-area:stack]",
-            index === 0 && "-translate-x-4 -translate-y-16 sm:-translate-x-10",
-            index === 1 && "translate-x-2 sm:translate-x-8",
-            index === 2 && "translate-x-8 translate-y-16 sm:translate-x-24",
+            "justify-self-center sm:[grid-area:stack]",
+            index === 0 && "sm:-translate-x-10 sm:-translate-y-16",
+            index === 1 && "sm:translate-x-8",
+            index === 2 && "sm:translate-x-24 sm:translate-y-16",
             card.className,
           )}
           key={card.title}

@@ -3,6 +3,8 @@ import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck,
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
+import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
+import { SectionTransition } from "@/components/landing/section-transition";
 import { SiteNav } from "@/components/landing/site-nav";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
@@ -49,9 +51,12 @@ export function LandingPage() {
         </div>
       </section>
 
+      <KineticRibbon />
       <RaceTelemetry />
+      <SectionTransition label="from signal to system" />
 
-      <section id="features" className="bg-white py-24 sm:py-36">
+      <section id="features" className="relative overflow-hidden bg-white py-24 sm:py-36">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#03070e] to-transparent opacity-[0.08]" />
         <div className="mx-auto max-w-6xl px-5">
           <Reveal><p className="text-sm font-semibold text-cyan-700">One place for the whole season.</p><h2 className="mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Less dashboard. More direction.</h2></Reveal>
           <Reveal className="mt-16" delay={100}>
@@ -75,6 +80,7 @@ export function LandingPage() {
         </div>
       </section>
 
+      <KineticRibbon />
       <section id="performance" className="overflow-hidden bg-[#050505] text-white">
         <ContainerScroll title={<><p className="text-sm font-semibold text-cyan-300">Precision without the clutter.</p><h2 className="mx-auto mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Add one time. See the entire picture move.</h2></>}>
               <div className="flex h-12 items-center gap-2 border-b border-white/10 px-5"><span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-cyan-400" /><span className="ml-auto text-xs text-white/70">Your season</span></div>

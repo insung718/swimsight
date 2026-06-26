@@ -2,7 +2,7 @@
 
 import { Activity, Gauge, LineChart, TimerReset } from "lucide-react";
 import { motion, type MotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 
 const moments = [
   {
@@ -44,12 +44,16 @@ export function RaceTelemetry() {
   const pathLength = useTransform(smoothProgress, [0.08, 0.82], [0.05, 1]);
   const swimmerX = useTransform(smoothProgress, [0.08, 0.86], ["6%", "86%"]);
   const swimmerY = useTransform(smoothProgress, [0.08, 0.36, 0.62, 0.86], ["58%", "31%", "48%", "20%"]);
-  const graphRotate = useTransform(smoothProgress, [0, 1], reduceMotion ? [0, 0] : [-3, 3]);
-  const graphScale = useTransform(smoothProgress, [0, 0.5, 1], reduceMotion ? [1, 1, 1] : [0.94, 1.04, 0.98]);
+  const graphRotate = useTransform(smoothProgress, [0, 1], reduceMotion ? [0, 0] : [-1.4, 1.4]);
+  const graphScale = useTransform(smoothProgress, [0, 0.5, 1], reduceMotion ? [1, 1, 1] : [0.97, 1.025, 0.99]);
+  const spotlightStyle = {
+    "--spotlight-x": `${spotlight.x}%`,
+    "--spotlight-y": `${spotlight.y}%`
+  } as CSSProperties;
 
   return (
     <section
-      className="relative bg-[#03070e] text-white"
+      className="race-telemetry relative bg-[#03070e] text-white"
       onMouseMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         setSpotlight({
@@ -58,26 +62,24 @@ export function RaceTelemetry() {
         });
       }}
       ref={ref}
+      style={spotlightStyle}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-80"
-        style={{
-          background: `radial-gradient(circle at ${spotlight.x}% ${spotlight.y}%, rgba(34,201,232,0.28), transparent 24rem), linear-gradient(180deg, #03070e 0%, #071a29 42%, #03070e 100%)`
-        }}
       />
-      <div className="relative h-[340svh]">
-        <div className="sticky top-0 flex min-h-svh items-center overflow-hidden">
-          <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-24 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
+      <div className="relative lg:h-[340svh]">
+        <div className="flex min-h-svh items-center overflow-hidden lg:sticky lg:top-0">
+          <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-20 sm:py-24 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
             <div className="relative z-10">
               <p className="text-sm font-semibold text-aqua-300">Race telemetry</p>
-              <h2 className="mt-4 max-w-xl text-balance text-5xl font-semibold leading-[0.95] sm:text-7xl">
+              <h2 className="mt-4 max-w-xl text-balance text-4xl font-semibold leading-[0.96] sm:text-6xl lg:text-7xl">
                 Watch your season draw itself.
               </h2>
-              <p className="mt-7 max-w-lg text-lg leading-8 text-white/66">
+              <p className="mt-6 max-w-lg text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
                 Inspired by scroll-driven graph systems, rebuilt for swimming: every logged time becomes a moving signal through lanes, goals, and predictions.
               </p>
-              <div className="mt-10 grid max-w-md grid-cols-2 gap-3">
+              <div className="mt-8 grid max-w-md grid-cols-2 gap-3 sm:mt-10">
                 {["Input", "PB", "Trend", "Future"].map((item, index) => (
                   <TelemetryPill index={index} item={item} key={item} progress={smoothProgress} />
                 ))}
@@ -85,7 +87,7 @@ export function RaceTelemetry() {
             </div>
 
             <motion.div
-              className="relative min-h-[620px] overflow-hidden rounded-lg border border-white/15 bg-white/[0.06] shadow-[0_50px_160px_rgba(0,190,230,0.20)] backdrop-blur-2xl"
+              className="relative min-h-[900px] overflow-hidden rounded-lg border border-white/15 bg-white/[0.06] shadow-[0_50px_160px_rgba(0,190,230,0.20)] backdrop-blur-2xl sm:min-h-[760px] lg:min-h-[620px]"
               style={{ rotate: graphRotate, scale: graphScale }}
             >
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100%_88px,12.5%_100%]" />
@@ -134,7 +136,7 @@ export function RaceTelemetry() {
                 <span className="absolute left-1/2 top-1/2 h-3 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
                 <span className="absolute left-3 top-2 h-3 w-3 rounded-full bg-aqua-100" />
               </motion.div>
-              <div className="absolute bottom-5 left-5 right-5 z-20 grid gap-3 md:grid-cols-4">
+              <div className="relative z-20 mt-[430px] grid gap-3 p-4 sm:absolute sm:bottom-5 sm:left-5 sm:right-5 sm:mt-0 sm:grid-cols-2 sm:p-0 xl:grid-cols-4">
                 {moments.map((moment, index) => {
                   return (
                     <TelemetryMoment
