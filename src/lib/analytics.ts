@@ -1,6 +1,7 @@
 import type {
   DashboardAnalytics,
   EventRanking,
+  GymWorkout,
   Goal,
   GoalProjection,
   PersonalBest,
@@ -13,6 +14,24 @@ import type {
 import { clamp, dateToDays, round } from "@/lib/utils";
 
 const predictionHorizons = [30, 90, 180, 365] as const;
+
+type TrainingLoadSignal = {
+  weeklyLoad: number;
+  sessionsLast28Days: number;
+  loadRatio: number;
+  adjustmentMultiplier: number;
+  confidenceAdjustment: number;
+  label: Prediction["trainingImpact"]["label"];
+};
+
+const neutralTrainingSignal: TrainingLoadSignal = {
+  weeklyLoad: 0,
+  sessionsLast28Days: 0,
+  loadRatio: 1,
+  adjustmentMultiplier: 1,
+  confidenceAdjustment: 0,
+  label: "No gym data"
+};
 
 function byDateAsc(a: SwimResult, b: SwimResult) {
   return new Date(a.date).getTime() - new Date(b.date).getTime();
@@ -229,16 +248,53 @@ function averageWindowImprovement(swims: SwimResult[], days: number) {
   return round(improvements.reduce((sum, value) => sum + value, 0) / improvements.length, 2);
 }
 
-export function predictEvent(swims: SwimResult[]): Prediction {
+export function calculateTrainingLoadSignal(workouts: GymWorkout[]): TrainingLoadSignal {
+  if (!workouts.length) {
+    return neutralTrainingSignal;
+  }
+
+  const sorted = [...workouts].sort((a, b) => dateToDays(a.date) - dateToDays(b.date));
+  const latestDay = dateToDays(sorted[sorted.length - 1].date);
+  const recent = sorted.filter((workout) => latestDay - dateToDays(workout.date) <= 42);
+  const baseline = sorted.filter((workout) => latestDay - dateToDays(workout.date) <= 180);
+  const last28 = sorted.filter((workout) => latestDay - dateToDays(workout.date) <= 28);
+  const recentWeeklyLoad = recent.reduce((sum, workout) => sum + workout.trainingLoad, 0) / 6;
+  const baselineStartDay = dateToDays(baseline[0]?.date ?? sorted[0].date);
+  const baselineWeeks = Math.max(1, (latestDay - baselineStartDay + 1) / 7);
+  const baselineWeeklyLoad = baseline.reduce((sum, workout) => sum + workout.trainingLoad, 0) / baselineWeeks;
+  const loadRatio = baselineWeeklyLoad > 0 ? recentWeeklyLoad / baselineWeeklyLoad : 1;
+  const averageIntensity = recent.reduce((sum, workout) => sum + workout.intensity, 0) / Math.max(recent.length, 1);
+  const hasStrengthSupport = last28.length >= 4 && averageIntensity <= 8.2;
+  const fatigueRisk = loadRatio > 1.45 || averageIntensity >= 8.7;
+  const adjustmentMultiplier = fatigueRisk ? 0.93 : hasStrengthSupport ? 1.06 : 1.02;
+  const confidenceAdjustment = fatigueRisk ? -8 : hasStrengthSupport ? 5 : 2;
+  const label: TrainingLoadSignal["label"] = fatigueRisk
+    ? "Fatigue risk"
+    : hasStrengthSupport
+      ? "Strength supported"
+      : "Balanced load";
+
+  return {
+    weeklyLoad: round(recentWeeklyLoad, 1),
+    sessionsLast28Days: last28.length,
+    loadRatio: round(loadRatio, 2),
+    adjustmentMultiplier,
+    confidenceAdjustment,
+    label
+  };
+}
+
+export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSignal = neutralTrainingSignal): Prediction {
   const sorted = [...swims].sort(byDateAsc);
   const latest = sorted[sorted.length - 1];
   const { slope } = eventRegression(sorted);
   const consistencyScore = calculateConsistencyScore(sorted);
   const sampleConfidence = clamp(sorted.length * 15, 30, 90);
-  const confidence = round(sampleConfidence * 0.45 + consistencyScore * 0.55, 1);
+  const confidence = round(clamp(sampleConfidence * 0.45 + consistencyScore * 0.55 + trainingSignal.confidenceAdjustment), 1);
+  const adjustedSlope = slope < 0 ? slope * trainingSignal.adjustmentMultiplier : slope;
 
   const project = (days: number) => {
-    const predicted = latest.timeSeconds + slope * days;
+    const predicted = latest.timeSeconds + adjustedSlope * days;
     return round(Math.max(predicted, latest.timeSeconds * 0.82), 2);
   };
 
@@ -252,16 +308,23 @@ export function predictEvent(swims: SwimResult[]): Prediction {
       days180: project(predictionHorizons[2]),
       days365: project(predictionHorizons[3])
     },
-    confidence
+    confidence,
+    trainingImpact: {
+      label: trainingSignal.label,
+      adjustmentMultiplier: trainingSignal.adjustmentMultiplier,
+      weeklyLoad: trainingSignal.weeklyLoad,
+      sessionsLast28Days: trainingSignal.sessionsLast28Days
+    }
   };
 }
 
-export function generatePredictions(swims: SwimResult[]) {
+export function generatePredictions(swims: SwimResult[], workouts: GymWorkout[] = []) {
   const predictions: Prediction[] = [];
+  const trainingSignal = calculateTrainingLoadSignal(workouts);
 
   groupByEvent(swims).forEach((eventSwims) => {
     if (eventSwims.length >= 1) {
-      predictions.push(predictEvent(eventSwims));
+      predictions.push(predictEvent(eventSwims, trainingSignal));
     }
   });
 
@@ -333,7 +396,9 @@ function calculateSwimPowerIndex(rankings: EventRanking[]): SwimPowerIndex {
   return { score, level: "Beginner" };
 }
 
-export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal): DashboardAnalytics {
+export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = []): DashboardAnalytics {
+  const trainingSignal = calculateTrainingLoadSignal(workouts);
+
   if (!swims.length) {
     return {
       overview: {
@@ -351,7 +416,13 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal): Dashb
       weakestEvents: [],
       predictions: [],
       goalProjection: undefined,
-      swimPowerIndex: { score: 0, level: "Beginner" }
+      swimPowerIndex: { score: 0, level: "Beginner" },
+      trainingLoad: {
+        weeklyLoad: trainingSignal.weeklyLoad,
+        sessionsLast28Days: trainingSignal.sessionsLast28Days,
+        loadRatio: trainingSignal.loadRatio,
+        label: trainingSignal.label
+      }
     };
   }
 
@@ -373,8 +444,14 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal): Dashb
     rankings,
     strongestEvents: rankings.slice(0, 3),
     weakestEvents: rankings.slice(-3).reverse(),
-    predictions: generatePredictions(swims),
+    predictions: generatePredictions(swims, workouts),
     goalProjection: goal && swims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(swims, goal) : undefined,
-    swimPowerIndex: calculateSwimPowerIndex(rankings)
+    swimPowerIndex: calculateSwimPowerIndex(rankings),
+    trainingLoad: {
+      weeklyLoad: trainingSignal.weeklyLoad,
+      sessionsLast28Days: trainingSignal.sessionsLast28Days,
+      loadRatio: trainingSignal.loadRatio,
+      label: trainingSignal.label
+    }
   };
 }

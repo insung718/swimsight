@@ -3,6 +3,7 @@ import { supportedEvents } from "@/lib/events";
 
 export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
+export const gymWorkoutTypeSchema = z.enum(["STRENGTH", "CORE", "MOBILITY", "DRYLAND", "CARDIO", "RECOVERY"]);
 
 const cleanText = (min: number, max: number) => z
   .string()
@@ -60,6 +61,15 @@ export const upcomingMeetSchema = z.object({
   location: cleanText(1, 120).optional(),
   startDate: dateSchema,
   targetEvents: z.array(swimEventSchema).max(8).default([]),
+  notes: cleanText(1, 500).optional()
+}).strict();
+
+export const gymWorkoutSchema = z.object({
+  date: dateSchema,
+  workoutType: gymWorkoutTypeSchema,
+  durationMinutes: z.number().int().positive().max(360),
+  intensity: z.number().int().min(1).max(10),
+  focus: cleanText(1, 80).optional(),
   notes: cleanText(1, 500).optional()
 }).strict();
 

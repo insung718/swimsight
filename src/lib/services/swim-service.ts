@@ -2,6 +2,7 @@ import "server-only";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
+import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
 import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimResult } from "@/types/swim";
 
 interface CreateSwimInput {
@@ -110,8 +111,11 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
 }
 
 export async function getDashboardAnalyticsForUser(userId: string): Promise<DashboardAnalytics> {
-  const swims = await getSwimsForUser(userId);
-  const goal = await getPrimaryGoal(userId);
+  const [swims, goal, workouts] = await Promise.all([
+    getSwimsForUser(userId),
+    getPrimaryGoal(userId),
+    getGymWorkoutsForUser(userId)
+  ]);
 
-  return buildDashboardAnalytics(swims, goal ?? undefined);
+  return buildDashboardAnalytics(swims, goal ?? undefined, workouts);
 }

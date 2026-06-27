@@ -70,6 +70,10 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
               <Sparkles aria-hidden className="h-4 w-4 text-aqua-200" />
               {delta365 > 0 ? `${delta365.toFixed(2)}s projected improvement in 365 days` : "Stable projection until more history is added"}
             </div>
+            <div className="mt-2 rounded-md border border-aqua-200/15 bg-aqua-200/[0.08] px-3 py-2 text-xs text-aqua-50/82">
+              Training signal: {prediction.trainingImpact.label}
+              {prediction.trainingImpact.sessionsLast28Days > 0 ? ` · ${prediction.trainingImpact.sessionsLast28Days} gym sessions / 28d` : ""}
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {horizonLabels.map(([label, key]) => (
                 <div className="rounded-md bg-white/[0.12] p-2" key={key}>

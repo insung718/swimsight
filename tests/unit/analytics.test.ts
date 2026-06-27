@@ -7,6 +7,7 @@ import {
   getPersonalBests,
   linearRegression
 } from "@/lib/analytics";
+import type { GymWorkout } from "@/types/swim";
 import { sampleGoals, sampleSwims } from "../fixtures/sample-data";
 
 describe("analytics engine", () => {
@@ -58,6 +59,23 @@ describe("analytics engine", () => {
     expect(analytics.personalBests).toEqual([]);
     expect(analytics.predictions).toEqual([]);
     expect(analytics.goalProjection).toBeUndefined();
+    expect(analytics.trainingLoad.label).toBe("No gym data");
+  });
+
+  it("uses gym training load as a conservative prediction signal", () => {
+    const workouts: GymWorkout[] = [
+      { id: "gym-1", userId: "user-1", date: "2026-04-01", workoutType: "STRENGTH", durationMinutes: 45, intensity: 6, focus: "Pull strength", notes: null, trainingLoad: 270 },
+      { id: "gym-2", userId: "user-1", date: "2026-04-08", workoutType: "CORE", durationMinutes: 35, intensity: 6, focus: "Core", notes: null, trainingLoad: 210 },
+      { id: "gym-3", userId: "user-1", date: "2026-04-15", workoutType: "DRYLAND", durationMinutes: 40, intensity: 7, focus: "Starts", notes: null, trainingLoad: 280 },
+      { id: "gym-4", userId: "user-1", date: "2026-04-22", workoutType: "STRENGTH", durationMinutes: 42, intensity: 6, focus: "Posterior chain", notes: null, trainingLoad: 252 }
+    ];
+
+    const analytics = buildDashboardAnalytics(sampleSwims, sampleGoals[0], workouts);
+    const prediction = analytics.predictions.find((item) => item.event === "100 Butterfly");
+
+    expect(analytics.trainingLoad.label).toBe("Strength supported");
+    expect(prediction?.trainingImpact.sessionsLast28Days).toBe(4);
+    expect(prediction?.trainingImpact.adjustmentMultiplier).toBeGreaterThan(1);
   });
 
   it("creates a low-confidence baseline prediction from the first event result", () => {

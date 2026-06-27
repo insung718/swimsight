@@ -1,4 +1,4 @@
-import type { Course, SwimEvent, SwimResult, UpcomingMeet } from "@/types/swim";
+import type { Course, GymWorkout, GymWorkoutType, SwimEvent, SwimResult, UpcomingMeet } from "@/types/swim";
 
 const eventToPrisma = {
   "50 Freestyle": "FIFTY_FREESTYLE",
@@ -85,5 +85,28 @@ export function toUpcomingMeet(record: {
     targetEvents: record.targetEvents.map(fromPrismaEvent),
     notes: record.notes,
     daysUntil
+  };
+}
+
+export function toGymWorkout(record: {
+  id: string;
+  userId: string;
+  date: Date;
+  workoutType: string;
+  durationMinutes: number;
+  intensity: number;
+  focus?: string | null;
+  notes?: string | null;
+}): GymWorkout {
+  return {
+    id: record.id,
+    userId: record.userId,
+    date: record.date.toISOString().slice(0, 10),
+    workoutType: record.workoutType as GymWorkoutType,
+    durationMinutes: record.durationMinutes,
+    intensity: record.intensity,
+    focus: record.focus,
+    notes: record.notes,
+    trainingLoad: record.durationMinutes * record.intensity
   };
 }

@@ -2,11 +2,12 @@
 
 import { type ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, BarChart3, CalendarClock, LayoutDashboard, ListPlus, Medal, Target, TrendingUp, Users, Waves } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, CalendarClock, Dumbbell, LayoutDashboard, ListPlus, Medal, Target, TrendingUp, Users, Waves } from "lucide-react";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
 import { EventRankings } from "@/components/event-rankings";
 import { GoalTracker } from "@/components/goal-tracker";
+import { GymWorkoutPanel } from "@/components/gym-workout-panel";
 import { ManualTimeEntry } from "@/components/manual-time-entry";
 import { MotivationPanel } from "@/components/motivation-panel";
 import { PersonalBestTable } from "@/components/personal-best-table";
@@ -16,20 +17,32 @@ import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import { Dock } from "@/components/ui/dock";
+import { FlipText } from "@/components/ui/flip-text";
 import { formatTime } from "@/lib/utils";
-import type { DashboardAnalytics, Goal, SwimResult } from "@/types/swim";
+import type { DashboardAnalytics, Goal, GymWorkout, SwimResult } from "@/types/swim";
 
-type DashboardTab = "overview" | "results" | "analytics" | "goals" | "community";
+type DashboardTab = "overview" | "results" | "analytics" | "training" | "goals" | "community";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "results", label: "Results", icon: ListPlus },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "training", label: "Training", icon: Dumbbell },
   { id: "goals", label: "Goals & Meets", icon: Target },
   { id: "community", label: "Community", icon: Users }
 ] as const;
 
-export function SwimSightDashboard({ analytics, goals, swims }: { analytics: DashboardAnalytics; goals: Goal[]; swims: SwimResult[] }) {
+export function SwimSightDashboard({
+  analytics,
+  gymWorkouts,
+  goals,
+  swims
+}: {
+  analytics: DashboardAnalytics;
+  gymWorkouts: GymWorkout[];
+  goals: Goal[];
+  swims: SwimResult[];
+}) {
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const overview = analytics.overview;
   const hasResults = swims.length > 0;
@@ -57,6 +70,7 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <QuickAction label="Add result" onClick={() => setActiveTab("results")} />
+                <QuickAction label="Log gym" onClick={() => setActiveTab("training")} secondary />
                 <QuickAction label="View predictions" onClick={() => setActiveTab("analytics")} secondary />
               </div>
             </div>
@@ -78,7 +92,7 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
               <>
                 <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
                   <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
-                  <SeasonSnapshot overview={overview} prediction={primaryPrediction} onViewPredictions={() => setActiveTab("analytics")} />
+                  <SeasonSnapshot overview={overview} prediction={primaryPrediction} trainingLoad={analytics.trainingLoad} onViewPredictions={() => setActiveTab("analytics")} />
                 </section>
                 <ProgressionChart swims={swims} />
               </>
@@ -90,6 +104,8 @@ export function SwimSightDashboard({ analytics, goals, swims }: { analytics: Das
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
         {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><PredictionGrid predictions={analytics.predictions} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+
+        {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
         {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
@@ -121,7 +137,7 @@ function DashboardPanel({ children }: { children: ReactNode }) {
 }
 
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl">{title}</h2></div>;
+  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={title}>{title}</FlipText></h2></div>;
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
@@ -206,11 +222,13 @@ function PredictionMini({ label, value }: { label: string; value: string }) {
 function SeasonSnapshot({
   onViewPredictions,
   overview,
-  prediction
+  prediction,
+  trainingLoad
 }: {
   onViewPredictions: () => void;
   overview: DashboardAnalytics["overview"];
   prediction?: DashboardAnalytics["predictions"][number];
+  trainingLoad: DashboardAnalytics["trainingLoad"];
 }) {
   return (
     <section className="dashboard-glass overflow-hidden p-5">
@@ -250,7 +268,7 @@ function SeasonSnapshot({
         <SnapshotMetric detail={`${overview.personalBestCount} PB events`} icon={Activity} label="Logged" value={overview.totalSwims.toString()} />
         <SnapshotMetric detail={overview.bestEvent ?? "No ranking yet"} icon={Medal} label="Strongest" value={overview.bestEvent ? "Top 1" : "—"} />
         <SnapshotMetric detail={overview.mostImprovedEvent ?? "No trend yet"} icon={TrendingUp} label="Year pace" value={`${overview.yearlyImprovement}%`} />
-        <SnapshotMetric detail={`${overview.monthlyImprovement}% monthly`} icon={Waves} label="Month pace" value={`${overview.monthlyImprovement}%`} />
+        <SnapshotMetric detail={trainingLoad.label} icon={Dumbbell} label="Gym load" value={trainingLoad.weeklyLoad ? `${trainingLoad.weeklyLoad}` : "—"} />
       </div>
     </section>
   );

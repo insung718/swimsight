@@ -2,9 +2,11 @@ import { LandingPage } from "@/components/landing/landing-page";
 import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
 import { getAuthContext } from "@/lib/auth-context";
+import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig } from "@/lib/prisma";
 import { logServerError } from "@/lib/security/logging";
-import { getDashboardAnalyticsForUser, getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
+import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
+import { getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
 
 export const dynamic = "force-dynamic";
 
@@ -27,15 +29,17 @@ export default async function Home() {
   }
 
   try {
-    const [analytics, goal, swims] = await Promise.all([
-      getDashboardAnalyticsForUser(context.userId),
+    const [goal, swims, gymWorkouts] = await Promise.all([
       getPrimaryGoal(context.userId),
-      getSwimsForUser(context.userId)
+      getSwimsForUser(context.userId),
+      getGymWorkoutsForUser(context.userId)
     ]);
+    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts);
 
     return (
       <SwimSightDashboard
         analytics={analytics}
+        gymWorkouts={gymWorkouts}
         goals={goal ? [goal] : []}
         swims={swims}
       />

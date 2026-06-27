@@ -22,6 +22,8 @@ export type Course = "SCM" | "LCM" | "SCY";
 
 export type TrendLabel = "Improving" | "Plateauing" | "Declining";
 
+export type GymWorkoutType = "STRENGTH" | "CORE" | "MOBILITY" | "DRYLAND" | "CARDIO" | "RECOVERY";
+
 export interface SwimResult {
   id: string;
   userId: string;
@@ -53,6 +55,24 @@ export interface Prediction {
     days365: number;
   };
   confidence: number;
+  trainingImpact: {
+    label: "No gym data" | "Strength supported" | "Balanced load" | "Fatigue risk";
+    adjustmentMultiplier: number;
+    weeklyLoad: number;
+    sessionsLast28Days: number;
+  };
+}
+
+export interface GymWorkout {
+  id: string;
+  userId: string;
+  date: string;
+  workoutType: GymWorkoutType;
+  durationMinutes: number;
+  intensity: number;
+  focus?: string | null;
+  notes?: string | null;
+  trainingLoad: number;
 }
 
 export interface PersonalBest {
@@ -110,6 +130,12 @@ export interface DashboardAnalytics {
   predictions: Prediction[];
   goalProjection?: GoalProjection;
   swimPowerIndex: SwimPowerIndex;
+  trainingLoad: {
+    weeklyLoad: number;
+    sessionsLast28Days: number;
+    loadRatio: number;
+    label: Prediction["trainingImpact"]["label"];
+  };
 }
 
 export interface Athlete {
