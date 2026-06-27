@@ -7,6 +7,7 @@ import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
 import { SectionTransition } from "@/components/landing/section-transition";
 import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
 import { SiteNav } from "@/components/landing/site-nav";
+import { SwimAthleteReveal } from "@/components/landing/swim-athlete-reveal";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
 import { MagicBento } from "@/components/ui/magic-bento";
@@ -53,6 +54,8 @@ export function LandingPage() {
       </section>
 
       <KineticRibbon />
+      <SwimAthleteReveal />
+      <SectionTransition label="from athlete to analytics" />
       <RaceTelemetry />
       <SectionTransition label="from signal to system" />
 

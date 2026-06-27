@@ -1,7 +1,9 @@
 "use client";
 
 import { Menu, X, Waves } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { Route } from "next";
 import { cn } from "@/lib/utils";
 
 interface StaggeredMenuItem {
@@ -18,14 +20,9 @@ interface StaggeredMenuProps {
 }
 
 export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
-  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const panelId = "swimsight-navigation-menu";
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -55,8 +52,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         aria-controls={panelId}
         aria-expanded={open}
         aria-label={open ? "Close navigation menu" : "Open navigation menu"}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600 disabled:cursor-wait disabled:opacity-60"
-        disabled={!mounted}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
         type="button"
         onClick={() => setOpen((current) => !current)}
       >
@@ -112,22 +108,44 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         <nav aria-label="Main navigation" className="mt-12 space-y-2">
           {items.map((item, index) => {
             const href = item.href ?? item.link ?? "#";
+            const className = "group flex items-center justify-between rounded-lg border border-white/10 bg-white/12 px-4 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition hover:border-stitch-cyan/60 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan";
+            const style = {
+              transform: open ? "translateY(0)" : "translateY(18px)",
+              opacity: open ? 1 : 0,
+              transition: `opacity 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms, transform 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms`
+            };
+            const content = (
+              <>
+                <span>{item.label}</span>
+                <span className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
+              </>
+            );
+
+            if (href.startsWith("/")) {
+              return (
+                <Link
+                  aria-label={item.ariaLabel ?? item.label}
+                  className={className}
+                  href={href as Route}
+                  key={`${href}-${item.label}`}
+                  onClick={() => setOpen(false)}
+                  style={style}
+                >
+                  {content}
+                </Link>
+              );
+            }
 
             return (
               <a
                 aria-label={item.ariaLabel ?? item.label}
-                className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/12 px-4 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition hover:border-stitch-cyan/60 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+                className={className}
                 href={href}
                 key={`${href}-${item.label}`}
                 onClick={() => setOpen(false)}
-                style={{
-                  transform: open ? "translateY(0)" : "translateY(18px)",
-                  opacity: open ? 1 : 0,
-                  transition: `opacity 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms, transform 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms`
-                }}
+                style={style}
               >
-                <span>{item.label}</span>
-                <span className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
+                {content}
               </a>
             );
           })}
