@@ -1,10 +1,13 @@
 import { LandingPage } from "@/components/landing/landing-page";
+import { CoachDashboard } from "@/components/coach-dashboard";
+import { RoleOnboarding } from "@/components/role-onboarding";
 import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
 import { getAuthContext } from "@/lib/auth-context";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig } from "@/lib/prisma";
 import { logServerError } from "@/lib/security/logging";
+import { getCoachDashboard } from "@/lib/services/coach-service";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
 import { getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
 
@@ -28,7 +31,16 @@ export default async function Home() {
     return <DashboardUnavailable reason="SwimSight needs a production database before accounts can save data." />;
   }
 
+  if (!context.onboardingCompleted) {
+    return <RoleOnboarding />;
+  }
+
   try {
+    if (context.role === "COACH" || context.role === "ADMIN") {
+      const dashboard = await getCoachDashboard(context.userId);
+      return <CoachDashboard dashboard={dashboard} />;
+    }
+
     const [goal, swims, gymWorkouts] = await Promise.all([
       getPrimaryGoal(context.userId),
       getSwimsForUser(context.userId),

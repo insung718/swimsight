@@ -16,6 +16,10 @@ export function unauthorized(message = "Sign in required.") {
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
+export function forbidden(message = "You do not have access to this resource.") {
+  return NextResponse.json({ error: message }, { status: 403 });
+}
+
 export function notFound(message = "Resource not found.") {
   return NextResponse.json({ error: message }, { status: 404 });
 }

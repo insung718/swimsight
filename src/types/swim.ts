@@ -23,6 +23,7 @@ export type Course = "SCM" | "LCM" | "SCY";
 export type TrendLabel = "Improving" | "Plateauing" | "Declining";
 
 export type GymWorkoutType = "STRENGTH" | "CORE" | "MOBILITY" | "DRYLAND" | "CARDIO" | "RECOVERY";
+export type UserRole = "ATHLETE" | "COACH" | "ADMIN";
 
 export interface SwimResult {
   id: string;
@@ -150,6 +151,51 @@ export interface TeamMemberAnalytics extends Athlete {
   swimPowerIndex: number;
   totalImprovementPercent: number;
   fastestEventTime: number;
+}
+
+export interface CoachSwimmerAnalytics {
+  id: string;
+  name: string;
+  email: string;
+  imageUrl?: string | null;
+  joinedAt: string;
+  totalSwims: number;
+  activeGoals: number;
+  strongestEvent?: SwimEvent;
+  mostImprovedEvent?: SwimEvent;
+  swimPowerIndex: number;
+  yearlyImprovement: number;
+  consistencyScore: number;
+  latestResult?: {
+    event: SwimEvent;
+    timeSeconds: number;
+    date: string;
+  };
+  progression: {
+    date: string;
+    timeSeconds: number;
+    event: SwimEvent;
+  }[];
+}
+
+export interface CoachClubSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  joinCode: string;
+  memberCount: number;
+  swimmers: CoachSwimmerAnalytics[];
+}
+
+export interface CoachDashboardData {
+  clubs: CoachClubSummary[];
+  overview: {
+    clubCount: number;
+    swimmerCount: number;
+    totalSwims: number;
+    averageSpi: number;
+    topImprover?: CoachSwimmerAnalytics;
+  };
 }
 
 export interface CommunityMember {

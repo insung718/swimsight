@@ -6,6 +6,8 @@ export interface AuthContext {
   userId: string;
   clerkId: string;
   email: string;
+  role: "ATHLETE" | "COACH" | "ADMIN";
+  onboardingCompleted: boolean;
 }
 
 export async function getAuthContext(): Promise<AuthContext | null> {
@@ -33,7 +35,9 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     return {
       userId: authResult.userId,
       clerkId: authResult.userId,
-      email
+      email,
+      role: "ATHLETE",
+      onboardingCompleted: false
     };
   }
 
@@ -55,7 +59,9 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   return {
     userId: user.id,
     clerkId: user.clerkId,
-    email: user.email
+    email: user.email,
+    role: user.role,
+    onboardingCompleted: user.onboardingCompleted
   };
 }
 

@@ -1,0 +1,363 @@
+"use client";
+
+import { type ReactNode, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { UserActions } from "@/components/auth/user-actions";
+import { Dock } from "@/components/ui/dock";
+import { FlipText } from "@/components/ui/flip-text";
+import { KineticLoader } from "@/components/ui/kinetic-loader";
+import { formatTime } from "@/lib/utils";
+import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics } from "@/types/swim";
+
+type CoachTab = "overview" | "clubs" | "athletes" | "reports";
+
+const tabs = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "clubs", label: "Clubs", icon: Building2 },
+  { id: "athletes", label: "Athletes", icon: UsersRound },
+  { id: "reports", label: "Reports", icon: BarChart3 }
+] as const;
+
+export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData }) {
+  const [activeTab, setActiveTab] = useState<CoachTab>("overview");
+  const allSwimmers = useMemo(
+    () => Array.from(new Map(dashboard.clubs.flatMap((club) => club.swimmers).map((swimmer) => [swimmer.id, swimmer])).values()),
+    [dashboard.clubs]
+  );
+  const spotlight = dashboard.overview.topImprover ?? allSwimmers[0];
+
+  return (
+    <main className="dark dashboard-shell min-h-screen text-stitch-text">
+      <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
+        <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
+              <Waves aria-hidden className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="font-semibold text-stitch-abyss">SwimSight Coach</div>
+              <div className="text-xs text-stitch-abyss/55">Team performance workspace</div>
+            </div>
+          </div>
+          <UserActions />
+        </div>
+      </header>
+
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-32 pt-7 sm:px-6 lg:px-8">
+        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-5 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold text-aqua-600">Coach command center</p>
+              <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
+                Every swimmer, club, goal, and trend in one calm view.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">
+                Create clubs, add swimmers, and see the development signal behind every athlete without losing the premium SwimSight feel.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <QuickAction label="Create club" onClick={() => setActiveTab("clubs")} />
+                <QuickAction label="Review athletes" onClick={() => setActiveTab("athletes")} secondary />
+              </div>
+            </div>
+            <CoachSpotlight swimmer={spotlight} />
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-4">
+            <MiniStat label="Clubs" value={dashboard.overview.clubCount.toString()} />
+            <MiniStat label="Swimmers" value={dashboard.overview.swimmerCount.toString()} />
+            <MiniStat label="Logged swims" value={dashboard.overview.totalSwims.toString()} />
+            <MiniStat label="Avg SPI" value={dashboard.overview.averageSpi.toString()} />
+          </div>
+        </section>
+
+        {activeTab === "overview" && (
+          <DashboardPanel>
+            <SectionHeading eyebrow="Team pulse" title="Coach overview" />
+            {dashboard.clubs.length === 0 ? (
+              <EmptyCoachState onCreate={() => setActiveTab("clubs")} />
+            ) : (
+              <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+                <ClubGrid clubs={dashboard.clubs} />
+                <DevelopmentPanel swimmers={allSwimmers} />
+              </div>
+            )}
+          </DashboardPanel>
+        )}
+
+        {activeTab === "clubs" && (
+          <DashboardPanel>
+            <SectionHeading eyebrow="Club builder" title="Clubs" />
+            <ClubManager clubs={dashboard.clubs} />
+          </DashboardPanel>
+        )}
+
+        {activeTab === "athletes" && (
+          <DashboardPanel>
+            <SectionHeading eyebrow="Roster intelligence" title="Athletes" />
+            <AthleteRoster swimmers={allSwimmers} />
+          </DashboardPanel>
+        )}
+
+        {activeTab === "reports" && (
+          <DashboardPanel>
+            <SectionHeading eyebrow="Development reports" title="Reports" />
+            <DevelopmentPanel swimmers={allSwimmers} expanded />
+          </DashboardPanel>
+        )}
+      </div>
+
+      <Dock
+        items={tabs.map(({ id, label, icon: Icon }) => ({
+          active: activeTab === id,
+          icon: <Icon aria-hidden className="h-5 w-5" />,
+          label,
+          onClick: () => setActiveTab(id)
+        }))}
+      />
+    </main>
+  );
+}
+
+function DashboardPanel({ children }: { children: ReactNode }) {
+  return (
+    <motion.div animate={{ opacity: 1, y: 0 }} className="space-y-5" initial={{ opacity: 0, y: 16 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
+      {children}
+    </motion.div>
+  );
+}
+
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={title}>{title}</FlipText></h2></div>;
+}
+
+function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
+  return (
+    <button className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
+      {label}
+      <TrendingUp aria-hidden className="h-4 w-4" />
+    </button>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl"><div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div><div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">{value}</div></div>;
+}
+
+function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
+  return (
+    <motion.article animate={{ opacity: 1, scale: 1 }} className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl" initial={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
+            <UsersRound aria-hidden className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold">Development spotlight</p>
+            <p className="text-xs text-stitch-abyss/55">{swimmer ? `${swimmer.yearlyImprovement}% yearly improvement` : "Waiting for your first swimmer"}</p>
+          </div>
+        </div>
+        {swimmer && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">SPI {swimmer.swimPowerIndex}</span>}
+      </div>
+
+      {swimmer ? (
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <CoachMini label="Athlete" value={swimmer.name} />
+          <CoachMini label="Swims" value={swimmer.totalSwims.toString()} />
+          <CoachMini label="Goals" value={swimmer.activeGoals.toString()} />
+        </div>
+      ) : (
+        <div className="mt-5 rounded-lg border border-dashed border-stitch-abyss/15 bg-white/45 p-4 text-sm leading-6 text-stitch-abyss/64">
+          Create a club and add swimmers to unlock coach analytics.
+        </div>
+      )}
+    </motion.article>
+  );
+}
+
+function CoachMini({ label, value }: { label: string; value: string }) {
+  return <div className="min-w-0 rounded-md border border-white/60 bg-white/54 p-3"><div className="text-xs font-semibold uppercase text-stitch-abyss/46">{label}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
+}
+
+function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
+  return (
+    <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center">
+      <div className="max-w-lg">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Building2 aria-hidden className="h-6 w-6" /></div>
+        <h2 className="mt-6 text-3xl font-semibold text-white">Your coach workspace is ready.</h2>
+        <p className="mt-4 leading-7 text-white/78">Create your first swim club, then add swimmers by email once they have signed into SwimSight.</p>
+        <button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onCreate}>Create a club</button>
+      </div>
+    </section>
+  );
+}
+
+function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
+  return (
+    <section className="dashboard-glass p-5">
+      <h2 className="text-lg font-semibold text-white">Active clubs</h2>
+      <div className="mt-4 grid gap-3">
+        {clubs.slice(0, 4).map((club) => (
+          <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold text-white">{club.name}</div>
+                <div className="mt-1 text-sm text-white/62">{club.memberCount} swimmers</div>
+              </div>
+              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function createClub() {
+    setSaving(true);
+    setStatus("");
+    try {
+      const response = await fetch("/api/coach/clubs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description: description || undefined })
+      });
+      const result = await response.json();
+      setStatus(response.ok ? "Club created." : result.error ?? "Could not create club.");
+      if (response.ok) {
+        setName("");
+        setDescription("");
+        router.refresh();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="dashboard-glass p-5">
+      <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4">
+          <h2 className="text-lg font-semibold text-white">Create club</h2>
+          <input className="mt-4 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder="Club name" value={name} onChange={(event) => setName(event.target.value)} />
+          <textarea className="mt-3 min-h-24 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder="Optional description" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <button className="mt-3 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={createClub}>
+            {saving ? <KineticLoader className="h-4 text-stitch-abyss" label="Creating club" /> : <Plus aria-hidden className="h-4 w-4" />}
+            {saving ? "Creating" : "Create club"}
+          </button>
+          {status && <p className="mt-3 text-sm text-white/72">{status}</p>}
+        </div>
+        <div className="space-y-3">
+          {clubs.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">No clubs yet.</div>}
+          {clubs.map((club) => (
+            <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="font-semibold text-white">{club.name}</div>
+                  <div className="mt-1 text-sm text-white/58">{club.memberCount} swimmers · share code {club.joinCode}</div>
+                </div>
+                <button
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-stitch-cyan"
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(club.joinCode);
+                    setStatus("Club code copied. Swimmers can join from their Community tab.");
+                  }}
+                >
+                  <Copy aria-hidden className="h-4 w-4" />
+                  Copy code
+                </button>
+              </div>
+              <div className="mt-3 flex items-start gap-2 rounded-md border border-aqua-200/15 bg-aqua-300/10 p-3 text-sm leading-6 text-white/68">
+                <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-aqua-100" />
+                Swimmers must join with this code before their times and goals appear here.
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
+  return (
+    <section className="dashboard-glass min-w-0 overflow-hidden p-5">
+      {swimmers.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">Add swimmers to a club to see roster analytics.</div>
+      ) : (
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/15 text-xs uppercase text-white/58">
+                <th className="py-3 pr-3 font-semibold">Swimmer</th>
+                <th className="px-3 py-3 font-semibold">Strongest</th>
+                <th className="px-3 py-3 font-semibold">SPI</th>
+                <th className="px-3 py-3 font-semibold">Consistency</th>
+                <th className="px-3 py-3 font-semibold">Yearly</th>
+                <th className="py-3 pl-3 font-semibold">Latest</th>
+              </tr>
+            </thead>
+            <tbody>
+              {swimmers.map((swimmer) => (
+                <tr className="border-b border-white/10 last:border-0" key={swimmer.id}>
+                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">{swimmer.email}</div></td>
+                  <td className="px-3 py-3 text-white/72">{swimmer.strongestEvent ?? "No event yet"}</td>
+                  <td className="px-3 py-3 font-mono font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</td>
+                  <td className="px-3 py-3 text-white/72">{Math.round(swimmer.consistencyScore)}</td>
+                  <td className="px-3 py-3 text-mint-200">{swimmer.yearlyImprovement}%</td>
+                  <td className="py-3 pl-3 text-white/72">{swimmer.latestResult ? `${swimmer.latestResult.event} · ${formatTime(swimmer.latestResult.timeSeconds)}` : "No result"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimmerAnalytics[]; expanded?: boolean }) {
+  const selected = [...swimmers].sort((a, b) => b.progression.length - a.progression.length)[0];
+  const data = selected?.progression.map((point) => ({ ...point, label: point.date.slice(5) })) ?? [];
+
+  return (
+    <section className="dashboard-glass min-w-0 p-5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Development graph</h2>
+          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name}'s recent logged results` : "Add swimmers with results to populate this graph."}</p>
+        </div>
+        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{selected?.progression.length ?? 0} points</span>
+      </div>
+      <div className={`${expanded ? "h-[460px]" : "h-[320px]"} mt-5`}>
+        {data.length > 1 ? (
+          <ResponsiveContainer height="100%" width="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="coachDevelopment" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="5%" stopColor="#4ee8ff" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#4ee8ff" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="label" stroke="rgba(255,255,255,0.45)" tickLine={false} />
+              <YAxis domain={["dataMin - 1", "dataMax + 1"]} stroke="rgba(255,255,255,0.45)" tickFormatter={(value) => formatTime(Number(value))} tickLine={false} />
+              <Tooltip formatter={(value) => formatTime(Number(value))} labelStyle={{ color: "#04111d" }} />
+              <Area dataKey="timeSeconds" fill="url(#coachDevelopment)" stroke="#4ee8ff" strokeWidth={3} type="monotone" />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-white/12 bg-white/[0.05] text-sm text-white/72">Need at least two results from one swimmer.</div>
+        )}
+      </div>
+    </section>
+  );
+}

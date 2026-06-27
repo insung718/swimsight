@@ -56,6 +56,19 @@ export const friendActionSchema = z.object({
   action: z.enum(["accept", "block"])
 }).strict();
 
+export const profileRoleSchema = z.object({
+  role: z.enum(["ATHLETE", "COACH"])
+}).strict();
+
+export const coachClubCreateSchema = z.object({
+  name: cleanText(2, 96),
+  description: cleanText(1, 240).optional()
+}).strict();
+
+export const coachClubJoinSchema = z.object({
+  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{5,24}$/)
+}).strict();
+
 export const upcomingMeetSchema = z.object({
   name: cleanText(2, 120),
   location: cleanText(1, 120).optional(),
