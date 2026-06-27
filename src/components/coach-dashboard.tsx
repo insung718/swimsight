@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
+import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
@@ -142,7 +143,21 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl"><div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div><div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">{value}</div></div>;
+  const numericValue = Number(value);
+  const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
+
+  return (
+    <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58">
+      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div>
+      <div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">
+        {shouldCount ? (
+          <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
+        ) : (
+          value
+        )}
+      </div>
+    </div>
+  );
 }
 
 function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
@@ -186,7 +201,7 @@ function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
       <div className="max-w-lg">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Building2 aria-hidden className="h-6 w-6" /></div>
         <h2 className="mt-6 text-3xl font-semibold text-white">Your coach workspace is ready.</h2>
-        <p className="mt-4 leading-7 text-white/78">Create your first swim club, then add swimmers by email once they have signed into SwimSight.</p>
+        <p className="mt-4 leading-7 text-white/78">Create your first swim club, share its join code, and swimmers can connect from their Community tab.</p>
         <button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onCreate}>Create a club</button>
       </div>
     </section>

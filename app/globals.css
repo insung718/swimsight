@@ -166,6 +166,58 @@ textarea {
   will-change: transform, opacity;
 }
 
+.counter-container {
+  display: inline-block;
+  position: relative;
+}
+
+.counter-counter {
+  direction: ltr;
+  display: flex;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.counter-digit {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  width: 1ch;
+}
+
+.counter-number {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.counter-gradient-container {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.counter-top-gradient,
+.counter-bottom-gradient {
+  height: 0.35em;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.counter-top-gradient {
+  top: 0;
+}
+
+.counter-bottom-gradient {
+  bottom: 0;
+}
+
 .reveal-section.is-visible {
   opacity: 1;
   transform: translateY(0) scale(1);

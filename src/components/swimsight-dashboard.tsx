@@ -16,6 +16,7 @@ import { ProgressionChart } from "@/components/progression-chart";
 import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
+import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import { formatTime } from "@/lib/utils";
@@ -141,7 +142,21 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl"><div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div><div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">{value}</div></div>;
+  const numericValue = Number(value);
+  const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
+
+  return (
+    <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58">
+      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div>
+      <div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">
+        {shouldCount ? (
+          <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
+        ) : (
+          value
+        )}
+      </div>
+    </div>
+  );
 }
 
 function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
