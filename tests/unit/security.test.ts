@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { manualSwimSchema } from "@/lib/validation";
+import { coachClubJoinSchema, communityJoinSchema, manualSwimSchema } from "@/lib/validation";
 import { validateSwimCsv } from "@/lib/csv";
 import { enforceApiRateLimit } from "@/lib/security/rate-limit";
 import { logServerError } from "@/lib/security/logging";
@@ -26,6 +26,12 @@ describe("API security", () => {
     });
 
     expect(parsed.success).toBe(false);
+  });
+
+  it("normalizes join codes and accepts legacy safe symbols", () => {
+    expect(coachClubJoinSchema.parse({ joinCode: " abcd_9 " }).joinCode).toBe("ABCD_9");
+    expect(communityJoinSchema.parse({ joinCode: " xyza-2 " }).joinCode).toBe("XYZA-2");
+    expect(coachClubJoinSchema.safeParse({ joinCode: "bad code!" }).success).toBe(false);
   });
 
   it("rejects oversized JSON before parsing", async () => {

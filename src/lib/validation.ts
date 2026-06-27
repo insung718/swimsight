@@ -44,7 +44,7 @@ export const communityCreateSchema = z.object({
 }).strict();
 
 export const communityJoinSchema = z.object({
-  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{5,24}$/)
+  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9_-]{5,24}$/)
 }).strict();
 
 export const friendRequestSchema = z.object({
@@ -66,7 +66,7 @@ export const coachClubCreateSchema = z.object({
 }).strict();
 
 export const coachClubJoinSchema = z.object({
-  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{5,24}$/)
+  joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9_-]{5,24}$/)
 }).strict();
 
 export const upcomingMeetSchema = z.object({

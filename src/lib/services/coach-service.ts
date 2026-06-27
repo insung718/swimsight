@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics, Goal } from "@/types/swim";
 
+const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
 function createJoinCode() {
-  return randomBytes(6).toString("base64url").toUpperCase().slice(0, 8);
+  return Array.from(randomBytes(8), (byte) => joinCodeAlphabet[byte % joinCodeAlphabet.length]).join("");
 }
 
 function toGoal(record: {
@@ -225,8 +227,13 @@ export async function listCoachClubsForSwimmer(userId: string) {
 }
 
 export async function joinCoachClub(input: { userId: string; joinCode: string }) {
-  const team = await prisma.team.findUnique({
-    where: { joinCode: input.joinCode.toUpperCase() },
+  const team = await prisma.team.findFirst({
+    where: {
+      joinCode: {
+        equals: input.joinCode,
+        mode: "insensitive"
+      }
+    },
     include: { memberships: true }
   });
 

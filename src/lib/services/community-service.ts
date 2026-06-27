@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import type { CommunityMember, CommunitySummary, FriendComparison, SwimEvent } from "@/types/swim";
 
+const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -15,7 +17,7 @@ function slugify(value: string) {
 }
 
 function createJoinCode() {
-  return randomBytes(6).toString("base64url").toUpperCase().slice(0, 8);
+  return Array.from(randomBytes(8), (byte) => joinCodeAlphabet[byte % joinCodeAlphabet.length]).join("");
 }
 
 function communitySummary(community: {
@@ -84,8 +86,13 @@ export async function listCommunitiesForUser(userId: string) {
 }
 
 export async function joinCommunity(input: { userId: string; joinCode: string }) {
-  const community = await prisma.community.findUnique({
-    where: { joinCode: input.joinCode.toUpperCase() },
+  const community = await prisma.community.findFirst({
+    where: {
+      joinCode: {
+        equals: input.joinCode,
+        mode: "insensitive"
+      }
+    },
     include: { memberships: true }
   });
 

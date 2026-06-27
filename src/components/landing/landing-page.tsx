@@ -7,7 +7,6 @@ import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
 import { SectionTransition } from "@/components/landing/section-transition";
 import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
 import { SiteNav } from "@/components/landing/site-nav";
-import { SwimAthleteReveal } from "@/components/landing/swim-athlete-reveal";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
 import { MagicBento } from "@/components/ui/magic-bento";
@@ -54,8 +53,37 @@ export function LandingPage() {
       </section>
 
       <KineticRibbon />
-      <SwimAthleteReveal />
-      <SectionTransition label="from athlete to analytics" />
+      <section className="relative overflow-hidden bg-[#03070e] py-24 text-white sm:py-32">
+        <div aria-hidden className="absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center opacity-16" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.98),rgba(3,7,14,0.84)_48%,rgba(3,7,14,0.96))]" />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-300">Athletic intelligence</p>
+            <h2 className="mt-4 max-w-xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">
+              Clean signals from every race.
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-white/68">
+              SwimSight keeps the cinematic feeling, but the product stays simple: enter a result, watch your progress, and know what to focus on next.
+            </p>
+          </Reveal>
+          <Reveal delay={100}>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                ["01", "Input", "Manual times, CSV uploads, goals, meets, and gym work."],
+                ["02", "Signal", "PBs, consistency, improvement rate, and trend direction."],
+                ["03", "Forecast", "Future windows that update as your season changes."]
+              ].map(([number, title, body]) => (
+                <article className="rounded-lg border border-white/14 bg-white/[0.075] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
+                  <div className="font-mono text-2xl text-cyan-200">{number}</div>
+                  <h3 className="mt-8 text-xl font-semibold text-white">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-white/64">{body}</p>
+                </article>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+      <SectionTransition label="from signal to analytics" />
       <RaceTelemetry />
       <SectionTransition label="from signal to system" />
 

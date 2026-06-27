@@ -178,15 +178,6 @@ textarea {
     linear-gradient(180deg, #03070e 0%, #071a29 42%, #03070e 100%);
 }
 
-.swim-athlete-reveal {
-  isolation: isolate;
-}
-
-.swimmer-silhouette {
-  filter: drop-shadow(0 34px 80px rgba(0, 251, 255, 0.2));
-  will-change: transform;
-}
-
 .season-depth {
   background:
     radial-gradient(circle at 16% 4%, rgba(255, 255, 255, 0.96), transparent 21rem),
