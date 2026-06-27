@@ -30,12 +30,13 @@ export function SwimAthleteReveal() {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const progress = useSpring(scrollYProgress, { stiffness: 86, damping: 30, mass: 0.42 });
-  const silhouetteScale = useTransform(progress, [0, 0.32, 0.58, 0.9], reduceMotion ? [1, 1, 1, 1] : [0.86, 1.08, 3.4, 7.8]);
-  const silhouetteX = useTransform(progress, [0, 0.45, 1], reduceMotion ? ["0%", "0%", "0%"] : ["-5%", "2%", "-16%"]);
+  const silhouetteScale = useTransform(progress, [0, 0.32, 0.58, 0.9], reduceMotion ? [1, 1, 1, 1] : [0.9, 1.04, 2.9, 7.2]);
+  const silhouetteX = useTransform(progress, [0, 0.45, 1], reduceMotion ? ["0%", "0%", "0%"] : ["2%", "-2%", "-8%"]);
+  const silhouetteY = useTransform(progress, [0, 0.58, 0.9], reduceMotion ? ["0%", "0%", "0%"] : ["1%", "-3%", "-6%"]);
   const waterX = useTransform(progress, [0, 1], reduceMotion ? ["0%", "0%"] : ["-12%", "10%"]);
   const backgroundScale = useTransform(progress, [0, 1], reduceMotion ? [1, 1] : [1.08, 1]);
-  const swimmerSolidOpacity = useTransform(progress, [0, 0.34, 0.6], [0.96, 0.7, 0]);
-  const swimmerFilmOpacity = useTransform(progress, [0, 0.24, 0.54], [0.28, 0.84, 1]);
+  const athleteSolidOpacity = useTransform(progress, [0, 0.34, 0.6], [0.98, 0.78, 0]);
+  const athleteFilmOpacity = useTransform(progress, [0, 0.24, 0.54], [0.34, 0.86, 1]);
   const frameOpacity = useTransform(progress, [0, 0.46, 0.68], [1, 0.72, 0]);
   const promptOpacity = useTransform(progress, [0, 0.56, 0.76], [1, 0.76, 0]);
 
@@ -55,10 +56,10 @@ export function SwimAthleteReveal() {
             <div className="max-w-xl">
               <p className="text-sm font-semibold text-aqua-200">Athletic intelligence</p>
               <h2 className="mt-4 text-balance text-5xl font-semibold leading-[0.92] sm:text-7xl lg:text-[88px]">
-                Built like a race film.
+                Built like performance film.
               </h2>
               <p className="mt-6 text-lg leading-8 text-white/70">
-                Split the season into moments: breakout, tempo, finish, recovery. SwimSight turns raw entries into a cinematic read on what is actually moving.
+                Every entry becomes a frame: effort, rhythm, recovery, and race-day output compressed into one athletic read.
               </p>
               <div className="mt-9 grid max-w-md gap-3 sm:grid-cols-3">
                 {["Input", "Signal", "Forecast"].map((item, index) => (
@@ -71,8 +72,8 @@ export function SwimAthleteReveal() {
               <div aria-hidden className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:100%_84px,14.285%_100%]" />
               <motion.div
                 aria-hidden
-                className="swimmer-silhouette absolute inset-x-0 top-12 mx-auto h-[390px] w-[min(92%,760px)] sm:top-16 sm:h-[460px]"
-                style={{ scale: silhouetteScale, x: silhouetteX }}
+                className="swimmer-silhouette absolute inset-x-0 top-8 mx-auto h-[430px] w-[min(92%,760px)] sm:top-8 sm:h-[520px]"
+                style={{ scale: silhouetteScale, x: silhouetteX, y: silhouetteY }}
               >
                 <svg className="h-full w-full overflow-visible" viewBox="0 0 760 430">
                   <defs>
@@ -82,7 +83,7 @@ export function SwimAthleteReveal() {
                     <filter id="innerWaterBlur">
                       <feGaussianBlur stdDeviation="2.4" />
                     </filter>
-                    <linearGradient id="swimWake" x1="0" x2="1" y1="0" y2="0">
+                    <linearGradient id="athletePulse" x1="0" x2="1" y1="0" y2="0">
                       <stop offset="0%" stopColor="#4ee8ff" stopOpacity="0" />
                       <stop offset="48%" stopColor="#4ee8ff" stopOpacity="0.9" />
                       <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
@@ -98,29 +99,29 @@ export function SwimAthleteReveal() {
                       <path d="M0 118 H760 M0 198 H760 M0 278 H760" stroke="rgba(255,255,255,0.22)" strokeDasharray="18 14" />
                       <path d="M60 0 V430 M170 0 V430 M280 0 V430 M390 0 V430 M500 0 V430 M610 0 V430" stroke="rgba(78,232,255,0.18)" />
                     </pattern>
-                    <mask id="freestyleSwimmerMask" maskUnits="userSpaceOnUse">
+                    <mask id="performanceAthleteMask" maskUnits="userSpaceOnUse">
                       <rect fill="black" height="430" width="760" />
-                      <FreestyleSwimmerShape fill="white" />
+                      <PerformanceAthleteShape fill="white" />
                     </mask>
                   </defs>
-                  <path d="M54 302 C146 244 226 249 322 278 C431 311 533 302 700 214" fill="none" filter="url(#swimSilhouetteGlow)" stroke="#4ee8ff" strokeLinecap="round" strokeWidth="30" />
-                  <path d="M52 302 C145 247 236 249 326 275 C434 307 542 301 706 214" fill="none" stroke="url(#swimWake)" strokeLinecap="round" strokeWidth="5" />
+                  <path d="M108 332 C198 276 287 269 380 293 C482 320 583 290 690 210" fill="none" filter="url(#swimSilhouetteGlow)" stroke="#4ee8ff" strokeLinecap="round" strokeWidth="30" />
+                  <path d="M106 332 C197 279 296 270 384 291 C486 316 594 288 696 210" fill="none" stroke="url(#athletePulse)" strokeLinecap="round" strokeWidth="5" />
 
-                  <motion.g filter="url(#innerWaterBlur)" mask="url(#freestyleSwimmerMask)" style={{ opacity: swimmerFilmOpacity }}>
+                  <motion.g filter="url(#innerWaterBlur)" mask="url(#performanceAthleteMask)" style={{ opacity: athleteFilmOpacity }}>
                     <rect fill="url(#insidePoolTexture)" height="430" width="760" />
-                    <path d="M50 298 C148 245 237 250 326 278 C435 312 536 300 704 214" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.72" strokeWidth="11" />
+                    <path d="M105 332 C198 278 292 270 382 292 C488 318 594 288 696 211" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.68" strokeWidth="11" />
                   </motion.g>
 
-                  <motion.g style={{ opacity: swimmerSolidOpacity }}>
-                    <FreestyleSwimmerShape fill="url(#swimmerEdge)" />
-                    <path d="M318 220 C356 198 423 196 484 222" fill="none" stroke="#111a22" strokeLinecap="round" strokeOpacity="0.8" strokeWidth="7" />
-                    <path d="M532 167 C550 161 568 168 578 181" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.44" strokeWidth="5" />
-                    <path d="M505 199 C525 213 551 214 574 203" fill="none" stroke="#0c151d" strokeLinecap="round" strokeOpacity="0.68" strokeWidth="5" />
+                  <motion.g style={{ opacity: athleteSolidOpacity }}>
+                    <PerformanceAthleteShape fill="url(#swimmerEdge)" />
+                    <path d="M333 170 C354 153 385 149 412 158" fill="none" stroke="#111a22" strokeLinecap="round" strokeOpacity="0.82" strokeWidth="7" />
+                    <path d="M426 71 C445 69 461 79 469 96" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.44" strokeWidth="5" />
+                    <path d="M338 234 C369 251 399 250 427 230" fill="none" stroke="#0c151d" strokeLinecap="round" strokeOpacity="0.58" strokeWidth="5" />
                   </motion.g>
 
-                  <motion.g style={{ opacity: swimmerFilmOpacity }}>
-                    <FreestyleSwimmerShape fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="2.4" />
-                    <path d="M52 302 C145 247 236 249 326 275 C434 307 542 301 706 214" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.52" strokeWidth="3" />
+                  <motion.g style={{ opacity: athleteFilmOpacity }}>
+                    <PerformanceAthleteShape fill="none" stroke="rgba(255,255,255,0.32)" strokeWidth="2.4" />
+                    <path d="M106 332 C197 279 296 270 384 291 C486 316 594 288 696 210" fill="none" stroke="#4ee8ff" strokeLinecap="round" strokeOpacity="0.48" strokeWidth="3" />
                   </motion.g>
                 </svg>
               </motion.div>
@@ -132,7 +133,7 @@ export function SwimAthleteReveal() {
               </motion.div>
 
               <motion.div className="absolute left-5 top-5 rounded-full border border-white/14 bg-black/36 px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-white/64 backdrop-blur-xl" style={{ opacity: promptOpacity }}>
-                Scroll into the swim
+                Scroll into the athlete
               </motion.div>
             </div>
           </div>
@@ -142,7 +143,7 @@ export function SwimAthleteReveal() {
   );
 }
 
-function FreestyleSwimmerShape({
+function PerformanceAthleteShape({
   fill,
   stroke,
   strokeWidth
@@ -153,13 +154,13 @@ function FreestyleSwimmerShape({
 }) {
   return (
     <g fill={fill} stroke={stroke} strokeLinecap="round" strokeLinejoin="round" strokeWidth={strokeWidth}>
-      <path d="M289 213 C337 172 421 163 493 195 C526 210 531 245 501 263 C431 304 334 292 276 260 C253 247 258 230 289 213Z" />
-      <path d="M445 202 C498 147 555 108 632 76 C662 64 684 91 662 119 C610 185 547 228 483 246Z" />
-      <path d="M286 246 C231 260 166 295 102 346 C74 368 46 329 73 301 C132 239 207 203 284 194Z" />
-      <path d="M486 258 C551 276 612 306 671 352 C696 372 672 404 642 385 C575 344 518 321 445 298Z" />
-      <path d="M414 278 C462 333 510 370 564 408 C590 426 566 461 536 444 C474 407 426 363 374 300Z" />
-      <circle cx="532" cy="190" r="32" />
-      <path d="M501 204 C519 180 551 170 580 180 C568 206 534 219 501 204Z" />
+      <circle cx="502" cy="110" r="31" />
+      <path d="M421 136 C456 112 504 123 529 160 C552 194 541 235 510 260 C469 292 407 286 376 251 C346 218 356 175 389 151 C399 144 409 139 421 136Z" />
+      <path d="M500 153 C555 119 610 98 666 92 C695 89 708 124 684 143 C630 184 572 208 516 210Z" />
+      <path d="M399 160 C342 145 294 119 248 80 C225 60 249 29 276 45 C334 79 379 102 427 126Z" />
+      <path d="M393 247 C336 267 289 309 239 374 C219 400 181 377 199 346 C235 283 290 239 360 214Z" />
+      <path d="M461 267 C522 281 580 314 641 365 C667 388 637 423 607 403 C543 361 489 336 423 326Z" />
+      <path d="M428 286 C454 342 470 389 478 430 C484 459 446 471 431 443 C399 385 377 340 353 286Z" />
     </g>
   );
 }
