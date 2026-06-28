@@ -184,7 +184,10 @@ export async function getCommunityComparison(communityId: string, userId: string
         take: 200,
         include: {
           user: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
               swims: {
                 orderBy: { date: "asc" },
                 take: 2_000
@@ -220,7 +223,10 @@ export async function compareTwoMembers(input: {
         in: [input.userId, input.friendId]
       }
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
       swims: {
         orderBy: { date: "asc" }
       }

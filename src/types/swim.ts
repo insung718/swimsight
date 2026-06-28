@@ -156,7 +156,6 @@ export interface TeamMemberAnalytics extends Athlete {
 export interface CoachSwimmerAnalytics {
   id: string;
   name: string;
-  email: string;
   imageUrl?: string | null;
   joinedAt: string;
   totalSwims: number;

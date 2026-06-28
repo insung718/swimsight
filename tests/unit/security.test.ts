@@ -5,7 +5,7 @@ import { validateSwimCsv } from "@/lib/csv";
 import { enforceApiRateLimit } from "@/lib/security/rate-limit";
 import { isTrustedAdminEmail, resolveTrustedRole } from "@/lib/security/admin";
 import { logServerError } from "@/lib/security/logging";
-import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
+import { enforceSameOrigin, isMiddlewareBypassAttempt, parseSecureJson } from "@/lib/security/request";
 import nextConfig from "../../next.config";
 
 vi.mock("server-only", () => ({}));
@@ -75,6 +75,13 @@ describe("API security", () => {
     expect(blocked?.status).toBe(403);
   });
 
+  it("detects middleware bypass header attempts", () => {
+    expect(isMiddlewareBypassAttempt(new Request("https://swimsight.vercel.app/api/swims", {
+      headers: { "x-middleware-subrequest": "middleware" }
+    }))).toBe(true);
+    expect(isMiddlewareBypassAttempt(new Request("https://swimsight.vercel.app/api/swims"))).toBe(false);
+  });
+
   it("bounds CSV rows and rejects unknown headers", () => {
     const rows = Array.from({ length: 501 }, () => "2026-06-19,50 Free,25.56").join("\n");
     expect(validateSwimCsv(`Date,Event,Time\n${rows}`).errors[0].message).toContain("500");
@@ -112,6 +119,7 @@ describe("API security", () => {
     expect(appHeaders.get("content-security-policy")).toContain("frame-ancestors 'none'");
     expect(appHeaders.get("content-security-policy")).toContain("https://va.vercel-scripts.com");
     expect(appHeaders.get("content-security-policy")).toContain("https://vitals.vercel-insights.com");
+    expect(appHeaders.get("content-security-policy")).not.toContain("http:");
     expect(appHeaders.get("strict-transport-security")).toContain("includeSubDomains");
     expect(appHeaders.get("x-content-type-options")).toBe("nosniff");
     expect(apiHeaders.get("cache-control")).toContain("no-store");

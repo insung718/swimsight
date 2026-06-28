@@ -324,7 +324,7 @@ function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
             <tbody>
               {swimmers.map((swimmer) => (
                 <tr className="border-b border-white/10 last:border-0" key={swimmer.id}>
-                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">{swimmer.email}</div></td>
+                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">Joined {new Date(swimmer.joinedAt).toLocaleDateString()}</div></td>
                   <td className="px-3 py-3 text-white/72">{swimmer.strongestEvent ?? "No event yet"}</td>
                   <td className="px-3 py-3 font-mono font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</td>
                   <td className="px-3 py-3 text-white/72">{Math.round(swimmer.consistencyScore)}</td>

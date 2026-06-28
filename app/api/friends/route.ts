@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { created, notFound, ok } from "@/lib/api";
+import { notFound, ok } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
@@ -27,9 +27,8 @@ export async function POST(request: Request) {
   const parsed = await parseSecureJson(request, friendRequestSchema);
   if (!parsed.ok) return parsed.response;
 
-  let friendship;
   try {
-    friendship = await createFriendRequest({
+    await createFriendRequest({
       requesterId: account.context.userId,
       email: parsed.data.email
     });
@@ -38,11 +37,7 @@ export async function POST(request: Request) {
     return databaseUnavailable();
   }
 
-  if (!friendship) {
-    return ok({ message: "If that account exists, the request has been processed." }, 202);
-  }
-
-  return created({ friendship });
+  return ok({ message: "If that account exists, the request has been processed." }, 202);
 }
 
 export async function PATCH(request: Request) {

@@ -32,7 +32,6 @@ function swimmerAnalytics(member: {
   user: {
     id: string;
     name: string;
-    email: string;
     imageUrl?: string | null;
     swims: Array<{
       id: string;
@@ -63,7 +62,6 @@ function swimmerAnalytics(member: {
   return {
     id: member.user.id,
     name: member.user.name,
-    email: member.user.email,
     imageUrl: member.user.imageUrl,
     joinedAt: member.createdAt.toISOString(),
     totalSwims: swims.length,
@@ -142,7 +140,10 @@ export async function getCoachDashboard(coachId: string): Promise<CoachDashboard
         orderBy: { createdAt: "asc" },
         include: {
           user: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
               swims: {
                 orderBy: [{ date: "asc" }, { createdAt: "asc" }],
                 take: 2_000

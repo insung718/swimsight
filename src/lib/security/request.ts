@@ -63,3 +63,7 @@ export function enforceSameOrigin(request: Request) {
     ? null
     : NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
 }
+
+export function isMiddlewareBypassAttempt(request: Pick<Request, "headers">) {
+  return request.headers.has("x-middleware-subrequest");
+}

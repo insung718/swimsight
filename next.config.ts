@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+const scriptSources = [
+  "'self'",
+  "'unsafe-inline'",
+  process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" ? "'unsafe-eval'" : "",
+  "https://*.clerk.accounts.dev",
+  "https://*.clerk.dev",
+  "https://va.vercel-scripts.com"
+].filter(Boolean).join(" ");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -9,7 +18,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://img.clerk.com https://images.clerk.dev",
   "font-src 'self' data:",
   "connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://api.clerk.com https://*.upstash.io https://vitals.vercel-insights.com",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.dev https://va.vercel-scripts.com",
+  `script-src ${scriptSources}`,
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://*.clerk.accounts.dev https://*.clerk.dev",
   "worker-src 'self' blob:",

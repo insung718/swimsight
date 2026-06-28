@@ -17,7 +17,8 @@ export async function listFriendships(userId: string) {
 
 export async function createFriendRequest(input: { requesterId: string; email: string }) {
   const addressee = await prisma.user.findUnique({
-    where: { email: input.email }
+    where: { email: input.email },
+    select: { id: true }
   });
 
   if (!addressee || addressee.id === input.requesterId) {
