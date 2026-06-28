@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
@@ -36,17 +35,68 @@ export function LandingPage() {
     <main className="landing-page min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav />
 
-      <section id="top" className="relative min-h-[94svh] overflow-hidden bg-black pt-12 text-white">
-        <Image alt="Bird's-eye view of competitive swimmers racing in an Olympic pool" className="pointer-events-none object-cover object-[64%_center] opacity-85" fill priority quality={88} sizes="100vw" src="/images/swimsight-pool-hero.jpg" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.68)_38%,rgba(0,0,0,0.08)_72%)]" />
+      <section id="top" className="hero-scene relative min-h-[94svh] overflow-hidden bg-[#020811] pt-12 text-white">
+        <div aria-hidden className="hero-lane-field absolute inset-0" />
+        <div aria-hidden className="hero-water-sheen absolute inset-0" />
+        <div aria-hidden className="hero-depth-shade absolute inset-0" />
+
+        <div aria-hidden className="absolute inset-y-12 right-[-8%] hidden w-[72%] lg:block">
+          <div className="hero-console relative h-full">
+            <div className="hero-console-rail hero-console-rail-a" />
+            <div className="hero-console-rail hero-console-rail-b" />
+            <div className="hero-console-rail hero-console-rail-c" />
+            <svg className="absolute inset-0 h-full w-full" viewBox="0 0 900 620">
+              <path className="hero-signal-glow" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" />
+              <path className="hero-signal-line" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" />
+              {[80, 342, 620, 826].map((cx, index) => (
+                <g className="hero-signal-point" key={cx} style={{ animationDelay: `${index * 420}ms` }}>
+                  <circle cx={cx} cy={[440, 290, 235, 138][index]} r="10" />
+                  <circle cx={cx} cy={[440, 290, 235, 138][index]} r="26" />
+                </g>
+              ))}
+            </svg>
+            <div className="hero-data-card hero-data-card-a">
+              <span>PB signal</span>
+              <strong>-1.24s</strong>
+              <small>100 Fly</small>
+            </div>
+            <div className="hero-data-card hero-data-card-b">
+              <span>SPI</span>
+              <strong>88</strong>
+              <small>Competitive</small>
+            </div>
+            <div className="hero-data-card hero-data-card-c">
+              <span>Forecast</span>
+              <strong>90d</strong>
+              <small>Goal path active</small>
+            </div>
+          </div>
+        </div>
+
         <div className="relative mx-auto flex min-h-[calc(94svh-3rem)] max-w-6xl items-center px-5 py-16">
-          <div className="landing-hero-copy max-w-2xl">
-            <p className="mb-5 text-sm font-semibold text-cyan-300">Swim intelligence. Made personal.</p>
-            <h1 className="text-balance text-5xl font-semibold leading-[0.96] sm:text-7xl lg:text-[88px]">Your times tell a story.</h1>
-            <p className="mt-7 max-w-xl text-lg leading-7 text-white/72 sm:text-xl">SwimSight turns every result into a clearer view of where you are, what is improving, and what comes next.</p>
+          <div className="landing-hero-copy max-w-3xl">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-white/[0.06] px-3 py-1 text-sm font-semibold text-cyan-200 backdrop-blur-xl">
+              <Activity aria-hidden className="h-4 w-4" />
+              Swim intelligence. Made personal.
+            </p>
+            <h1 className="text-balance text-5xl font-semibold leading-[0.94] sm:text-7xl lg:text-[92px]">Your season, finally in motion.</h1>
+            <p className="mt-7 max-w-xl text-lg leading-7 text-white/74 sm:text-xl">SwimSight turns every result into a live map of progress, prediction, goals, training, and team signal.</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <UserActions hero />
               <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium transition hover:bg-white hover:text-black" href="/features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
+            </div>
+            <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
+              {[
+                ["01", "Log", "Times, meets, gym"],
+                ["02", "Analyze", "PBs, SPI, trend"],
+                ["03", "Forecast", "30 to 365 days"]
+              ].map(([number, title, body]) => (
+                <div className="hero-mini-stat" key={title}>
+                  <span>{number}</span>
+                  <strong>{title}</strong>
+                  <small>{body}</small>
+                </div>
+              ))}
             </div>
           </div>
         </div>

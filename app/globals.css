@@ -140,6 +140,189 @@ textarea {
   background: #03070e;
 }
 
+.hero-scene {
+  isolation: isolate;
+}
+
+.hero-lane-field {
+  background:
+    linear-gradient(90deg, transparent 0 4%, rgba(255, 255, 255, 0.12) 4.12%, transparent 4.3% 15.5%, rgba(255, 255, 255, 0.10) 15.65%, transparent 15.85%),
+    repeating-linear-gradient(180deg, rgba(78, 232, 255, 0.05) 0 1px, transparent 1px 78px),
+    linear-gradient(180deg, rgba(6, 40, 64, 0.92), rgba(2, 8, 17, 0.96));
+  background-size:
+    18% 100%,
+    100% 100%,
+    100% 100%;
+  transform: skewY(-2deg) scale(1.08);
+}
+
+.hero-water-sheen {
+  animation: hero-water-drift 12s linear infinite;
+  background:
+    linear-gradient(112deg, transparent 0 30%, rgba(78, 232, 255, 0.12) 38%, transparent 48% 100%),
+    repeating-linear-gradient(168deg, rgba(255, 255, 255, 0.075) 0 1px, transparent 1px 18px);
+  opacity: 0.62;
+}
+
+.hero-depth-shade {
+  background:
+    linear-gradient(90deg, rgba(2, 8, 17, 0.98) 0%, rgba(2, 8, 17, 0.78) 42%, rgba(2, 8, 17, 0.12) 76%, rgba(2, 8, 17, 0.74) 100%),
+    linear-gradient(180deg, rgba(2, 8, 17, 0.12), rgba(2, 8, 17, 0.38) 74%, rgba(2, 8, 17, 0.92));
+}
+
+.hero-console {
+  animation: hero-console-enter 1000ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+}
+
+.hero-console::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 12.5% 100%, 100% 84px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  content: "";
+  inset: 8% 0 10% 8%;
+  position: absolute;
+  transform: perspective(1200px) rotateY(-18deg) rotateX(4deg);
+}
+
+.hero-console-rail {
+  background: linear-gradient(90deg, transparent, rgba(78, 232, 255, 0.36), rgba(255, 255, 255, 0.8), rgba(78, 232, 255, 0.18), transparent);
+  height: 2px;
+  left: 2%;
+  position: absolute;
+  right: 8%;
+  transform: perspective(1200px) rotateY(-18deg) rotateX(4deg);
+}
+
+.hero-console-rail-a {
+  top: 23%;
+}
+
+.hero-console-rail-b {
+  top: 50%;
+}
+
+.hero-console-rail-c {
+  top: 77%;
+}
+
+.hero-signal-glow,
+.hero-signal-line {
+  stroke-linecap: round;
+  transform: perspective(1200px) rotateY(-18deg) rotateX(4deg);
+  transform-origin: center;
+}
+
+.hero-signal-glow {
+  filter: blur(10px);
+  opacity: 0.58;
+  stroke: #4ee8ff;
+  stroke-width: 28;
+}
+
+.hero-signal-line {
+  animation: hero-signal-draw 2600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  stroke: #c8fbff;
+  stroke-dasharray: 1100;
+  stroke-dashoffset: 1100;
+  stroke-width: 5;
+}
+
+.hero-signal-point circle:first-child {
+  fill: #f6feff;
+}
+
+.hero-signal-point circle:last-child {
+  animation: hero-pulse 2200ms ease-out infinite;
+  fill: transparent;
+  stroke: rgba(78, 232, 255, 0.62);
+  stroke-width: 2;
+}
+
+.hero-data-card {
+  animation: hero-float 6s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  color: white;
+  min-width: 144px;
+  padding: 14px 16px;
+  position: absolute;
+  backdrop-filter: blur(18px);
+}
+
+.hero-data-card span {
+  color: rgba(200, 251, 255, 0.78);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero-data-card strong {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 2rem;
+  line-height: 1;
+  margin-top: 12px;
+}
+
+.hero-data-card small {
+  color: rgba(255, 255, 255, 0.58);
+  display: block;
+  font-size: 0.78rem;
+  margin-top: 6px;
+}
+
+.hero-data-card-a {
+  left: 13%;
+  top: 22%;
+}
+
+.hero-data-card-b {
+  animation-delay: -1.7s;
+  right: 18%;
+  top: 39%;
+}
+
+.hero-data-card-c {
+  animation-delay: -3.1s;
+  bottom: 17%;
+  left: 31%;
+}
+
+.hero-mini-stat {
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 14px 16px;
+  backdrop-filter: blur(18px);
+}
+
+.hero-mini-stat span {
+  color: #8cf4ff;
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-weight: 700;
+}
+
+.hero-mini-stat strong {
+  display: block;
+  font-size: 0.92rem;
+  margin-top: 8px;
+}
+
+.hero-mini-stat small {
+  color: rgba(255, 255, 255, 0.58);
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
 .landing-hero-copy {
   animation: landing-enter 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -308,6 +491,56 @@ textarea {
   }
 }
 
+@keyframes hero-water-drift {
+  from {
+    transform: translate3d(-4%, 0, 0);
+  }
+  to {
+    transform: translate3d(4%, 0, 0);
+  }
+}
+
+@keyframes hero-console-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(48px, 18px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes hero-signal-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-pulse {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.72);
+    transform-origin: center;
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+    transform-origin: center;
+  }
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
 @keyframes dashboard-enter {
   from {
     opacity: 0;
@@ -353,6 +586,11 @@ textarea {
   }
 
   .landing-hero-copy,
+  .hero-console,
+  .hero-data-card,
+  .hero-signal-line,
+  .hero-signal-point circle:last-child,
+  .hero-water-sheen,
   .reveal-section,
   .dashboard-enter,
   .dashboard-enter-delayed,
@@ -363,5 +601,9 @@ textarea {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .hero-signal-line {
+    stroke-dashoffset: 0;
   }
 }
