@@ -5,7 +5,6 @@ import {
   motion,
   type MotionValue,
   useReducedMotion,
-  useScroll,
   useSpring,
   useTransform
 } from "framer-motion";
@@ -62,23 +61,25 @@ const stages = [
 const timeline = ["2026", "30d", "90d", "180d", "365d"];
 
 export function SeasonDepthCarousel() {
-  const ref = useRef<HTMLElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
   const [isDesktop, setIsDesktop] = useState(false);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 82, damping: 24, mass: 0.35 });
-  const desktopTrackX = useTransform(smoothProgress, (value) => {
-    if (!isDesktop || reduceMotion) return "0%";
-    const progress = Math.min(Math.max((value - 0.08) / 0.82, 0), 1);
-    return `${progress * -58}%`;
-  });
-  const haloX = useTransform(smoothProgress, [0, 1], ["8%", "84%"]);
-  const yearProgress = useTransform(smoothProgress, [0.08, 0.9], ["0%", "100%"]);
+  const smoothProgress = useSpring(0, { stiffness: 82, damping: 24, mass: 0.35 });
+  const haloX = useTransform(smoothProgress, [0, 1], ["8%", "72%"]);
+  const yearProgress = useTransform(smoothProgress, [0, 1], ["0%", "100%"]);
   const pointerStyle = {
     "--depth-x": `${pointer.x}px`,
     "--depth-y": `${pointer.y}px`
   } as CSSProperties;
+
+  function updateTrackProgress() {
+    const track = trackRef.current;
+    if (!track) return;
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    smoothProgress.set(maxScroll > 0 ? track.scrollLeft / maxScroll : 0);
+  }
 
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
@@ -87,6 +88,34 @@ export function SeasonDepthCarousel() {
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!isDesktop || reduceMotion) return;
+      const track = trackRef.current;
+      if (!track) return;
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      if (maxScroll <= 0) return;
+
+      const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      const movingForward = delta > 0;
+      const canMoveForward = movingForward && track.scrollLeft < maxScroll - 2;
+      const canMoveBackward = !movingForward && track.scrollLeft > 2;
+
+      if (!canMoveForward && !canMoveBackward) return;
+
+      event.preventDefault();
+      track.scrollLeft = Math.min(Math.max(track.scrollLeft + delta, 0), maxScroll);
+      updateTrackProgress();
+    };
+
+    section.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => section.removeEventListener("wheel", handleWheel);
+  }, [isDesktop, reduceMotion, smoothProgress]);
 
   return (
     <section
@@ -99,16 +128,15 @@ export function SeasonDepthCarousel() {
           y: ((event.clientY - rect.top) / rect.height - 0.5) * 18
         });
       }}
-      ref={ref}
       style={pointerStyle}
+      ref={sectionRef}
     >
       <motion.div
         aria-hidden
         className="absolute top-24 h-80 w-80 rounded-full bg-aqua-300/26 blur-3xl"
         style={{ left: haloX }}
       />
-      <div className="relative lg:h-[280svh]">
-        <div className="mx-auto flex max-w-[1500px] flex-col justify-start px-5 py-16 sm:py-24 lg:sticky lg:top-0 lg:min-h-svh lg:justify-center lg:overflow-hidden lg:py-0">
+      <div className="relative mx-auto flex max-w-[1500px] flex-col justify-start px-5 py-16 sm:py-24 lg:min-h-[calc(100svh-3rem)] lg:justify-center">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
             <div className="relative z-10 max-w-xl">
               <p className="text-sm font-semibold text-cyan-700">Interactive season model</p>
@@ -138,50 +166,52 @@ export function SeasonDepthCarousel() {
             SWIMSIGHT
           </div>
 
-          <motion.div
-            className="depth-track relative z-10 mt-14 flex flex-col gap-4 lg:mt-20 lg:w-max lg:flex-row lg:gap-5"
-            style={{ x: desktopTrackX }}
+          <div
+            className="depth-scroller relative z-10 mt-14 overflow-x-auto pb-3 lg:mt-16"
+            ref={trackRef}
+            onScroll={updateTrackProgress}
           >
-            {stages.map((stage, index) => (
-              <DepthCard index={index} isDesktop={isDesktop} key={stage.title} progress={smoothProgress}>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${stage.accent} text-[#031522] shadow-[0_12px_32px_rgba(0,174,202,0.20)]`}>
-                      {stage.icon}
+            <motion.div className="depth-track flex flex-col gap-4 lg:w-max lg:flex-row lg:gap-5">
+              {stages.map((stage, index) => (
+                <DepthCard index={index} isDesktop={isDesktop} key={stage.title} progress={smoothProgress}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${stage.accent} text-[#031522] shadow-[0_12px_32px_rgba(0,174,202,0.20)]`}>
+                        {stage.icon}
+                      </span>
+                      <div>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">{stage.number}</p>
+                        <p className="mt-1 text-sm font-semibold text-black/46">{stage.kicker}</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-black/10 bg-white/72 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black/56">
+                      {stage.metric}
                     </span>
-                    <div>
-                      <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">{stage.number}</p>
-                      <p className="mt-1 text-sm font-semibold text-black/46">{stage.kicker}</p>
+                  </div>
+                  <h3 className="mt-16 max-w-sm text-balance text-4xl font-semibold leading-[0.96] text-[#101820] sm:text-5xl lg:mt-20">
+                    {stage.title}
+                  </h3>
+                  <p className="mt-6 max-w-md text-base leading-7 text-black/62">{stage.body}</p>
+                  <div className="mt-10 h-28 overflow-hidden rounded-lg border border-white/70 bg-[#061827] p-4 shadow-inner">
+                    <div className="flex h-full items-end gap-2">
+                      {[54, 74, 62, 88, 70, 96, 84].map((height, barIndex) => (
+                        <motion.span
+                          aria-hidden
+                          className="flex-1 rounded-t-full bg-gradient-to-t from-aqua-500 to-aqua-100"
+                          key={`${stage.number}-${height}-${barIndex}`}
+                          style={{ height: `${height}%` }}
+                          initial={reduceMotion ? false : { scaleY: 0.35 }}
+                          whileInView={reduceMotion ? undefined : { scaleY: 1 }}
+                          transition={{ duration: 0.65, delay: barIndex * 0.035, ease: [0.22, 1, 0.36, 1] }}
+                          viewport={{ once: true, amount: 0.5 }}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <span className="rounded-full border border-black/10 bg-white/72 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black/56">
-                    {stage.metric}
-                  </span>
-                </div>
-                <h3 className="mt-16 max-w-sm text-balance text-4xl font-semibold leading-[0.96] text-[#101820] sm:text-5xl lg:mt-20">
-                  {stage.title}
-                </h3>
-                <p className="mt-6 max-w-md text-base leading-7 text-black/62">{stage.body}</p>
-                <div className="mt-10 h-28 overflow-hidden rounded-lg border border-white/70 bg-[#061827] p-4 shadow-inner">
-                  <div className="flex h-full items-end gap-2">
-                    {[54, 74, 62, 88, 70, 96, 84].map((height, barIndex) => (
-                      <motion.span
-                        aria-hidden
-                        className="flex-1 rounded-t-full bg-gradient-to-t from-aqua-500 to-aqua-100"
-                        key={`${stage.number}-${height}-${barIndex}`}
-                        style={{ height: `${height}%` }}
-                        initial={reduceMotion ? false : { scaleY: 0.35 }}
-                        whileInView={reduceMotion ? undefined : { scaleY: 1 }}
-                        transition={{ duration: 0.65, delay: barIndex * 0.035, ease: [0.22, 1, 0.36, 1] }}
-                        viewport={{ once: true, amount: 0.5 }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </DepthCard>
-            ))}
-          </motion.div>
-        </div>
+                </DepthCard>
+              ))}
+            </motion.div>
+          </div>
       </div>
     </section>
   );
@@ -208,7 +238,7 @@ function DepthCard({
 
   return (
     <motion.article
-      className="depth-card relative min-h-[520px] overflow-hidden rounded-lg border border-white/80 bg-white/76 p-6 shadow-[0_30px_100px_rgba(2,37,60,0.13)] backdrop-blur-2xl sm:p-8 lg:w-[min(560px,42vw)]"
+      className="depth-card relative min-h-[520px] shrink-0 overflow-hidden rounded-lg border border-white/80 bg-white/76 p-6 shadow-[0_30px_100px_rgba(2,37,60,0.13)] backdrop-blur-2xl sm:p-8 lg:w-[min(560px,42vw)]"
       style={isDesktop ? { opacity, rotateY, scale, y } : undefined}
     >
       <div aria-hidden className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.76),rgba(255,255,255,0.24)_45%,rgba(34,201,232,0.15))]" />

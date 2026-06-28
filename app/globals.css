@@ -243,6 +243,15 @@ textarea {
   will-change: transform;
 }
 
+.depth-scroller {
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.depth-scroller::-webkit-scrollbar {
+  display: none;
+}
+
 .depth-card {
   contain: layout paint;
   transform-style: preserve-3d;
