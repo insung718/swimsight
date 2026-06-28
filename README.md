@@ -47,6 +47,7 @@ CLERK_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL="/"
 NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL="/"
+ADMIN_EMAILS="your-google-email@example.com"
 ```
 
 Enable Google OAuth in the Clerk dashboard under **User & Authentication > Social connections**. Once enabled, the app's sign-in button creates a real user account and the backend upserts that user into PostgreSQL.
@@ -90,6 +91,7 @@ Returns the signed-in user's swims.
 ## Security
 
 - Every `/api/*` request is rate limited by IP; authenticated requests also receive a user quota.
+- Admin status is server-only and email-allowlisted with `ADMIN_EMAILS`; regular users can only choose swimmer or coach.
 - Production should configure Upstash Redis for distributed limits:
 
 ```bash

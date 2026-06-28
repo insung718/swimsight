@@ -87,6 +87,9 @@ body {
 
   .dashboard-glass {
     @apply rounded-lg border border-white/30 bg-stitch-abyss/[0.78] shadow-stitch backdrop-blur-2xl;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      0 26px 90px rgba(2, 13, 25, 0.16);
   }
 
   .dashboard-hero {
@@ -108,6 +111,8 @@ body {
 
   .premium-hover {
     @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:border-stitch-cyan/55 hover:bg-stitch-panel/[0.82] hover:shadow-glow;
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   .readable-muted {
@@ -352,6 +357,20 @@ textarea {
 .counter-container {
   display: inline-block;
   position: relative;
+}
+
+.dashboard-shell button,
+.dashboard-shell a,
+.landing-page button,
+.landing-page a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dashboard-shell :is(input, select, textarea):focus-visible,
+.landing-page :is(button, a, input, select, textarea):focus-visible,
+.dashboard-shell :is(button, a):focus-visible {
+  outline: 2px solid rgba(34, 201, 232, 0.92);
+  outline-offset: 3px;
 }
 
 .counter-counter {

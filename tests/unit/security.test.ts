@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { coachClubJoinSchema, communityJoinSchema, manualSwimSchema } from "@/lib/validation";
 import { validateSwimCsv } from "@/lib/csv";
 import { enforceApiRateLimit } from "@/lib/security/rate-limit";
+import { isTrustedAdminEmail, resolveTrustedRole } from "@/lib/security/admin";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import nextConfig from "../../next.config";
@@ -32,6 +33,15 @@ describe("API security", () => {
     expect(coachClubJoinSchema.parse({ joinCode: " abcd_9 " }).joinCode).toBe("ABCD_9");
     expect(communityJoinSchema.parse({ joinCode: " xyza-2 " }).joinCode).toBe("XYZA-2");
     expect(coachClubJoinSchema.safeParse({ joinCode: "bad code!" }).success).toBe(false);
+  });
+
+  it("honors admin only from the server-side email allowlist", () => {
+    vi.stubEnv("ADMIN_EMAILS", "insung@example.com, owner@swimsight.app");
+
+    expect(isTrustedAdminEmail(" InSung@example.com ")).toBe(true);
+    expect(resolveTrustedRole("ADMIN", "insung@example.com")).toBe("ADMIN");
+    expect(resolveTrustedRole("ADMIN", "random@example.com")).toBe("ATHLETE");
+    expect(resolveTrustedRole("COACH", "random@example.com")).toBe("COACH");
   });
 
   it("rejects oversized JSON before parsing", async () => {

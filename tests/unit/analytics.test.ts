@@ -5,9 +5,10 @@ import {
   calculateGoalProjection,
   detectTrend,
   getPersonalBests,
-  linearRegression
+  linearRegression,
+  predictEvent
 } from "@/lib/analytics";
-import type { GymWorkout } from "@/types/swim";
+import type { GymWorkout, SwimResult } from "@/types/swim";
 import { sampleGoals, sampleSwims } from "../fixtures/sample-data";
 
 describe("analytics engine", () => {
@@ -85,6 +86,17 @@ describe("analytics engine", () => {
     expect(analytics.predictions[0].event).toBe(sampleSwims[0].event);
     expect(analytics.predictions[0].confidence).toBe(41);
     expect(analytics.predictions[0].predictedTimes.days365).toBe(sampleSwims[0].timeSeconds);
+  });
+
+  it("caps aggressive forecasts so predictions stay realistic", () => {
+    const extremeDrop: SwimResult[] = [
+      { id: "s1", userId: "u1", date: "2026-01-01", event: "100 Butterfly", course: "LCM", timeSeconds: 70, meetName: "Meet A" },
+      { id: "s2", userId: "u1", date: "2026-01-08", event: "100 Butterfly", course: "LCM", timeSeconds: 60, meetName: "Meet B" }
+    ];
+    const prediction = predictEvent(extremeDrop);
+
+    expect(prediction.predictedTimes.days365).toBeGreaterThanOrEqual(60 * 0.86);
+    expect(prediction.confidence).toBeLessThan(60);
   });
 
   it("does not crash when a goal exists before results for that event", () => {

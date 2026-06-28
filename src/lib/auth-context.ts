@@ -1,6 +1,7 @@
 import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
+import { resolveTrustedRole } from "@/lib/security/admin";
 
 export interface AuthContext {
   userId: string;
@@ -55,12 +56,20 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       imageUrl: clerkUser?.imageUrl
     }
   });
+  const trustedRole = resolveTrustedRole(user.role, user.email);
+
+  if (trustedRole !== user.role) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: trustedRole }
+    });
+  }
 
   return {
     userId: user.id,
     clerkId: user.clerkId,
     email: user.email,
-    role: user.role,
+    role: trustedRole,
     onboardingCompleted: user.onboardingCompleted
   };
 }

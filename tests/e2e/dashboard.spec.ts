@@ -24,6 +24,36 @@ test("opens and closes the signed-out staggered menu", async ({ page }) => {
 });
 
 test("protects account APIs when signed out", async ({ request }) => {
-  const response = await request.get("/api/swims");
-  expect(response.status()).toBe(401);
+  const protectedReads = [
+    "/api/me",
+    "/api/swims",
+    "/api/analytics",
+    "/api/motivation",
+    "/api/friends",
+    "/api/gym",
+    "/api/communities",
+    "/api/coach/clubs",
+    "/api/coach/clubs/join",
+    "/api/meets",
+    "/api/communities/fake-community/compare"
+  ];
+
+  for (const endpoint of protectedReads) {
+    const response = await request.get(endpoint);
+    expect(response.status(), endpoint).toBe(401);
+  }
+
+  const writeResponse = await request.post("/api/swims", {
+    data: {
+      date: "2026-06-19",
+      event: "50 Freestyle",
+      course: "LCM",
+      timeSeconds: 25.56,
+      meetName: "Signed-out smoke test"
+    },
+    headers: {
+      origin: "http://localhost:3000"
+    }
+  });
+  expect(writeResponse.status()).toBe(401);
 });

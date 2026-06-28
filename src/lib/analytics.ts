@@ -80,15 +80,69 @@ export function linearRegression(points: { x: number; y: number }[]) {
   return { slope, intercept };
 }
 
+function weightedLinearRegression(points: { x: number; y: number; weight: number }[]) {
+  if (points.length < 2) {
+    return { slope: 0, intercept: points[0]?.y ?? 0 };
+  }
+
+  const sumWeight = points.reduce((sum, point) => sum + point.weight, 0);
+  const sumX = points.reduce((sum, point) => sum + point.x * point.weight, 0);
+  const sumY = points.reduce((sum, point) => sum + point.y * point.weight, 0);
+  const sumXY = points.reduce((sum, point) => sum + point.x * point.y * point.weight, 0);
+  const sumXX = points.reduce((sum, point) => sum + point.x * point.x * point.weight, 0);
+  const denominator = sumWeight * sumXX - sumX ** 2;
+
+  if (denominator === 0) {
+    return { slope: 0, intercept: sumY / sumWeight };
+  }
+
+  const slope = (sumWeight * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / sumWeight;
+
+  return { slope, intercept };
+}
+
 function eventRegression(swims: SwimResult[]) {
   const sorted = [...swims].sort(byDateAsc);
   const startDay = dateToDays(sorted[0].date);
-  const points = sorted.map((swim) => ({
-    x: dateToDays(swim.date) - startDay,
-    y: swim.timeSeconds
-  }));
+  const latestDay = dateToDays(sorted[sorted.length - 1].date);
+  const points = sorted.map((swim, index) => {
+    const ageDays = latestDay - dateToDays(swim.date);
+    const orderWeight = sorted.length <= 1 ? 1 : 0.72 + (index / (sorted.length - 1)) * 0.56;
+    const recencyWeight = clamp(1 - ageDays / 730, 0.42, 1);
 
-  return linearRegression(points);
+    return {
+      x: dateToDays(swim.date) - startDay,
+      y: swim.timeSeconds,
+      weight: orderWeight * recencyWeight
+    };
+  });
+
+  return weightedLinearRegression(points);
+}
+
+function predictionConfidence(sampleSize: number, consistencyScore: number, slope: number) {
+  const sampleConfidence = clamp(sampleSize * 15, 30, 90);
+  const trendPenalty = Math.abs(slope) > 0.16 ? 8 : Math.abs(slope) > 0.08 ? 3 : 0;
+
+  return round(clamp(sampleConfidence * 0.45 + consistencyScore * 0.55 - trendPenalty), 1);
+}
+
+function maxForecastImprovement(currentTime: number, days: number, confidence: number) {
+  const baseFraction = days <= 30 ? 0.018 : days <= 90 ? 0.045 : days <= 180 ? 0.075 : 0.12;
+  const confidenceMultiplier = clamp(0.56 + confidence / 100, 0.72, 1.18);
+
+  return currentTime * baseFraction * confidenceMultiplier;
+}
+
+function dampedSlope(slope: number, confidence: number, trainingSignal: TrainingLoadSignal) {
+  const reliability = clamp((confidence - 28) / 64, 0, 1);
+
+  if (slope < 0) {
+    return slope * reliability * trainingSignal.adjustmentMultiplier;
+  }
+
+  return slope * clamp(0.25 + reliability * 0.35, 0.25, 0.6);
 }
 
 export function calculateConsistencyScore(swims: SwimResult[]) {
@@ -289,13 +343,16 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
   const latest = sorted[sorted.length - 1];
   const { slope } = eventRegression(sorted);
   const consistencyScore = calculateConsistencyScore(sorted);
-  const sampleConfidence = clamp(sorted.length * 15, 30, 90);
-  const confidence = round(clamp(sampleConfidence * 0.45 + consistencyScore * 0.55 + trainingSignal.confidenceAdjustment), 1);
-  const adjustedSlope = slope < 0 ? slope * trainingSignal.adjustmentMultiplier : slope;
+  const baseConfidence = predictionConfidence(sorted.length, consistencyScore, slope);
+  const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment), 1);
+  const adjustedSlope = dampedSlope(slope, confidence, trainingSignal);
 
   const project = (days: number) => {
     const predicted = latest.timeSeconds + adjustedSlope * days;
-    return round(Math.max(predicted, latest.timeSeconds * 0.82), 2);
+    const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, days, confidence);
+    const slowestAllowed = latest.timeSeconds * 1.08;
+
+    return round(clamp(predicted, fastestAllowed, slowestAllowed), 2);
   };
 
   return {
@@ -341,15 +398,24 @@ export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalPr
     swim.timeSeconds < fastest.timeSeconds ? swim : fastest
   );
   const { slope } = eventRegression(eventSwims);
+  const consistencyScore = calculateConsistencyScore(eventSwims);
+  const confidence = predictionConfidence(eventSwims.length, consistencyScore, slope);
+  const adjustedSlope = dampedSlope(slope, confidence, neutralTrainingSignal);
   const daysRemaining = Math.max(dateToDays(goal.targetDate) - dateToDays(latest.date), 1);
   const weeksRemaining = daysRemaining / 7;
   const monthsRemaining = daysRemaining / 30.44;
   const requiredTotalImprovement = Math.max(best.timeSeconds - goal.targetTime, 0);
-  const predictedAtGoalDate = round(Math.max(best.timeSeconds + slope * daysRemaining, best.timeSeconds * 0.82), 2);
-  const currentMonthlyPace = round(Math.max(-slope * 30.44, 0), 2);
+  const predictedFromLatest = latest.timeSeconds + adjustedSlope * daysRemaining;
+  const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, daysRemaining, confidence);
+  const predictedAtGoalDate = round(clamp(predictedFromLatest, fastestAllowed, latest.timeSeconds * 1.08), 2);
+  const currentMonthlyPace = round(Math.max(-adjustedSlope * 30.44, 0), 2);
   const targetGap = predictedAtGoalDate - goal.targetTime;
   const likelihood =
-    targetGap <= 0.2 ? "High" : targetGap <= requiredTotalImprovement * 0.35 ? "Medium" : "Low";
+    confidence >= 65 && targetGap <= 0.2
+      ? "High"
+      : targetGap <= Math.max(requiredTotalImprovement * 0.35, 0.5)
+        ? "Medium"
+        : "Low";
 
   return {
     event: goal.event,
