@@ -8,6 +8,7 @@ import {
   linearRegression,
   predictEvent
 } from "@/lib/analytics";
+import { trainedPredictionModel } from "@/lib/trained-prediction-model";
 import type { GymWorkout, SwimResult } from "@/types/swim";
 import { sampleGoals, sampleSwims } from "../fixtures/sample-data";
 
@@ -84,7 +85,7 @@ describe("analytics engine", () => {
 
     expect(analytics.predictions).toHaveLength(1);
     expect(analytics.predictions[0].event).toBe(sampleSwims[0].event);
-    expect(analytics.predictions[0].confidence).toBe(41);
+    expect(analytics.predictions[0].confidence).toBe(43);
     expect(analytics.predictions[0].predictedTimes.days365).toBe(sampleSwims[0].timeSeconds);
   });
 
@@ -107,6 +108,17 @@ describe("analytics engine", () => {
     const prediction = predictEvent(nearRecord);
 
     expect(prediction.predictedTimes.days365).toBeGreaterThanOrEqual(20.91);
+  });
+
+  it("uses trained event-course priors to cap aggressive annual improvement", () => {
+    const fastDrop: SwimResult[] = [
+      { id: "s1", userId: "u1", date: "2026-01-01", event: "50 Freestyle", course: "SCM", timeSeconds: 30, meetName: "Meet A" },
+      { id: "s2", userId: "u1", date: "2026-01-08", event: "50 Freestyle", course: "SCM", timeSeconds: 26, meetName: "Meet B" }
+    ];
+    const prediction = predictEvent(fastDrop);
+    const trainedCap = trainedPredictionModel.priors["50 Freestyle__SCM"].annualImprovementCap;
+
+    expect(prediction.predictedTimes.days365).toBeGreaterThanOrEqual(26 * (1 - trainedCap));
   });
 
   it("keeps predictions separate by course", () => {

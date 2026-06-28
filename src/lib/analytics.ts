@@ -14,6 +14,7 @@ import type {
   TrendLabel
 } from "@/types/swim";
 import { clamp, dateToDays, round } from "@/lib/utils";
+import { getPredictionPrior, type PredictionPrior } from "@/lib/trained-prediction-model";
 
 const predictionHorizons = [30, 90, 180, 365] as const;
 
@@ -216,11 +217,23 @@ function predictionConfidence(sampleSize: number, consistencyScore: number, slop
   return round(clamp(sampleConfidence * 0.45 + consistencyScore * 0.55 - trendPenalty), 1);
 }
 
-function maxForecastImprovement(currentTime: number, days: number, confidence: number) {
+function maxForecastImprovement(currentTime: number, days: number, confidence: number, prior?: PredictionPrior) {
   const baseFraction = days <= 30 ? 0.018 : days <= 90 ? 0.045 : days <= 180 ? 0.075 : 0.12;
   const confidenceMultiplier = clamp(0.56 + confidence / 100, 0.72, 1.18);
+  const genericCap = baseFraction * confidenceMultiplier;
+  const trainedCap = prior ? prior.annualImprovementCap * (days / 365) : genericCap;
+  const minimumMovement = days <= 30 ? 0.004 : days <= 90 ? 0.012 : days <= 180 ? 0.02 : 0.028;
+  const capFraction = prior ? clamp(Math.min(genericCap, trainedCap), minimumMovement, genericCap) : genericCap;
 
-  return currentTime * baseFraction * confidenceMultiplier;
+  return currentTime * capFraction;
+}
+
+function priorConfidenceAdjustment(prior?: PredictionPrior) {
+  if (!prior) return 0;
+  if (prior.sampleCount >= 8) return 4;
+  if (prior.sampleCount >= 4) return 2;
+  if (prior.sampleCount >= 3) return 1;
+  return -2;
 }
 
 function dampedSlope(slope: number, confidence: number, trainingSignal: TrainingLoadSignal) {
@@ -433,13 +446,14 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
   const latest = sorted[sorted.length - 1];
   const { slope } = eventRegression(sorted);
   const consistencyScore = calculateConsistencyScore(sorted);
+  const prior = getPredictionPrior(latest.event, latest.course);
   const baseConfidence = predictionConfidence(sorted.length, consistencyScore, slope);
-  const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment), 1);
+  const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment + priorConfidenceAdjustment(prior)), 1);
   const adjustedSlope = dampedSlope(slope, confidence, trainingSignal);
 
   const project = (days: number) => {
     const predicted = latest.timeSeconds + adjustedSlope * days;
-    const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, days, confidence);
+    const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, days, confidence, prior);
     const recordFloor = getRecordFloor(latest.event, latest.course);
     const slowestAllowed = latest.timeSeconds * 1.08;
 
@@ -491,14 +505,15 @@ export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalPr
   );
   const { slope } = eventRegression(eventSwims);
   const consistencyScore = calculateConsistencyScore(eventSwims);
-  const confidence = predictionConfidence(eventSwims.length, consistencyScore, slope);
+  const prior = getPredictionPrior(latest.event, latest.course);
+  const confidence = clamp(predictionConfidence(eventSwims.length, consistencyScore, slope) + priorConfidenceAdjustment(prior), 0, 100);
   const adjustedSlope = dampedSlope(slope, confidence, neutralTrainingSignal);
   const daysRemaining = Math.max(dateToDays(goal.targetDate) - dateToDays(latest.date), 1);
   const weeksRemaining = daysRemaining / 7;
   const monthsRemaining = daysRemaining / 30.44;
   const requiredTotalImprovement = Math.max(best.timeSeconds - goal.targetTime, 0);
   const predictedFromLatest = latest.timeSeconds + adjustedSlope * daysRemaining;
-  const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, daysRemaining, confidence);
+  const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, daysRemaining, confidence, prior);
   const recordFloor = getRecordFloor(latest.event, latest.course);
   const predictedAtGoalDate = round(clamp(predictedFromLatest, Math.max(fastestAllowed, recordFloor), latest.timeSeconds * 1.08), 2);
   const currentMonthlyPace = round(Math.max(-adjustedSlope * 30.44, 0), 2);
