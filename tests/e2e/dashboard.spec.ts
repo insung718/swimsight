@@ -6,6 +6,7 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
   await expect(page.getByRole("link", { name: "SwimSight" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your season, finally in motion." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Less dashboard. More direction." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Help make SwimSight sharper." })).toBeVisible();
   await expect(page.getByText("24", { exact: true })).toHaveCount(0);
 });
 
@@ -21,6 +22,10 @@ test("opens and closes the signed-out staggered menu", async ({ page }) => {
 
   await page.getByRole("button", { name: "Open navigation menu" }).click();
   await expect(page.getByRole("dialog", { name: "SwimSight navigation menu" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Contact", exact: true }).click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.getByRole("heading", { name: "Contact us and review the website." })).toBeVisible();
 });
 
 test("protects account APIs when signed out", async ({ request }) => {

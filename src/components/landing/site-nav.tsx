@@ -8,7 +8,8 @@ export const publicNavItems = [
   { label: "Features", href: "/features" },
   { label: "Performance", href: "/performance" },
   { label: "Community", href: "/community" },
-  { label: "Privacy", href: "/privacy" }
+  { label: "Privacy", href: "/privacy" },
+  { label: "Contact", href: "/contact" }
 ];
 
 export function SiteNav() {

@@ -110,6 +110,8 @@ describe("API security", () => {
     const apiHeaders = new Map(headers?.[1]?.headers.map((header) => [header.key.toLowerCase(), header.value]));
 
     expect(appHeaders.get("content-security-policy")).toContain("frame-ancestors 'none'");
+    expect(appHeaders.get("content-security-policy")).toContain("https://va.vercel-scripts.com");
+    expect(appHeaders.get("content-security-policy")).toContain("https://vitals.vercel-insights.com");
     expect(appHeaders.get("strict-transport-security")).toContain("includeSubDomains");
     expect(appHeaders.get("x-content-type-options")).toBe("nosniff");
     expect(apiHeaders.get("cache-control")).toContain("no-store");

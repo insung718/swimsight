@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, ShieldCheck, Trophy, Users } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, Instagram, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
@@ -29,6 +29,21 @@ const seasonCards = [
   { icon: <Flag aria-hidden className="h-4 w-4" />, title: "Goal pace", description: "Recalculated as you improve", detail: "Always current" },
   { icon: <CalendarCheck2 aria-hidden className="h-4 w-4" />, title: "Next meet", description: "Your countdown, in focus", detail: "Ready when you are" },
 ];
+
+const instagramUrl = "https://www.instagram.com/swim.sight/";
+
+const contactCards = [
+  {
+    icon: MessageSquareText,
+    title: "Contact us",
+    body: "DM @swim.sight with questions, bugs, team ideas, or feature requests."
+  },
+  {
+    icon: Star,
+    title: "Review the website",
+    body: "Tell us what feels premium, what feels confusing, and what would make SwimSight easier to use."
+  }
+] as const;
 
 export function LandingPage() {
   return (
@@ -189,8 +204,44 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section id="contact" className="overflow-hidden bg-[#03070e] py-24 text-white sm:py-32">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-300">Contact and review</p>
+            <h2 className="mt-4 max-w-3xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">
+              Help make SwimSight sharper.
+            </h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-white/68">
+              Send feedback, review the website, or follow the build on Instagram. The fastest contact point is <span className="font-semibold text-cyan-200">@swim.sight</span>.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-cyan-200" href={instagramUrl} rel="noreferrer" target="_blank">
+                <Instagram aria-hidden className="h-4 w-4" />
+                Follow @swim.sight
+              </a>
+              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-sm font-semibold text-white transition hover:bg-white hover:text-black" href="/contact">
+                Review the website <ArrowRight aria-hidden className="h-4 w-4" />
+              </a>
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {contactCards.map(({ body, icon: Icon, title }) => (
+                <article className="rounded-lg border border-white/14 bg-white/[0.075] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-cyan-200 text-black">
+                    <Icon aria-hidden className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-8 text-2xl font-semibold text-white">{title}</h3>
+                  <p className="mt-4 text-sm leading-6 text-white/66">{body}</p>
+                </article>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <section id="privacy" className="bg-white py-24 sm:py-32"><Reveal className="mx-auto max-w-4xl px-5 text-center"><ShieldCheck aria-hidden className="mx-auto h-10 w-10 text-cyan-700" /><h2 className="mt-7 text-balance text-4xl font-semibold sm:text-6xl">Your performance belongs to you.</h2><p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-black/55">Account-scoped results, private communities, strict validation, and protected APIs from the first recorded time.</p><div className="mt-9 flex justify-center"><UserActions hero light /></div></Reveal></section>
-      <footer className="bg-[#f5f5f7] py-10 text-sm text-black/45"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 SwimSight</span><span>Built for swimmers, coaches, and teams.</span></div></footer>
+      <footer className="bg-[#f5f5f7] py-10 text-sm text-black/45"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 SwimSight</span><span className="flex flex-wrap gap-3"><a className="transition hover:text-black" href="/contact">Contact</a><a className="transition hover:text-black" href={instagramUrl} rel="noreferrer" target="_blank">@swim.sight</a></span></div></footer>
     </main>
   );
 }
