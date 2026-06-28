@@ -11,6 +11,7 @@ SwimSight is a modern swim analytics MVP for competitive swimmers, coaches, and 
 - Clerk authentication
 - Vitest unit tests and Playwright e2e tests
 - Vercel-ready deployment
+- Vercel Web Analytics for privacy-friendly pageview tracking
 
 ## MVP Features
 
@@ -218,6 +219,10 @@ Accepts or blocks an incoming friend request.
 npm run test
 npm run test:e2e
 ```
+
+## Vercel Analytics
+
+Web Analytics is enabled through `@vercel/analytics`. After deployment, visit the production site once and Vercel will begin showing visitors and page views in the project Analytics tab.
 
 ## Project Structure
 

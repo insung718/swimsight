@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { OptionalClerkProvider } from "@/components/auth/optional-clerk-provider";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
           }}
         />
         <OptionalClerkProvider>{children}</OptionalClerkProvider>
+        <Analytics />
       </body>
     </html>
   );
