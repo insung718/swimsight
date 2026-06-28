@@ -5,7 +5,10 @@ import { OptionalClerkProvider } from "@/components/auth/optional-clerk-provider
 
 export const metadata: Metadata = {
   title: "SwimSight",
-  description: "Data-driven swim analytics for competitive swimmers and coaches."
+  description: "Data-driven swim analytics for competitive swimmers and coaches.",
+  icons: {
+    icon: "/icon.svg"
+  }
 };
 
 export default function RootLayout({

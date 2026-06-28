@@ -14,6 +14,7 @@ import { PersonalBestTable } from "@/components/personal-best-table";
 import { PredictionGrid } from "@/components/prediction-grid";
 import { ProgressionChart } from "@/components/progression-chart";
 import { SwimPowerIndexPanel } from "@/components/swim-power-index";
+import { StrokeSpecialtyPentagon } from "@/components/stroke-specialty-pentagon";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import { Counter } from "@/components/ui/counter";
@@ -53,7 +54,10 @@ export function SwimSightDashboard({
     <main className="dark dashboard-shell min-h-screen text-stitch-text">
       <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3"><span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span><div><div className="font-semibold text-stitch-abyss">SwimSight</div><div className="text-xs text-stitch-abyss/55">Performance workspace</div></div></div>
+          <button className="flex items-center gap-3 text-left transition hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
+            <span><span className="block font-semibold text-stitch-abyss">SwimSight</span><span className="block text-xs text-stitch-abyss/55">Performance workspace</span></span>
+          </button>
           <UserActions />
         </div>
       </header>
@@ -104,7 +108,7 @@ export function SwimSightDashboard({
 
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
-        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><PredictionGrid predictions={analytics.predictions} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><PredictionGrid predictions={analytics.predictions} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
         {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
@@ -202,7 +206,7 @@ function PredictionSpotlight({
             <p className="text-xs text-stitch-abyss/55">{prediction ? `${prediction.confidence}% confidence` : "Waiting for your first result"}</p>
           </div>
         </div>
-        {prediction && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{prediction.event}</span>}
+        {prediction && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{prediction.event} · {prediction.course}</span>}
       </div>
 
       {prediction ? (
@@ -271,7 +275,7 @@ function SeasonSnapshot({
               <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition group-hover:translate-x-0.5" />
             </div>
             <div className="mt-10 text-3xl font-semibold leading-tight text-white">
-              {prediction ? prediction.event : "Add a swim to unlock forecasting."}
+              {prediction ? `${prediction.event} · ${prediction.course}` : "Add a swim to unlock forecasting."}
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2">
               <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />

@@ -34,15 +34,15 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
     <main className="dark dashboard-shell min-h-screen text-stitch-text">
       <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+          <button className="flex items-center gap-3 text-left transition hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
               <Waves aria-hidden className="h-5 w-5" />
             </span>
-            <div>
+            <span>
               <div className="font-semibold text-stitch-abyss">SwimSight Coach</div>
               <div className="text-xs text-stitch-abyss/55">Team performance workspace</div>
-            </div>
-          </div>
+            </span>
+          </button>
           <UserActions />
         </div>
       </header>

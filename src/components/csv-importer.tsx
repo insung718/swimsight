@@ -22,7 +22,7 @@ export function CsvImporter() {
     try {
       const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true }) });
       const data = await response.json();
-      if (!response.ok) { setStatus(data.error ?? "Could not import CSV."); return; }
+      if (!response.ok) { setStatus(data.error ?? "Could not import spreadsheet."); return; }
       setResult(data);
       setStatus(`${data.swims?.length ?? 0} results imported.`);
       window.location.reload();
@@ -41,8 +41,8 @@ export function CsvImporter() {
     <section className="stitch-panel min-w-0 p-4 lg:p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">CSV Import</h2>
-          <p className="text-sm text-white/70">Date, Event, Time</p>
+          <h2 className="text-lg font-semibold text-white">Import Spreadsheet</h2>
+          <p className="text-sm text-white/70">Upload a CSV spreadsheet with Date, Event, Time</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -74,7 +74,7 @@ export function CsvImporter() {
             Validate
           </button>
           <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={importing} type="button" onClick={importRows}>
-            {importing && <KineticLoader className="h-4 text-stitch-abyss" label="Importing CSV" />}
+            {importing && <KineticLoader className="h-4 text-stitch-abyss" label="Importing spreadsheet" />}
             {importing ? "Importing" : "Import"}
           </button>
         </div>

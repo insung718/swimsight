@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { supportedEvents } from "@/lib/events";
 import { formatShortDate, formatTime } from "@/lib/utils";
-import type { SwimEvent, SwimResult } from "@/types/swim";
+import type { Course, SwimEvent, SwimResult } from "@/types/swim";
 
 interface ProgressionChartProps {
   swims: SwimResult[];
@@ -30,6 +30,11 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     [swims]
   );
   const [selectedYear, setSelectedYear] = useState("All");
+  const availableCourses = useMemo(
+    () => Array.from(new Set(swims.filter((swim) => swim.event === selectedEvent).map((swim) => swim.course))).sort() as Course[],
+    [selectedEvent, swims]
+  );
+  const [selectedCourse, setSelectedCourse] = useState<Course | "All">("All");
 
   useEffect(() => {
     if (availableEvents.length && !availableEvents.includes(selectedEvent)) {
@@ -37,18 +42,33 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     }
   }, [availableEvents, selectedEvent]);
 
+  useEffect(() => {
+    if (selectedCourse !== "All" && !availableCourses.includes(selectedCourse)) {
+      setSelectedCourse("All");
+    }
+  }, [availableCourses, selectedCourse]);
+
   const chartData = useMemo(() => {
     return swims
       .filter((swim) => swim.event === selectedEvent)
+      .filter((swim) => selectedCourse === "All" || swim.course === selectedCourse)
       .filter((swim) => selectedYear === "All" || new Date(swim.date).getFullYear().toString() === selectedYear)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map((swim) => ({
         date: swim.date,
         dateLabel: formatShortDate(swim.date),
-        time: swim.timeSeconds,
+        [swim.course]: swim.timeSeconds,
+        course: swim.course,
         meetName: swim.meetName
       }));
-  }, [selectedEvent, selectedYear, swims]);
+  }, [selectedCourse, selectedEvent, selectedYear, swims]);
+
+  const visibleCourses = selectedCourse === "All" ? availableCourses : [selectedCourse];
+  const courseColors: Record<Course, string> = {
+    LCM: "#4ee8ff",
+    SCM: "#8cffd2",
+    SCY: "#ffcf70"
+  };
 
   return (
     <section className="dashboard-glass p-4 lg:p-5">
@@ -70,6 +90,22 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             {availableEvents.map((event) => (
               <option key={event} value={event}>
                 {event}
+              </option>
+            ))}
+          </select>
+          <label className="sr-only" htmlFor="course-filter">
+            Course
+          </label>
+          <select
+            id="course-filter"
+            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
+            value={selectedCourse}
+            onChange={(event) => setSelectedCourse(event.target.value as Course | "All")}
+          >
+            <option value="All">All courses</option>
+            {availableCourses.map((course) => (
+              <option key={course} value={course}>
+                {course}
               </option>
             ))}
           </select>
@@ -114,17 +150,22 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: "1px solid rgba(255,255,255,0.28)", background: "rgba(4,14,30,0.88)", color: "#ffffff", backdropFilter: "blur(20px)" }}
-              formatter={(value) => [formatTime(Number(value)), "Time"]}
-              labelFormatter={(_, payload) => payload?.[0]?.payload?.meetName ?? selectedEvent}
+              formatter={(value, name) => [formatTime(Number(value)), String(name)]}
+              labelFormatter={(label) => `${selectedEvent} · ${label}`}
             />
-            <Line
-              type="monotone"
-              dataKey="time"
-              stroke="#09aeca"
-              strokeWidth={3}
-              dot={{ r: 4, strokeWidth: 2 }}
-              activeDot={{ r: 6 }}
-            />
+            {visibleCourses.map((course) => (
+              <Line
+                activeDot={{ r: 6 }}
+                connectNulls
+                dataKey={course}
+                dot={{ r: 4, strokeWidth: 2 }}
+                key={course}
+                name={course}
+                stroke={courseColors[course]}
+                strokeWidth={3}
+                type="monotone"
+              />
+            ))}
             <Brush dataKey="dateLabel" height={24} stroke="#09aeca" travellerWidth={10} />
           </LineChart>
           </ResponsiveContainer>

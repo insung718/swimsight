@@ -99,6 +99,28 @@ describe("analytics engine", () => {
     expect(prediction.confidence).toBeLessThan(60);
   });
 
+  it("does not forecast below elite record floors", () => {
+    const nearRecord: SwimResult[] = [
+      { id: "s1", userId: "u1", date: "2026-01-01", event: "50 Freestyle", course: "LCM", timeSeconds: 22.2, meetName: "Meet A" },
+      { id: "s2", userId: "u1", date: "2026-01-08", event: "50 Freestyle", course: "LCM", timeSeconds: 21.2, meetName: "Meet B" }
+    ];
+    const prediction = predictEvent(nearRecord);
+
+    expect(prediction.predictedTimes.days365).toBeGreaterThanOrEqual(20.91);
+  });
+
+  it("keeps predictions separate by course", () => {
+    const mixedCourse: SwimResult[] = [
+      { id: "s1", userId: "u1", date: "2026-01-01", event: "100 Butterfly", course: "LCM", timeSeconds: 63, meetName: "LCM A" },
+      { id: "s2", userId: "u1", date: "2026-02-01", event: "100 Butterfly", course: "LCM", timeSeconds: 62, meetName: "LCM B" },
+      { id: "s3", userId: "u1", date: "2026-01-01", event: "100 Butterfly", course: "SCY", timeSeconds: 55, meetName: "SCY A" },
+      { id: "s4", userId: "u1", date: "2026-02-01", event: "100 Butterfly", course: "SCY", timeSeconds: 54, meetName: "SCY B" }
+    ];
+    const analytics = buildDashboardAnalytics(mixedCourse);
+
+    expect(analytics.predictions.map((prediction) => prediction.course).sort()).toEqual(["LCM", "SCY"]);
+  });
+
   it("does not crash when a goal exists before results for that event", () => {
     const analytics = buildDashboardAnalytics(sampleSwims, {
       ...sampleGoals[0],

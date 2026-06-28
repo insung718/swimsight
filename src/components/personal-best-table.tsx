@@ -28,8 +28,8 @@ export function PersonalBestTable({ personalBests }: { personalBests: PersonalBe
           </thead>
           <tbody>
             {personalBests.map((pb) => (
-              <tr key={pb.event} className="border-b border-white/10 last:border-0">
-                <td className="py-3 pr-3 font-semibold text-white">{pb.event}</td>
+              <tr key={`${pb.event}-${pb.course}`} className="border-b border-white/10 last:border-0">
+                <td className="py-3 pr-3 font-semibold text-white">{pb.event} <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs text-aqua-100">{pb.course}</span></td>
                 <td className="px-3 py-3 text-white/80">{formatTime(pb.currentPb)}</td>
                 <td className="px-3 py-3 text-white/80">{formatDate(pb.dateAchieved)}</td>
                 <td className="px-3 py-3 text-white/80">

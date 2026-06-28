@@ -47,7 +47,7 @@ const contactCards = [
 
 export function LandingPage() {
   return (
-    <main className="landing-page min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
+    <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav />
 
       <section id="top" className="hero-scene relative min-h-[94svh] overflow-hidden bg-[#020811] pt-12 text-white">
@@ -134,7 +134,7 @@ export function LandingPage() {
           <Reveal delay={100}>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                ["01", "Input", "Manual times, CSV uploads, goals, meets, and gym work."],
+                ["01", "Input", "Manual times, spreadsheet uploads, goals, meets, and gym work."],
                 ["02", "Signal", "PBs, consistency, improvement rate, and trend direction."],
                 ["03", "Forecast", "Future windows that update as your season changes."]
               ].map(([number, title, body]) => (

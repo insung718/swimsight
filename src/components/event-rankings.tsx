@@ -27,12 +27,12 @@ function RankingList({
         {rankings.map((ranking, index) => (
           <article
             className="premium-hover rounded-lg border border-white/15 bg-white/10 p-3"
-            key={ranking.event}
+            key={`${ranking.event}-${ranking.course}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {index + 1}. {ranking.event}
+                  {index + 1}. {ranking.event} <span className="ml-1 font-mono text-xs text-aqua-100">{ranking.course}</span>
                 </p>
                 <p className="mt-1 text-xs text-white/74">
                   {ranking.trend} · {ranking.improvementPercent}% improvement

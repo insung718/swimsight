@@ -79,7 +79,7 @@ function DashboardUnavailable({ reason }: { reason: string }) {
           </h1>
           <p className="mt-6 text-lg leading-8 text-white/78">{reason}</p>
           <div className="mt-8 rounded-lg border border-white/20 bg-white/10 p-5 text-sm leading-7 text-white/78">
-            Make sure Vercel has `DATABASE_URL`, then redeploy so Prisma migrations run. Once the database is ready, this page becomes your empty personal dashboard with manual entry, CSV import, goals, meets, communities, and analytics.
+            Make sure Vercel has `DATABASE_URL`, then redeploy so Prisma migrations run. Once the database is ready, this page becomes your empty personal dashboard with manual entry, spreadsheet import, goals, meets, communities, and analytics.
           </div>
         </div>
       </section>

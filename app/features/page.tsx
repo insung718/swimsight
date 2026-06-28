@@ -10,7 +10,7 @@ export default function FeaturesPage() {
       sections={[
         {
           eyebrow: "Race entry",
-          title: "Manual times and CSV imports.",
+          title: "Manual times and spreadsheet imports.",
           body: "Add one race by typing it in, or upload a meet file when you have a full set of results.",
           icon: CalendarDays
         },

@@ -47,6 +47,7 @@ export interface Goal {
 
 export interface Prediction {
   event: SwimEvent;
+  course: Course;
   currentTime: number;
   predictionDate: string;
   predictedTimes: {
@@ -78,6 +79,7 @@ export interface GymWorkout {
 
 export interface PersonalBest {
   event: SwimEvent;
+  course: Course;
   currentPb: number;
   dateAchieved: string;
   meetName: string;
@@ -88,6 +90,7 @@ export interface PersonalBest {
 
 export interface EventRanking {
   event: SwimEvent;
+  course: Course;
   score: number;
   improvementPercent: number;
   consistencyScore: number;
@@ -131,12 +134,19 @@ export interface DashboardAnalytics {
   predictions: Prediction[];
   goalProjection?: GoalProjection;
   swimPowerIndex: SwimPowerIndex;
+  specialtyProfile: StrokeSpecialty[];
   trainingLoad: {
     weeklyLoad: number;
     sessionsLast28Days: number;
     loadRatio: number;
     label: Prediction["trainingImpact"]["label"];
   };
+}
+
+export interface StrokeSpecialty {
+  stroke: "Freestyle" | "Butterfly" | "Backstroke" | "Breaststroke" | "IM";
+  score: number;
+  eventCount: number;
 }
 
 export interface Athlete {

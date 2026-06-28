@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 export interface DisplayCardProps {
@@ -9,15 +10,17 @@ export interface DisplayCardProps {
   title: string;
   description: string;
   detail: string;
+  style?: CSSProperties;
 }
 
-function DisplayCard({ className, icon, title, description, detail }: DisplayCardProps) {
+function DisplayCard({ className, icon, title, description, detail, style }: DisplayCardProps) {
   return (
     <article
       className={cn(
-        "relative flex h-40 w-full max-w-[22rem] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition duration-500 hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80 sm:-skew-y-[5deg] sm:hover:-translate-y-3",
+        "display-card-lift relative flex h-40 w-full max-w-[22rem] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition duration-500 hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80",
         className,
       )}
+      style={style}
     >
       <div className="flex items-center gap-3">
         <span className="grid h-8 w-8 place-items-center rounded-full bg-cyan-300 text-black">{icon}</span>
@@ -37,12 +40,13 @@ export default function DisplayCards({ cards }: { cards: DisplayCardProps[] }) {
           {...card}
           className={cn(
             "justify-self-center sm:[grid-area:stack]",
-            index === 0 && "sm:-translate-x-10 sm:-translate-y-16",
-            index === 1 && "sm:translate-x-8",
-            index === 2 && "sm:translate-x-24 sm:translate-y-16",
             card.className,
           )}
           key={card.title}
+          style={{
+            "--card-x": index === 0 ? "-2.5rem" : index === 1 ? "2rem" : "6rem",
+            "--card-y": index === 0 ? "-4rem" : index === 1 ? "0rem" : "4rem"
+          } as CSSProperties}
         />
       ))}
     </div>

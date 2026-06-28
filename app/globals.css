@@ -484,6 +484,21 @@ textarea {
   opacity: 1;
 }
 
+.display-card-lift {
+  --card-x: 0rem;
+  --card-y: 0rem;
+}
+
+@media (min-width: 640px) {
+  .display-card-lift {
+    transform: translate(var(--card-x), var(--card-y)) skewY(-5deg);
+  }
+
+  .display-card-lift:hover {
+    transform: translate(var(--card-x), calc(var(--card-y) - 0.75rem)) skewY(-5deg);
+  }
+}
+
 .landing-page section {
   scroll-margin-top: 4rem;
 }

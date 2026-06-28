@@ -16,7 +16,7 @@ const stages = [
     number: "01",
     kicker: "Input",
     title: "Drop in a swim.",
-    body: "Manual entry and CSV imports land in the same clean data model, ready for analysis the second you save.",
+    body: "Manual entry and spreadsheet imports land in the same clean data model, ready for analysis the second you save.",
     metric: "1 result",
     accent: "from-aqua-300 to-mint-400"
   },

@@ -18,7 +18,7 @@ interface DockProps {
 export function Dock({ items, className }: DockProps) {
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 sm:bottom-4", className)}>
-      <div className="pointer-events-auto flex max-w-full items-end gap-1.5 overflow-x-auto rounded-lg border border-white/25 bg-stitch-abyss/[0.86] px-2 py-2 shadow-stitch backdrop-blur-2xl sm:gap-2 sm:px-3" role="toolbar" aria-label="Dashboard dock">
+      <div className="pointer-events-auto flex max-w-full items-end gap-1.5 rounded-lg border border-white/25 bg-stitch-abyss/[0.86] px-2 py-2 shadow-stitch backdrop-blur-2xl sm:gap-2 sm:px-3" role="toolbar" aria-label="Dashboard dock">
         {items.map((item) => (
           <button
             aria-label={item.label}
@@ -30,6 +30,7 @@ export function Dock({ items, className }: DockProps) {
                 : "border-white/15 bg-white/10 hover:border-stitch-cyan/50 hover:bg-white/15"
             )}
             key={item.label}
+            title={item.label}
             type="button"
             onClick={item.onClick}
           >

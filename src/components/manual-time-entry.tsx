@@ -62,7 +62,7 @@ export function ManualTimeEntry() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Add A Time</h2>
-          <p className="text-sm text-white/70">Manual entry stays beside CSV import</p>
+          <p className="text-sm text-white/70">Manual entry stays beside spreadsheet import</p>
         </div>
         <button
           className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70"

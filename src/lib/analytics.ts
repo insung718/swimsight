@@ -1,5 +1,6 @@
 import type {
   DashboardAnalytics,
+  Course,
   EventRanking,
   GymWorkout,
   Goal,
@@ -9,6 +10,7 @@ import type {
   SwimEvent,
   SwimPowerIndex,
   SwimResult,
+  StrokeSpecialty,
   TrendLabel
 } from "@/types/swim";
 import { clamp, dateToDays, round } from "@/lib/utils";
@@ -24,6 +26,8 @@ type TrainingLoadSignal = {
   label: Prediction["trainingImpact"]["label"];
 };
 
+type EventCourseKey = `${SwimEvent}__${Course}`;
+
 const neutralTrainingSignal: TrainingLoadSignal = {
   weeklyLoad: 0,
   sessionsLast28Days: 0,
@@ -37,6 +41,20 @@ function byDateAsc(a: SwimResult, b: SwimResult) {
   return new Date(a.date).getTime() - new Date(b.date).getTime();
 }
 
+function eventCourseKey(swim: Pick<SwimResult, "event" | "course">): EventCourseKey {
+  return `${swim.event}__${swim.course}`;
+}
+
+function groupByEventCourse(swims: SwimResult[]) {
+  return swims.reduce<Map<EventCourseKey, SwimResult[]>>((groups, swim) => {
+    const key = eventCourseKey(swim);
+    const existing = groups.get(key) ?? [];
+    existing.push(swim);
+    groups.set(key, existing);
+    return groups;
+  }, new Map());
+}
+
 function groupByEvent(swims: SwimResult[]) {
   return swims.reduce<Map<SwimEvent, SwimResult[]>>((groups, swim) => {
     const existing = groups.get(swim.event) ?? [];
@@ -44,6 +62,76 @@ function groupByEvent(swims: SwimResult[]) {
     groups.set(swim.event, existing);
     return groups;
   }, new Map());
+}
+
+// Conservative public-record floors. LCM/SCM are based on World Aquatics record
+// territory; SCY uses all-time yards territory. Values include a small safety
+// buffer so SwimSight avoids predicting below elite record lines.
+const recordFloorSeconds: Partial<Record<Course, Partial<Record<SwimEvent, number>>>> = {
+  LCM: {
+    "50 Freestyle": 20.91,
+    "100 Freestyle": 46.4,
+    "200 Freestyle": 101.8,
+    "400 Freestyle": 220.0,
+    "800 Freestyle": 452.0,
+    "1500 Freestyle": 870.0,
+    "50 Butterfly": 22.2,
+    "100 Butterfly": 49.0,
+    "200 Butterfly": 110.0,
+    "50 Backstroke": 23.4,
+    "100 Backstroke": 51.5,
+    "200 Backstroke": 111.0,
+    "50 Breaststroke": 25.8,
+    "100 Breaststroke": 56.8,
+    "200 Breaststroke": 125.5,
+    "100 IM": 50.5,
+    "200 IM": 113.0,
+    "400 IM": 242.5
+  },
+  SCM: {
+    "50 Freestyle": 20.1,
+    "100 Freestyle": 44.8,
+    "200 Freestyle": 99.0,
+    "400 Freestyle": 212.0,
+    "800 Freestyle": 443.0,
+    "1500 Freestyle": 846.0,
+    "50 Butterfly": 21.5,
+    "100 Butterfly": 47.0,
+    "200 Butterfly": 107.0,
+    "50 Backstroke": 22.2,
+    "100 Backstroke": 48.4,
+    "200 Backstroke": 105.5,
+    "50 Breaststroke": 24.7,
+    "100 Breaststroke": 54.9,
+    "200 Breaststroke": 120.0,
+    "100 IM": 49.0,
+    "200 IM": 108.0,
+    "400 IM": 237.0
+  },
+  SCY: {
+    "50 Freestyle": 17.6,
+    "100 Freestyle": 39.8,
+    "200 Freestyle": 88.5,
+    "400 Freestyle": 193.0,
+    "800 Freestyle": 398.0,
+    "1500 Freestyle": 750.0,
+    "50 Butterfly": 19.0,
+    "100 Butterfly": 42.8,
+    "200 Butterfly": 98.5,
+    "50 Backstroke": 20.0,
+    "100 Backstroke": 43.3,
+    "200 Backstroke": 96.0,
+    "50 Breaststroke": 22.2,
+    "100 Breaststroke": 48.0,
+    "200 Breaststroke": 106.0,
+    "100 IM": 46.0,
+    "200 IM": 97.5,
+    "400 IM": 211.5
+  }
+};
+
+function getRecordFloor(event: SwimEvent, course: Course) {
+  return recordFloorSeconds[course]?.[event] ?? 0;
 }
 
 function standardDeviation(values: number[]) {
@@ -207,10 +295,10 @@ function recentProgressPercent(swims: SwimResult[]) {
 }
 
 export function getPersonalBests(swims: SwimResult[]) {
-  const groups = groupByEvent(swims);
+  const groups = groupByEventCourse(swims);
   const personalBests: PersonalBest[] = [];
 
-  groups.forEach((eventSwims, event) => {
+  groups.forEach((eventSwims) => {
     const sorted = [...eventSwims].sort(byDateAsc);
     let currentBest = sorted[0];
     let previousBest: SwimResult | undefined;
@@ -230,7 +318,8 @@ export function getPersonalBests(swims: SwimResult[]) {
       : 0;
 
     personalBests.push({
-      event,
+      event: currentBest.event,
+      course: currentBest.course,
       currentPb: currentBest.timeSeconds,
       dateAchieved: currentBest.date,
       meetName: currentBest.meetName,
@@ -240,13 +329,13 @@ export function getPersonalBests(swims: SwimResult[]) {
     });
   });
 
-  return personalBests.sort((a, b) => a.currentPb - b.currentPb);
+  return personalBests.sort((a, b) => a.event.localeCompare(b.event) || a.course.localeCompare(b.course));
 }
 
 export function rankEvents(swims: SwimResult[]) {
   const rankings: EventRanking[] = [];
 
-  groupByEvent(swims).forEach((eventSwims, event) => {
+  groupByEventCourse(swims).forEach((eventSwims) => {
     const sorted = [...eventSwims].sort(byDateAsc);
     const first = sorted[0];
     const best = sorted.reduce((fastest, swim) =>
@@ -264,7 +353,8 @@ export function rankEvents(swims: SwimResult[]) {
     );
 
     rankings.push({
-      event,
+      event: first.event,
+      course: first.course,
       score,
       improvementPercent,
       consistencyScore,
@@ -350,13 +440,15 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
   const project = (days: number) => {
     const predicted = latest.timeSeconds + adjustedSlope * days;
     const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, days, confidence);
+    const recordFloor = getRecordFloor(latest.event, latest.course);
     const slowestAllowed = latest.timeSeconds * 1.08;
 
-    return round(clamp(predicted, fastestAllowed, slowestAllowed), 2);
+    return round(clamp(predicted, Math.max(fastestAllowed, recordFloor), slowestAllowed), 2);
   };
 
   return {
     event: latest.event,
+    course: latest.course,
     currentTime: latest.timeSeconds,
     predictionDate: latest.date,
     predictedTimes: {
@@ -379,13 +471,13 @@ export function generatePredictions(swims: SwimResult[], workouts: GymWorkout[] 
   const predictions: Prediction[] = [];
   const trainingSignal = calculateTrainingLoadSignal(workouts);
 
-  groupByEvent(swims).forEach((eventSwims) => {
+  groupByEventCourse(swims).forEach((eventSwims) => {
     if (eventSwims.length >= 1) {
       predictions.push(predictEvent(eventSwims, trainingSignal));
     }
   });
 
-  return predictions.sort((a, b) => a.event.localeCompare(b.event));
+  return predictions.sort((a, b) => a.event.localeCompare(b.event) || a.course.localeCompare(b.course));
 }
 
 export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalProjection {
@@ -407,7 +499,8 @@ export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalPr
   const requiredTotalImprovement = Math.max(best.timeSeconds - goal.targetTime, 0);
   const predictedFromLatest = latest.timeSeconds + adjustedSlope * daysRemaining;
   const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, daysRemaining, confidence);
-  const predictedAtGoalDate = round(clamp(predictedFromLatest, fastestAllowed, latest.timeSeconds * 1.08), 2);
+  const recordFloor = getRecordFloor(latest.event, latest.course);
+  const predictedAtGoalDate = round(clamp(predictedFromLatest, Math.max(fastestAllowed, recordFloor), latest.timeSeconds * 1.08), 2);
   const currentMonthlyPace = round(Math.max(-adjustedSlope * 30.44, 0), 2);
   const targetGap = predictedAtGoalDate - goal.targetTime;
   const likelihood =
@@ -462,6 +555,31 @@ function calculateSwimPowerIndex(rankings: EventRanking[]): SwimPowerIndex {
   return { score, level: "Beginner" };
 }
 
+function strokeForEvent(event: SwimEvent): StrokeSpecialty["stroke"] {
+  if (event.includes("Butterfly")) return "Butterfly";
+  if (event.includes("Backstroke")) return "Backstroke";
+  if (event.includes("Breaststroke")) return "Breaststroke";
+  if (event.includes("IM")) return "IM";
+  return "Freestyle";
+}
+
+function calculateSpecialtyProfile(rankings: EventRanking[]): StrokeSpecialty[] {
+  const strokes: StrokeSpecialty["stroke"][] = ["Freestyle", "Butterfly", "Backstroke", "Breaststroke", "IM"];
+
+  return strokes.map((stroke) => {
+    const strokeRankings = rankings.filter((ranking) => strokeForEvent(ranking.event) === stroke);
+    const score = strokeRankings.length
+      ? round(strokeRankings.reduce((sum, ranking) => sum + ranking.score, 0) / strokeRankings.length, 1)
+      : 0;
+
+    return {
+      stroke,
+      score,
+      eventCount: strokeRankings.length
+    };
+  });
+}
+
 export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = []): DashboardAnalytics {
   const trainingSignal = calculateTrainingLoadSignal(workouts);
 
@@ -483,6 +601,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
       predictions: [],
       goalProjection: undefined,
       swimPowerIndex: { score: 0, level: "Beginner" },
+      specialtyProfile: calculateSpecialtyProfile([]),
       trainingLoad: {
         weeklyLoad: trainingSignal.weeklyLoad,
         sessionsLast28Days: trainingSignal.sessionsLast28Days,
@@ -513,6 +632,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
     predictions: generatePredictions(swims, workouts),
     goalProjection: goal && swims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(swims, goal) : undefined,
     swimPowerIndex: calculateSwimPowerIndex(rankings),
+    specialtyProfile: calculateSpecialtyProfile(rankings),
     trainingLoad: {
       weeklyLoad: trainingSignal.weeklyLoad,
       sessionsLast28Days: trainingSignal.sessionsLast28Days,
