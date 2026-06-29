@@ -26,7 +26,7 @@ const ko: TranslationMap = {
   "Open navigation menu": "내비게이션 메뉴 열기",
   "Close navigation menu": "내비게이션 메뉴 닫기",
   "Language options": "언어 옵션",
-  "Sign in with Google": "Google로 로그인",
+  "Sign in with Google": "계정으로 로그인",
   "Account unavailable": "계정을 사용할 수 없음",
   "English": "영어",
   "Korean": "한국어",
@@ -264,7 +264,7 @@ const vi: TranslationMap = {
   "Open navigation menu": "Mở menu điều hướng",
   "Close navigation menu": "Đóng menu điều hướng",
   "Language options": "Tùy chọn ngôn ngữ",
-  "Sign in with Google": "Đăng nhập bằng Google",
+  "Sign in with Google": "Đăng nhập bằng tài khoản",
   "Account unavailable": "Tài khoản không khả dụng",
   "English": "Tiếng Anh",
   "Korean": "Tiếng Hàn",
@@ -974,9 +974,31 @@ Object.assign(ko, {
   "Dashboard dock": "대시보드 독",
   "Tap an event to open its forecast.": "종목을 눌러 예측을 열어 보세요.",
   "Open": "열기",
+  "Close": "닫기",
+  "Model confidence": "모델 신뢰도",
+  "Pool type": "수영장 유형",
+  "Current time": "현재 기록",
+  "Forecast window": "예측 기간",
   "Current": "현재",
   "Improvement": "향상",
   "Stable": "안정",
+  "SWIMSIGHT": "스윔사이트",
+  "RESULT": "기록",
+  "1 result": "기록 1개",
+  "trend +": "추세 +",
+  "365d": "365일",
+  "90d": "90일",
+  "30D": "30일",
+  "90D": "90일",
+  "180D": "180일",
+  "365D": "365일",
+  "PB": "개인 최고",
+  "SPI": "수영 파워 지수",
+  "CSV": "스프레드시트 파일",
+  "API": "인터페이스",
+  "DM": "메시지",
+  "Instagram": "인스타그램",
+  "-1.24s": "-1.24초",
   "s": "초",
   "s faster": "초 단축",
   "s projected improvement in 365 days": "초의 365일 예상 향상",
@@ -1040,9 +1062,31 @@ Object.assign(vi, {
   "Dashboard dock": "Thanh điều hướng bảng điều khiển",
   "Tap an event to open its forecast.": "Chạm vào một nội dung để mở dự báo.",
   "Open": "Mở",
+  "Close": "Đóng",
+  "Model confidence": "Độ tin cậy mô hình",
+  "Pool type": "Loại hồ",
+  "Current time": "Thời gian hiện tại",
+  "Forecast window": "Khung dự báo",
   "Current": "Hiện tại",
   "Improvement": "Cải thiện",
   "Stable": "Ổn định",
+  "SWIMSIGHT": "SwimSight",
+  "RESULT": "Thành tích",
+  "1 result": "1 thành tích",
+  "trend +": "xu hướng +",
+  "365d": "365 ngày",
+  "90d": "90 ngày",
+  "30D": "30 ngày",
+  "90D": "90 ngày",
+  "180D": "180 ngày",
+  "365D": "365 ngày",
+  "PB": "kỷ lục cá nhân",
+  "SPI": "chỉ số sức mạnh bơi",
+  "CSV": "tệp bảng tính",
+  "API": "giao diện bảo vệ",
+  "DM": "nhắn trực tiếp",
+  "Instagram": "Instagram",
+  "-1.24s": "-1,24 giây",
   "s": " giây",
   "s faster": " giây nhanh hơn",
   "s projected improvement in 365 days": " giây cải thiện dự kiến trong 365 ngày",
@@ -1090,6 +1134,35 @@ Object.assign(vi, {
   "400 IM": "400 hỗn hợp"
 });
 
+for (const key of Object.keys(ko)) {
+  ko[key] = ko[key]
+    .replaceAll("SwimSight", "스윔사이트")
+    .replaceAll("SWIMSIGHT", "스윔사이트")
+    .replaceAll("Swim Power Index", "수영 파워 지수")
+    .replaceAll("Instagram", "인스타그램")
+    .replace(/\bPBs\b/g, "개인 최고 기록")
+    .replace(/\bPB\b/g, "개인 최고")
+    .replace(/\bSPI\b/g, "수영 파워 지수")
+    .replace(/\bCSV\b/g, "스프레드시트 파일")
+    .replace(/\bAPI\b/g, "인터페이스")
+    .replace(/\bDM\b/g, "메시지");
+}
+
+for (const key of Object.keys(vi)) {
+  vi[key] = vi[key]
+    .replace(/\bPBs\b/g, "kỷ lục cá nhân")
+    .replace(/\bPB\b/g, "kỷ lục cá nhân")
+    .replace(/\bSPI\b/g, "chỉ số sức mạnh bơi")
+    .replace(/\bCSV\b/g, "tệp bảng tính")
+    .replace(/\bAPI\b/g, "giao diện bảo vệ")
+    .replace(/\bDM\b/g, "nhắn trực tiếp");
+}
+
+Object.assign(vi, {
+  "PB DETECTED": "ĐÃ PHÁT HIỆN KỶ LỤC CÁ NHÂN",
+  "PB signal": "Tín hiệu kỷ lục cá nhân"
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {
@@ -1105,8 +1178,8 @@ export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMa
     analyze: "분석",
     and: "및",
     anonymous: "익명",
-    api: "API",
-    animation: "chuyển động",
+    api: "인터페이스",
+    animation: "애니메이션",
     award: "수상",
     awards: "수상",
     badges: "배지",
@@ -1176,7 +1249,7 @@ export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMa
     overview: "개요",
     pace: "페이스",
     path: "경로",
-    pb: "PB",
+    pb: "개인 최고",
     performance: "퍼포먼스",
     personal: "개인",
     prediction: "예측",
@@ -1198,7 +1271,7 @@ export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMa
     search: "검색",
     season: "시즌",
     signal: "신호",
-    spi: "SPI",
+    spi: "수영 파워 지수",
     spreadsheet: "스프레드시트",
     stroke: "영법",
     backstroke: "배영",
@@ -1361,7 +1434,28 @@ export function isLanguageCode(value: string | null): value is LanguageCode {
   return value === "en" || value === "ko" || value === "vi";
 }
 
-const translationPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary)))).sort((a, b) => b.length - a.length);
+const translationPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary))))
+  .filter((phrase) => phrase.trim().length > 1)
+  .sort((a, b) => b.length - a.length);
+
+export function shouldTranslateFallbackWord(word: string, offset: number, fullText: string) {
+  if (word.length <= 1) return false;
+
+  let tokenStart = offset;
+  while (tokenStart > 0 && !/\s/.test(fullText[tokenStart - 1])) tokenStart -= 1;
+
+  let tokenEnd = offset + word.length;
+  while (tokenEnd < fullText.length && !/\s/.test(fullText[tokenEnd])) tokenEnd += 1;
+
+  const token = fullText.slice(tokenStart, tokenEnd);
+  if (token.includes("@") || token.includes(".") || /^https?:\/\//i.test(token)) return false;
+  if (/^[A-Z]{2,}$/.test(word)) return false;
+
+  const before = fullText[offset - 1];
+  const after = fullText[offset + word.length];
+  const touchesNonAsciiWord = (before && /[\p{L}\p{N}]/u.test(before)) || (after && /[\p{L}\p{N}]/u.test(after));
+  return !touchesNonAsciiWord;
+}
 
 export function translateText(value: string, language: LanguageCode) {
   if (language === "en") return value;
@@ -1384,10 +1478,7 @@ export function translateText(value: string, language: LanguageCode) {
 
   const words = wordTranslations[language];
   translated = translated.replace(/[A-Za-z][A-Za-z'-]*/g, (word, offset, fullText) => {
-    const before = fullText[offset - 1];
-    const after = fullText[offset + word.length];
-    const touchesNonAsciiWord = (before && /[\p{L}\p{N}]/u.test(before)) || (after && /[\p{L}\p{N}]/u.test(after));
-    if (touchesNonAsciiWord) return word;
+    if (!shouldTranslateFallbackWord(word, offset, fullText)) return word;
     return words[word.toLowerCase()] ?? word;
   });
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { isLanguageCode, languageChangeEvent, languageStorageKey, translations, wordTranslations, type LanguageCode } from "@/lib/i18n";
+import { isLanguageCode, languageChangeEvent, languageStorageKey, shouldTranslateFallbackWord, translations, wordTranslations, type LanguageCode } from "@/lib/i18n";
 
-const englishPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary)))).sort((a, b) => b.length - a.length);
+const englishPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary))))
+  .filter((phrase) => phrase.trim().length > 1)
+  .sort((a, b) => b.length - a.length);
 const originalTextNodes = new WeakMap<Node, string>();
 const originalAttributes = new WeakMap<Element, Record<string, string>>();
 
@@ -35,10 +37,7 @@ function translateValue(value: string, language: LanguageCode) {
 
   const words = wordTranslations[language];
   translated = translated.replace(/[A-Za-z][A-Za-z'-]*/g, (word, offset, fullText) => {
-    const before = fullText[offset - 1];
-    const after = fullText[offset + word.length];
-    const touchesNonAsciiWord = (before && /[\p{L}\p{N}]/u.test(before)) || (after && /[\p{L}\p{N}]/u.test(after));
-    if (touchesNonAsciiWord) return word;
+    if (!shouldTranslateFallbackWord(word, offset, fullText)) return word;
     const lower = word.toLowerCase();
     return words[lower] ?? word;
   });

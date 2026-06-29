@@ -59,19 +59,8 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
 
       <AnimatePresence>
         {active && (
-          <div className="fixed inset-0 z-[100] grid place-items-center px-3 py-5 sm:px-5">
-            <motion.button
-              animate={{ opacity: 1 }}
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white text-stitch-abyss shadow-stitch transition hover:scale-105 lg:hidden"
-              exit={{ opacity: 0, transition: { duration: 0.05 } }}
-              initial={{ opacity: 0 }}
-              type="button"
-              onClick={() => setActive(null)}
-            >
-              <X aria-hidden className="h-4 w-4" />
-            </motion.button>
-
-            <PredictionModal id={id} modalRef={modalRef} prediction={active} t={t} />
+          <div className="fixed inset-0 z-[100] grid place-items-center p-0 sm:p-3">
+            <PredictionModal id={id} modalRef={modalRef} prediction={active} t={t} onClose={() => setActive(null)} />
           </div>
         )}
       </AnimatePresence>
@@ -154,11 +143,13 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
 function PredictionModal({
   id,
   modalRef,
+  onClose,
   prediction,
   t
 }: {
   id: string;
   modalRef: RefObject<HTMLDivElement | null>;
+  onClose: () => void;
   prediction: Prediction;
   t: (value: string) => string;
 }) {
@@ -167,21 +158,21 @@ function PredictionModal({
 
     return (
       <motion.div
-        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-white/20 bg-stitch-abyss/95 text-white shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+        className="flex h-[100svh] w-[100vw] flex-col overflow-hidden border border-white/20 bg-stitch-abyss/96 text-white shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:h-[calc(100svh-1.5rem)] sm:w-[calc(100vw-1.5rem)] sm:rounded-lg"
         layoutId={`card-${key}-${id}`}
         ref={modalRef}
       >
-        <div className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(91,242,255,0.24),transparent_42%),rgba(255,255,255,0.06)] p-5 sm:p-6">
+        <div className="shrink-0 border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(91,242,255,0.24),transparent_42%),rgba(255,255,255,0.06)] p-4 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
               <motion.div
-                className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-aqua-200/25 bg-aqua-200/10 text-aqua-100 shadow-glow"
+                className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-md border border-aqua-200/25 bg-aqua-200/10 text-aqua-100 shadow-glow sm:inline-flex"
                 layoutId={`visual-${key}-${id}`}
               >
                 <Sparkles aria-hidden className="h-6 w-6" />
               </motion.div>
               <div className="min-w-0">
-                <motion.h3 className="truncate text-2xl font-semibold tracking-normal text-white" layoutId={`title-${key}-${id}`}>
+                <motion.h3 className="text-balance text-2xl font-semibold tracking-normal text-white sm:text-4xl" layoutId={`title-${key}-${id}`}>
                   {t(prediction.event)}
                 </motion.h3>
                 <motion.p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-aqua-100" layoutId={`course-${key}-${id}`}>
@@ -189,16 +180,26 @@ function PredictionModal({
                 </motion.p>
               </div>
             </div>
-            <motion.div className="shrink-0 rounded-md bg-white/10 px-3 py-2 text-right text-xs font-semibold text-aqua-100" layoutId={`meta-${key}-${id}`}>
-              {prediction.confidence}%<br />
-              <span className="text-white/58">{t("confidence")}</span>
-            </motion.div>
+            <div className="flex shrink-0 items-start gap-2">
+              <motion.div className="rounded-md bg-white/10 px-3 py-2 text-right text-xs font-semibold text-aqua-100" layoutId={`meta-${key}-${id}`}>
+                {prediction.confidence}%<br />
+                <span className="text-white/58">{t("confidence")}</span>
+              </motion.div>
+              <button
+                aria-label={t("Close")}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white transition hover:bg-white hover:text-stitch-abyss focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+                type="button"
+                onClick={onClose}
+              >
+                <X aria-hidden className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
         <motion.div
           animate={{ opacity: 1 }}
-          className="flex-1 overflow-auto p-5 [scrollbar-width:none] sm:p-6"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-24 [scrollbar-width:none] sm:p-6 sm:pb-10"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
         >
@@ -208,7 +209,7 @@ function PredictionModal({
             <PredictionMini label={t("Improvement")} value={delta365 > 0 ? `${delta365.toFixed(2)}${t("s")}` : t("Stable")} />
           </div>
 
-          <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.08] p-4 text-sm leading-6 text-white/76">
+          <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.08] p-4 text-sm leading-6 text-white/80">
             <div className="flex items-start gap-2">
               <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-aqua-200" />
               <p>{delta365 > 0 ? `${delta365.toFixed(2)}${t("s projected improvement in 365 days")}` : t("Stable projection until more history is added")}</p>
@@ -225,9 +226,25 @@ function PredictionModal({
               <PredictionMini key={predictionKey} label={t(label)} value={formatTime(prediction.predictedTimes[predictionKey])} />
             ))}
           </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <InsightBlock label={t("Model confidence")} value={`${prediction.confidence}%`} />
+            <InsightBlock label={t("Pool type")} value={prediction.course} />
+            <InsightBlock label={t("Current time")} value={formatTime(prediction.currentTime)} />
+            <InsightBlock label={t("Forecast window")} value={t("30 to 365 days")} />
+          </div>
         </motion.div>
       </motion.div>
     );
+}
+
+function InsightBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.07] p-4">
+      <div className="text-xs font-semibold text-white/58">{label}</div>
+      <div className="mt-2 text-lg font-semibold text-white">{value}</div>
+    </div>
+  );
 }
 
 function PredictionMini({ label, value }: { label: string; value: string }) {
