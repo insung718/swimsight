@@ -447,13 +447,6 @@ textarea {
   transform: translateY(0) scale(1);
 }
 
-.race-telemetry > [aria-hidden] {
-  background:
-    radial-gradient(circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(34, 201, 232, 0.28), transparent 24rem),
-    radial-gradient(circle at 12% 16%, rgba(255, 255, 255, 0.08), transparent 18rem),
-    linear-gradient(180deg, #03070e 0%, #071a29 42%, #03070e 100%);
-}
-
 .season-depth {
   background:
     radial-gradient(circle at 16% 4%, rgba(255, 255, 255, 0.96), transparent 21rem),

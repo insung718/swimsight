@@ -1,7 +1,6 @@
 import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Database, FileSpreadsheet, Flag, Instagram, LineChart, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
-import { RaceTelemetry } from "@/components/landing/race-telemetry";
 import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
 import { PerspectiveSeasonText } from "@/components/landing/perspective-season-text";
 import { SectionTransition } from "@/components/landing/section-transition";
@@ -187,7 +186,6 @@ export function LandingPage() {
         </div>
       </section>
       <SectionTransition label="from signal to analytics" />
-      <RaceTelemetry />
       <StrokeProgressSection />
       <SectionTransition label="from signal to system" />
 
