@@ -2,6 +2,7 @@
 
 import { Waves } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
+import { LanguageToggle } from "@/components/landing/language-toggle";
 import { StaggeredMenu } from "@/components/ui/staggered-menu";
 
 export const publicNavItems = [
@@ -21,6 +22,7 @@ export function SiteNav() {
           SwimSight
         </a>
         <div className="flex items-center gap-2">
+          <LanguageToggle />
           <UserActions compact />
           <StaggeredMenu items={publicNavItems} />
         </div>

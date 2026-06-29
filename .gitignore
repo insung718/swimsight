@@ -8,3 +8,5 @@ test-results
 .env.*.local
 *.tsbuildinfo
 prisma/dev.db
+.agents/
+skills-lock.json

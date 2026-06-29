@@ -20,6 +20,10 @@ export function forbidden(message = "You do not have access to this resource.") 
   return NextResponse.json({ error: message }, { status: 403 });
 }
 
+export function conflict(message = "This resource already exists.") {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
 export function notFound(message = "Resource not found.") {
   return NextResponse.json({ error: message }, { status: 404 });
 }

@@ -17,16 +17,25 @@ interface MagicBentoProps {
 }
 
 export function MagicBento({ cards, className }: MagicBentoProps) {
+  const isCompleteBento = cards.length >= 4;
+
   return (
-    <div className={cn("grid gap-4 md:grid-cols-3", className)}>
+    <div className={cn("grid auto-rows-fr gap-4 md:grid-cols-4", className)}>
       {cards.map((card, index) => (
-        <MagicBentoTile card={card} index={index} key={card.title} />
+        <MagicBentoTile card={card} complete={isCompleteBento} index={index} key={card.title} />
       ))}
     </div>
   );
 }
 
-function MagicBentoTile({ card, index }: { card: MagicBentoCard; index: number }) {
+function tileSpan(index: number, complete: boolean) {
+  if (!complete) return "md:col-span-1";
+  if (index === 0) return "md:col-span-2 md:row-span-2";
+  if (index === 3) return "md:col-span-2";
+  return "md:col-span-1";
+}
+
+function MagicBentoTile({ card, complete, index }: { card: MagicBentoCard; complete: boolean; index: number }) {
   const [spotlight, setSpotlight] = useState({ x: 50, y: 50 });
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLElement>) => {
@@ -39,7 +48,10 @@ function MagicBentoTile({ card, index }: { card: MagicBentoCard; index: number }
 
   return (
     <article
-      className="group relative min-h-[280px] overflow-hidden rounded-lg border border-white/22 bg-stitch-abyss/[0.86] p-5 text-white shadow-stitch outline-none backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-stitch-cyan/60 hover:shadow-glow focus-visible:border-stitch-cyan"
+      className={cn(
+        "group relative min-h-[280px] overflow-hidden rounded-lg border border-white/22 bg-stitch-abyss/[0.86] p-5 text-white shadow-stitch outline-none backdrop-blur-2xl transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-stitch-cyan/60 hover:shadow-glow focus-visible:border-stitch-cyan",
+        tileSpan(index, complete)
+      )}
       onPointerMove={handlePointerMove}
       style={{
         animation: `dashboard-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) ${index * 70}ms both`

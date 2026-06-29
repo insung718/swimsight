@@ -1,8 +1,9 @@
-import { created, notFound } from "@/lib/api";
+import { conflict, created, notFound } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { joinCommunity } from "@/lib/services/community-service";
+import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
 import { communityJoinSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,10 @@ export async function POST(request: Request) {
       joinCode: parsed.data.joinCode
     });
   } catch (error) {
+    if (error instanceof CannotJoinOwnedGroupError) {
+      return conflict(error.message);
+    }
+
     logServerError("Could not join community", error);
     return databaseUnavailable();
   }

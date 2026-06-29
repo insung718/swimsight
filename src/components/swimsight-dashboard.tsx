@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, ArrowRight, BarChart3, CalendarClock, Dumbbell, LayoutDashboard, ListPlus, Medal, Target, TrendingUp, Users, Waves } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TrendingUp, Users, Waves } from "lucide-react";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
 import { EventRankings } from "@/components/event-rankings";
@@ -99,6 +99,11 @@ export function SwimSightDashboard({
                   <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
                   <SeasonSnapshot overview={overview} prediction={primaryPrediction} trainingLoad={analytics.trainingLoad} onViewPredictions={() => setActiveTab("analytics")} />
                 </section>
+                <section className="grid gap-4 lg:grid-cols-3">
+                  <SpiExplainer analytics={analytics} />
+                  <DataQualityPanel swims={swims} />
+                  <EventIntelligencePanel analytics={analytics} />
+                </section>
                 <ProgressionChart swims={swims} />
               </>
             )}
@@ -108,7 +113,7 @@ export function SwimSightDashboard({
 
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
-        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><PredictionGrid predictions={analytics.predictions} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={swims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
         {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
@@ -313,6 +318,138 @@ function SnapshotMetric({
       <div className="mt-4 font-mono text-2xl font-semibold text-white">{value}</div>
       <p className="mt-1 text-sm text-white/62">{detail}</p>
     </div>
+  );
+}
+
+function buildDataQualityWarnings(swims: SwimResult[]) {
+  const groups = swims.reduce<Map<string, SwimResult[]>>((current, swim) => {
+    const key = `${swim.event}__${swim.course}`;
+    current.set(key, [...(current.get(key) ?? []), swim]);
+    return current;
+  }, new Map());
+  const warnings: { title: string; body: string }[] = [];
+
+  for (const groupSwims of groups.values()) {
+    const sorted = [...groupSwims].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const latest = sorted[sorted.length - 1];
+    if (sorted.length < 3) {
+      warnings.push({
+        title: `${latest.event} needs more data`,
+        body: `${latest.course} has ${sorted.length} result${sorted.length === 1 ? "" : "s"}. Predictions get stronger after 3 or more swims.`
+      });
+    }
+
+    for (let index = 1; index < sorted.length; index += 1) {
+      const previous = sorted[index - 1];
+      const current = sorted[index];
+      const jump = Math.abs(current.timeSeconds - previous.timeSeconds) / previous.timeSeconds;
+      if (jump >= 0.12) {
+        warnings.push({
+          title: "Large time jump detected",
+          body: `${current.event} ${current.course} changed by ${(jump * 100).toFixed(1)}%. Check course, event, and time format.`
+        });
+        break;
+      }
+    }
+  }
+
+  if (!warnings.length) {
+    warnings.push({
+      title: "Data looks steady",
+      body: "No large jumps or thin event samples were found in the current view."
+    });
+  }
+
+  return warnings.slice(0, 3);
+}
+
+function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
+  const warnings = buildDataQualityWarnings(swims);
+
+  return (
+    <section className="dashboard-glass premium-hover p-5 text-white">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
+          <AlertTriangle aria-hidden className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold">Data quality</h2>
+          <p className="mt-1 text-sm text-white/66">Forecast confidence depends on clean, repeated data.</p>
+        </div>
+      </div>
+      <div className="mt-5 space-y-3">
+        {warnings.map((warning) => (
+          <article className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={`${warning.title}-${warning.body}`}>
+            <p className="text-sm font-semibold text-white">{warning.title}</p>
+            <p className="mt-1 text-sm leading-6 text-white/64">{warning.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EventIntelligencePanel({ analytics }: { analytics: DashboardAnalytics }) {
+  const strongest = analytics.strongestEvents[0] ?? analytics.rankings[0];
+  const event = strongest?.event;
+  const isFly = event?.includes("Butterfly");
+  const isSprint = event?.startsWith("50") || event?.startsWith("100");
+  const isDistance = event?.startsWith("800") || event?.startsWith("1500");
+  const title = isFly ? "Fly volatility" : isDistance ? "Distance endurance" : isSprint ? "Sprint speed" : "Pacing stability";
+  const body = isFly
+    ? "Butterfly reads are sensitive to fatigue. Watch late-race consistency and avoid overreacting to one rough swim."
+    : isDistance
+      ? "Distance events reward steady drop-off control. Look for gradual trend movement instead of huge short-term predictions."
+      : isSprint
+        ? "Sprint events move through starts, turns, breakout speed, and repeatability. Tiny improvements matter."
+        : "Middle-distance events depend on pacing stability. The best signal is a trend that keeps moving without wild swings.";
+
+  return (
+    <section className="dashboard-glass premium-hover p-5 text-white">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
+          <Sparkles aria-hidden className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold">Event intelligence</h2>
+          <p className="mt-1 text-sm text-white/66">{event ? `${event} · ${strongest.course}` : "Waiting for event data"}</p>
+        </div>
+      </div>
+      <div className="mt-8">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{title}</p>
+        <p className="mt-3 text-sm leading-6 text-white/70">{body}</p>
+      </div>
+    </section>
+  );
+}
+
+function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
+  const consistencyAverage = analytics.rankings.length
+    ? Math.round(analytics.rankings.reduce((sum, ranking) => sum + ranking.consistencyScore, 0) / analytics.rankings.length)
+    : 0;
+  const consistencyLabel = consistencyAverage >= 80 ? "bonus" : consistencyAverage >= 60 ? "neutral" : "penalty";
+
+  return (
+    <section className="dashboard-glass premium-hover p-5 text-white">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-md bg-stitch-abyss px-2.5 py-1 text-xs font-bold text-stitch-cyan shadow-glow">
+            <Gauge aria-hidden className="h-4 w-4" />
+            SPI model
+          </div>
+          <h2 className="mt-4 text-lg font-semibold">Why your score moved</h2>
+        </div>
+        <div className="font-mono text-3xl font-semibold text-stitch-cyan">{analytics.swimPowerIndex.score}</div>
+      </div>
+      <p className="mt-4 text-sm leading-6 text-white/68">
+        Swim Power Index combines speed, improvement rate, consistency, and event difficulty into one 0-100 performance score.
+      </p>
+      <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
+        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">This month</span><strong className="font-mono text-stitch-cyan">{analytics.overview.monthlyImprovement}%</strong></div>
+        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">Strongest</span><strong className="truncate font-mono text-stitch-cyan">{analytics.overview.bestEvent ?? "None"}</strong></div>
+        <div className="col-span-2 rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">Consistency</span><strong className="font-mono text-stitch-cyan">{consistencyAverage}/100 {consistencyLabel}</strong></div>
+      </div>
+    </section>
   );
 }
 

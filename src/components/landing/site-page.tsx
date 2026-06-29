@@ -20,7 +20,7 @@ interface SitePageProps {
 
 export function SitePage({ eyebrow, title, body, accent, sections }: SitePageProps) {
   return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
+    <main className="min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav />
       <section className="overflow-hidden bg-white pt-28">
         <div className="mx-auto max-w-6xl px-5 pb-20 pt-8 sm:pb-28">

@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Flag, Instagram, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Database, FileSpreadsheet, Flag, Instagram, LineChart, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
@@ -14,7 +14,8 @@ import { Typewriter } from "@/components/ui/typewriter-text";
 const features = [
   [BarChart3, "01", "See every race become progress.", "Personal bests, event trends, consistency, and future projections update from the times you actually enter."],
   [CalendarDays, "02", "Train toward something real.", "Set a goal, add your next meet, and understand the pace required to arrive ready."],
-  [Users, "03", "Better together.", "Build private communities, add friends, and compare progress without turning training into noise."]
+  [Users, "03", "Compare without the noise.", "Start with your past self, then compare inside private teams, age groups, or anonymous percentile views."],
+  [ShieldCheck, "04", "Trust the signal.", "Data-quality warnings, conservative predictions, and private access keep analytics useful for swimmers and school teams."]
 ] as const;
 
 const bentoCards = features.map(([Icon, number, title, description]) => ({
@@ -42,6 +43,34 @@ const contactCards = [
     icon: Star,
     title: "Review the website",
     body: "Tell us what feels premium, what feels confusing, and what would make SwimSight easier to use."
+  }
+] as const;
+
+const trustSignals = [
+  {
+    icon: LineChart,
+    title: "How predictions work",
+    body: "Recent race history, event type, course, consistency, gym load, and conservative trained priors shape the forecast."
+  },
+  {
+    icon: Database,
+    title: "What data we store",
+    body: "Race results, goals, meets, training logs, and private group memberships stay scoped to your signed-in account."
+  },
+  {
+    icon: ShieldCheck,
+    title: "Privacy for school teams",
+    body: "Coach access only works when swimmers join a coach-managed club. Public visitors cannot see athlete dashboards."
+  },
+  {
+    icon: Trophy,
+    title: "Built for competitive swimmers",
+    body: "Sprint, middle-distance, distance, and stroke-specific insights avoid treating every swim like the same event."
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "Spreadsheet format guide",
+    body: "Upload a CSV with Date, Event, and Time columns, or type results manually when you only have one race to add."
   }
 ] as const;
 
@@ -159,6 +188,34 @@ export function LandingPage() {
           <Reveal className="mt-16" delay={100}>
             <MagicBento cards={bentoCards} />
           </Reveal>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[#f5f5f7] py-24 sm:py-32">
+        <div aria-hidden className="absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_50%_0%,rgba(78,232,255,0.18),transparent_62%)]" />
+        <div className="relative mx-auto max-w-6xl px-5">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-700">Trust signals</p>
+            <h2 className="mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">
+              Analytics you can explain to a coach.
+            </h2>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-black/58">
+              SwimSight is designed to make confidence visible: what went into the prediction, what data is private, and when a forecast needs more races.
+            </p>
+          </Reveal>
+          <div className="mt-14 grid gap-4 md:grid-cols-6">
+            {trustSignals.map(({ body, icon: Icon, title }, index) => (
+              <Reveal className={index < 2 ? "md:col-span-3" : "md:col-span-2"} delay={index * 60} key={title}>
+                <article className="group min-h-[230px] rounded-lg border border-white/75 bg-white/70 p-6 shadow-[0_28px_90px_rgba(4,17,29,0.07)] transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-white">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-[#04111d] text-cyan-200">
+                    <Icon aria-hidden className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-9 text-2xl font-semibold tracking-normal text-[#1d1d1f]">{title}</h3>
+                  <p className="mt-4 text-sm leading-6 text-black/58">{body}</p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

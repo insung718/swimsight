@@ -4,6 +4,13 @@ import { Building2, UserPlus, UsersRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { CoachClubSummary, CommunitySummary } from "@/types/swim";
 
+const comparisonModes = [
+  ["Past self", "Default", "Your current season against your own previous swims."],
+  ["Age group", "Optional", "A same-age benchmark when enough private data exists."],
+  ["Team", "Private", "Only inside coach clubs or communities you joined."],
+  ["Percentile", "Anonymous", "Rank bands without exposing another swimmer's data."]
+] as const;
+
 export function CommunityHub() {
   const [coachClubs, setCoachClubs] = useState<CoachClubSummary[]>([]);
   const [communities, setCommunities] = useState<CommunitySummary[]>([]);
@@ -167,6 +174,26 @@ export function CommunityHub() {
       </div>
 
       <p className="mt-3 text-sm text-white/72">{status}</p>
+      <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.07] p-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="font-semibold text-white">Comparison modes</h3>
+            <p className="text-sm text-white/62">Self-improvement stays the default. Team comparison is private and opt-in.</p>
+          </div>
+          <span className="rounded-full border border-aqua-200/20 bg-aqua-300/10 px-3 py-1 text-xs font-semibold text-aqua-100">healthy defaults</span>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {comparisonModes.map(([title, badge, body]) => (
+            <article className="rounded-md border border-white/10 bg-stitch-abyss/55 p-3" key={title}>
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-semibold text-white">{title}</h4>
+                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-aqua-100">{badge}</span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-white/58">{body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {communities.length === 0 && coachClubs.length === 0 && <div className="rounded-lg border border-dashed border-white/20 bg-white/5 p-6 text-center text-sm text-white/72 sm:col-span-2">No communities or coach clubs yet.</div>}
         {communities.slice(0, 4).map((community) => (

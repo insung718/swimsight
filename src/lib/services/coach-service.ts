@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
+import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
 import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics, Goal } from "@/types/swim";
 
 const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -74,6 +75,7 @@ function swimmerAnalytics(member: {
     latestResult: latest
       ? {
           event: latest.event,
+          course: latest.course,
           timeSeconds: latest.timeSeconds,
           date: latest.date
         }
@@ -81,6 +83,7 @@ function swimmerAnalytics(member: {
     progression: swims.slice(-12).map((swim) => ({
       date: swim.date,
       event: swim.event,
+      course: swim.course,
       timeSeconds: swim.timeSeconds
     }))
   };
@@ -239,6 +242,9 @@ export async function joinCoachClub(input: { userId: string; joinCode: string })
   });
 
   if (!team) return null;
+  if (team.ownerId === input.userId) {
+    throw new CannotJoinOwnedGroupError("coach club");
+  }
 
   await prisma.teamMembership.upsert({
     where: {

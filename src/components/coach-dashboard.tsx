@@ -11,7 +11,7 @@ import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import { formatTime } from "@/lib/utils";
-import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics } from "@/types/swim";
+import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics, Course, SwimEvent } from "@/types/swim";
 
 type CoachTab = "overview" | "clubs" | "athletes" | "reports";
 
@@ -97,6 +97,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
         {activeTab === "athletes" && (
           <DashboardPanel>
             <SectionHeading eyebrow="Roster intelligence" title="Athletes" />
+            <SwimmerRankingBoard swimmers={allSwimmers} />
             <AthleteRoster swimmers={allSwimmers} />
           </DashboardPanel>
         )}
@@ -105,6 +106,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
           <DashboardPanel>
             <SectionHeading eyebrow="Development reports" title="Reports" />
             <DevelopmentPanel swimmers={allSwimmers} expanded />
+            <SwimmerRankingBoard swimmers={allSwimmers} />
           </DashboardPanel>
         )}
       </div>
@@ -329,7 +331,7 @@ function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
                   <td className="px-3 py-3 font-mono font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</td>
                   <td className="px-3 py-3 text-white/72">{Math.round(swimmer.consistencyScore)}</td>
                   <td className="px-3 py-3 text-mint-200">{swimmer.yearlyImprovement}%</td>
-                  <td className="py-3 pl-3 text-white/72">{swimmer.latestResult ? `${swimmer.latestResult.event} · ${formatTime(swimmer.latestResult.timeSeconds)}` : "No result"}</td>
+                  <td className="py-3 pl-3 text-white/72">{swimmer.latestResult ? `${swimmer.latestResult.event} ${swimmer.latestResult.course} · ${formatTime(swimmer.latestResult.timeSeconds)}` : "No result"}</td>
                 </tr>
               ))}
             </tbody>
@@ -340,18 +342,89 @@ function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
   );
 }
 
+function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
+  const ranked = [...swimmers].sort((a, b) => b.swimPowerIndex - a.swimPowerIndex || b.yearlyImprovement - a.yearlyImprovement);
+
+  return (
+    <section className="dashboard-glass p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Swimmer ranking</h2>
+          <p className="mt-1 text-sm text-white/64">Ranked by SPI first, then yearly improvement. Use this as a coaching signal, not a public ego board.</p>
+        </div>
+        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{ranked.length} swimmers</span>
+      </div>
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        {ranked.slice(0, 6).map((swimmer, index) => (
+          <article className="rounded-lg border border-white/12 bg-white/[0.08] p-4 transition duration-300 hover:-translate-y-1 hover:border-stitch-cyan/45" key={swimmer.id}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-mono text-xs font-semibold text-aqua-100">#{index + 1}</p>
+                <h3 className="mt-2 font-semibold text-white">{swimmer.name}</h3>
+                <p className="mt-1 text-sm text-white/58">{swimmer.strongestEvent ?? "No strongest event yet"}</p>
+              </div>
+              <div className="text-right">
+                <div className="font-mono text-2xl font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</div>
+                <div className="text-xs text-white/48">SPI</div>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">Yearly</span><strong className="font-mono text-mint-200">{swimmer.yearlyImprovement}%</strong></div>
+              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">Swims</span><strong className="font-mono text-white">{swimmer.totalSwims}</strong></div>
+            </div>
+          </article>
+        ))}
+        {!ranked.length && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72 lg:col-span-3">Swimmer rankings appear after athletes join and log results.</div>}
+      </div>
+    </section>
+  );
+}
+
 function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimmerAnalytics[]; expanded?: boolean }) {
-  const selected = [...swimmers].sort((a, b) => b.progression.length - a.progression.length)[0];
-  const data = selected?.progression.map((point) => ({ ...point, label: point.date.slice(5) })) ?? [];
+  const defaultSwimmer = useMemo(() => [...swimmers].sort((a, b) => b.progression.length - a.progression.length)[0], [swimmers]);
+  const [selectedSwimmerId, setSelectedSwimmerId] = useState(defaultSwimmer?.id ?? "all");
+  const [selectedEvent, setSelectedEvent] = useState<SwimEvent | "all">("all");
+  const [selectedCourse, setSelectedCourse] = useState<Course | "all">("all");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+  const selected = swimmers.find((swimmer) => swimmer.id === selectedSwimmerId) ?? defaultSwimmer;
+  const progression = selected?.progression ?? [];
+  const eventOptions = useMemo(() => Array.from(new Set(progression.map((point) => point.event))).sort(), [progression]);
+  const courseOptions = useMemo(() => Array.from(new Set(progression.map((point) => point.course))).sort(), [progression]);
+  const yearOptions = useMemo(() => Array.from(new Set(progression.map((point) => point.date.slice(0, 4)))).sort().reverse(), [progression]);
+  const filtered = progression.filter((point) => {
+    const year = point.date.slice(0, 4);
+    return (selectedEvent === "all" || point.event === selectedEvent) && (selectedCourse === "all" || point.course === selectedCourse) && (selectedYear === "all" || year === selectedYear);
+  });
+  const data = filtered.map((point) => ({ ...point, label: point.date.slice(5) }));
 
   return (
     <section className="dashboard-glass min-w-0 p-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Development graph</h2>
-          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name}'s recent logged results` : "Add swimmers with results to populate this graph."}</p>
+          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name}'s filtered logged results` : "Add swimmers with results to populate this graph."}</p>
         </div>
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{selected?.progression.length ?? 0} points</span>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <CoachSelect label="Swimmer" value={selectedSwimmerId} onChange={setSelectedSwimmerId}>
+            <option value="all">Most active</option>
+            {swimmers.map((swimmer) => <option key={swimmer.id} value={swimmer.id}>{swimmer.name}</option>)}
+          </CoachSelect>
+          <CoachSelect label="Event" value={selectedEvent} onChange={(value) => setSelectedEvent(value as SwimEvent | "all")}>
+            <option value="all">All events</option>
+            {eventOptions.map((event) => <option key={event} value={event}>{event}</option>)}
+          </CoachSelect>
+          <CoachSelect label="Course" value={selectedCourse} onChange={(value) => setSelectedCourse(value as Course | "all")}>
+            <option value="all">All courses</option>
+            {courseOptions.map((course) => <option key={course} value={course}>{course}</option>)}
+          </CoachSelect>
+          <CoachSelect label="Year" value={selectedYear} onChange={setSelectedYear}>
+            <option value="all">All years</option>
+            {yearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
+          </CoachSelect>
+        </div>
+      </div>
+      <div className="mt-4 flex justify-end">
+        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{data.length} points</span>
       </div>
       <div className={`${expanded ? "h-[460px]" : "h-[320px]"} mt-5`}>
         {data.length > 1 ? (
@@ -374,5 +447,30 @@ function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimm
         )}
       </div>
     </section>
+  );
+}
+
+function CoachSelect({
+  children,
+  label,
+  onChange,
+  value
+}: {
+  children: ReactNode;
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <label className="min-w-0">
+      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-white/44">{label}</span>
+      <select
+        className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {children}
+      </select>
+    </label>
   );
 }

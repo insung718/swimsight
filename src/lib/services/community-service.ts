@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { rankEvents } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
+import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
 import type { CommunityMember, CommunitySummary, FriendComparison, SwimEvent } from "@/types/swim";
 
 const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -98,6 +99,9 @@ export async function joinCommunity(input: { userId: string; joinCode: string })
 
   if (!community) {
     return null;
+  }
+  if (community.ownerId === input.userId) {
+    throw new CannotJoinOwnedGroupError("community");
   }
 
   await prisma.communityMembership.upsert({

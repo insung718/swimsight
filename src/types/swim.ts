@@ -177,6 +177,7 @@ export interface CoachSwimmerAnalytics {
   consistencyScore: number;
   latestResult?: {
     event: SwimEvent;
+    course: Course;
     timeSeconds: number;
     date: string;
   };
@@ -184,6 +185,7 @@ export interface CoachSwimmerAnalytics {
     date: string;
     timeSeconds: number;
     event: SwimEvent;
+    course: Course;
   }[];
 }
 
