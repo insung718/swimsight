@@ -524,22 +524,6 @@ textarea {
     overflow-wrap: anywhere;
   }
 
-  .hero-lane-field {
-    transform: skewY(-2deg) scale(1);
-  }
-
-  .hero-water-sheen {
-    transform: translateX(0);
-  }
-
-  .landing-hero-copy::before {
-    inset: -18px 0 -22px 0;
-  }
-
-  .landing-hero-copy {
-    overflow: clip;
-  }
-
   .depth-card {
     min-height: auto;
   }
