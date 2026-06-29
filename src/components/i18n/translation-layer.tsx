@@ -3,15 +3,9 @@
 import { useEffect } from "react";
 import { isLanguageCode, languageChangeEvent, languageStorageKey, translations, wordTranslations, type LanguageCode } from "@/lib/i18n";
 
-const translatedToEnglish = new Map<string, string>();
-for (const dictionary of Object.values(translations)) {
-  for (const [english, translated] of Object.entries(dictionary)) {
-    translatedToEnglish.set(translated, english);
-  }
-}
-
 const englishPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary)))).sort((a, b) => b.length - a.length);
-const translatedPhrases = Array.from(translatedToEnglish.keys()).sort((a, b) => b.length - a.length);
+const originalTextNodes = new WeakMap<Node, string>();
+const originalAttributes = new WeakMap<Element, Record<string, string>>();
 
 function currentLanguage(): LanguageCode {
   if (typeof window === "undefined") return "en";
@@ -22,19 +16,13 @@ function currentLanguage(): LanguageCode {
 function translateValue(value: string, language: LanguageCode) {
   const trimmed = value.trim();
   if (!trimmed) return value;
-  let english = translatedToEnglish.get(trimmed) ?? trimmed;
 
-  for (const phrase of translatedPhrases) {
-    const source = translatedToEnglish.get(phrase);
-    if (source && english.includes(phrase)) english = english.split(phrase).join(source);
-  }
+  if (language === "en") return value;
 
-  if (language === "en") return value.replace(trimmed, english);
-
-  const exactTranslation = translations[language][english];
+  const exactTranslation = translations[language][trimmed];
   if (exactTranslation) return value.replace(trimmed, exactTranslation);
 
-  let translated = english;
+  let translated = trimmed;
   let replacedKnownPhrase = false;
   for (const phrase of englishPhrases) {
     const next = translations[language][phrase];
@@ -71,7 +59,8 @@ function translateDocument(language: LanguageCode) {
 
   while (node) {
     if (!shouldSkipElement(node.parentElement)) {
-      const translated = translateValue(node.textContent ?? "", language);
+      if (!originalTextNodes.has(node)) originalTextNodes.set(node, node.textContent ?? "");
+      const translated = translateValue(originalTextNodes.get(node) ?? "", language);
       if (translated !== node.textContent) node.textContent = translated;
     }
     node = walker.nextNode();
@@ -80,7 +69,13 @@ function translateDocument(language: LanguageCode) {
   for (const element of document.querySelectorAll<HTMLElement>("[placeholder], [aria-label], [title]")) {
     for (const attr of ["placeholder", "aria-label", "title"]) {
       const value = element.getAttribute(attr);
-      if (value) element.setAttribute(attr, translateValue(value, language));
+      if (!value) continue;
+      const originals = originalAttributes.get(element) ?? {};
+      if (!originals[attr]) {
+        originals[attr] = value;
+        originalAttributes.set(element, originals);
+      }
+      element.setAttribute(attr, translateValue(originals[attr], language));
     }
   }
 }

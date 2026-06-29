@@ -1,6 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+
+async function forceEnglish(page: Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("swimsight-language", "en");
+  });
+}
 
 test("renders the signed-out SwimSight product page", async ({ page }) => {
+  await forceEnglish(page);
   await page.goto("/");
 
   await expect(page.getByRole("link", { name: "SwimSight" })).toBeVisible();
@@ -11,6 +18,7 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
 });
 
 test("opens and closes the signed-out staggered menu", async ({ page }) => {
+  await forceEnglish(page);
   await page.goto("/");
 
   await page.getByRole("button", { name: "Open navigation menu" }).click();
@@ -29,7 +37,9 @@ test("opens and closes the signed-out staggered menu", async ({ page }) => {
 });
 
 test("keeps the landing signal graph aligned and translated", async ({ page }) => {
+  await forceEnglish(page);
   await page.goto("/");
+  await page.locator(".hero-signal-line").waitFor({ state: "attached" });
 
   const graph = await page.evaluate(() => {
     const path = document.querySelector(".hero-signal-line");
@@ -56,6 +66,7 @@ test("keeps the landing signal graph aligned and translated", async ({ page }) =
 });
 
 test("shows the active page in the staggered menu", async ({ page }) => {
+  await forceEnglish(page);
   await page.goto("/features");
 
   await page.getByRole("button", { name: "Open navigation menu" }).click();
@@ -63,6 +74,7 @@ test("shows the active page in the staggered menu", async ({ page }) => {
 });
 
 test("does not horizontally overflow on mobile landing", async ({ page }) => {
+  await forceEnglish(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
