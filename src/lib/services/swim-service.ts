@@ -3,7 +3,7 @@ import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
-import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimResult } from "@/types/swim";
+import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimResult, SwimResultKind } from "@/types/swim";
 
 interface CreateSwimInput {
   userId: string;
@@ -14,6 +14,7 @@ interface CreateSwimInput {
   meetName: string;
   notes?: string;
   source?: "MANUAL" | "CSV" | "MEET_IMPORT";
+  resultKind?: SwimResultKind;
 }
 
 interface CreateGoalInput {
@@ -47,7 +48,8 @@ export async function createSwim(input: CreateSwimInput) {
       timeSeconds: input.timeSeconds,
       meetName: input.meetName,
       notes: input.notes,
-      source: input.source ?? "MANUAL"
+      source: input.source ?? "MANUAL",
+      resultKind: input.resultKind ?? "OFFICIAL"
     }
   });
 
@@ -64,7 +66,8 @@ export async function createManySwims(rows: CreateSwimInput[]) {
       timeSeconds: input.timeSeconds,
       meetName: input.meetName,
       notes: input.notes,
-      source: input.source ?? "CSV"
+      source: input.source ?? "CSV",
+      resultKind: input.resultKind ?? "OFFICIAL"
     }
   })));
   return swims.map(toSwimResult);

@@ -13,16 +13,17 @@ interface AwardEntry {
 }
 
 function badgeCatalog(analytics: DashboardAnalytics, swims: SwimResult[], workouts: GymWorkout[]) {
-  const best50Free = swims.filter((swim) => swim.event === "50 Freestyle").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
-  const best100Free = swims.filter((swim) => swim.event === "100 Freestyle").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
-  const best100Fly = swims.filter((swim) => swim.event === "100 Butterfly").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
+  const officialSwims = swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "OFFICIAL");
+  const best50Free = officialSwims.filter((swim) => swim.event === "50 Freestyle").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
+  const best100Free = officialSwims.filter((swim) => swim.event === "100 Freestyle").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
+  const best100Fly = officialSwims.filter((swim) => swim.event === "100 Butterfly").sort((a, b) => a.timeSeconds - b.timeSeconds)[0];
 
   return [
-    { name: "First splash", detail: "Logged your first race.", active: swims.length >= 1 },
+    { name: "First official splash", detail: "Logged your first official meet result.", active: officialSwims.length >= 1 },
     { name: "Sub-30 breaker", detail: "50 Free under 30 seconds.", active: Boolean(best50Free && best50Free.timeSeconds < 30) },
     { name: "Minute hunter", detail: "100 Free under 1:00.", active: Boolean(best100Free && best100Free.timeSeconds < 60) },
     { name: "Fly engine", detail: "100 Fly under 1:05.", active: Boolean(best100Fly && best100Fly.timeSeconds < 65) },
-    { name: "Century logger", detail: "100 swims entered.", active: swims.length >= 100 },
+    { name: "Century logger", detail: "100 official swims entered.", active: officialSwims.length >= 100 },
     { name: "Steady lane", detail: "Consistency above 85.", active: analytics.rankings.some((ranking) => ranking.consistencyScore >= 85) },
     { name: "Dryland disciplined", detail: "10 gym sessions logged.", active: workouts.length >= 10 },
     { name: "SPI climb", detail: "SPI reached 75+.", active: analytics.swimPowerIndex.score >= 75 }
@@ -64,9 +65,13 @@ export function AthleteProfilePanel({
   const [medal, setMedal] = useState("");
   const [trophy, setTrophy] = useState("");
   const badges = useMemo(() => badgeCatalog(analytics, swims, workouts), [analytics, swims, workouts]);
-  const memory = useMemo(() => findMemory(swims), [swims]);
+  const officialSwims = useMemo(() => swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "OFFICIAL"), [swims]);
+  const trainingSwims = swims.length - officialSwims.length;
+  const officialMeetNames = useMemo(() => new Set(officialSwims.map((swim) => swim.meetName.toLowerCase())), [officialSwims]);
+  const memory = useMemo(() => findMemory(officialSwims), [officialSwims]);
   const activeBadges = badges.filter((badge) => badge.active).length;
-  const totalDistanceSignal = swims.reduce((sum, swim) => sum + Number(swim.event.split(" ")[0] || 0), 0);
+  const totalDistanceSignal = officialSwims.reduce((sum, swim) => sum + Number(swim.event.split(" ")[0] || 0), 0);
+  const [awardStatus, setAwardStatus] = useState("");
 
   useEffect(() => {
     try {
@@ -79,12 +84,17 @@ export function AthleteProfilePanel({
 
   function addAward() {
     if (!meet.trim() || !medal.trim()) return;
+    if (!officialMeetNames.has(meet.trim().toLowerCase())) {
+      setAwardStatus("Awards attach to official meet results only.");
+      return;
+    }
     const next = [{ id: crypto.randomUUID(), meet: meet.trim(), medal: medal.trim(), trophy: trophy.trim() || undefined }, ...awards].slice(0, 12);
     setAwards(next);
     window.localStorage.setItem("swimsight-awards", JSON.stringify(next));
     setMeet("");
     setMedal("");
     setTrophy("");
+    setAwardStatus("Award saved.");
   }
 
   return (
@@ -94,15 +104,16 @@ export function AthleteProfilePanel({
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold">Profile</h2>
-              <p className="mt-1 text-sm text-white/58">A compact athlete page for progress, badges, and memories.</p>
+              <p className="mt-1 text-sm text-white/58">Official meet progress, badges, awards, and memories.</p>
             </div>
             <span className="rounded-full border border-aqua-200/20 bg-aqua-300/10 px-3 py-1 font-mono text-xs text-aqua-100">SPI {analytics.swimPowerIndex.score}</span>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3">
             <ProfileMetric label="Badges" value={`${activeBadges}/${badges.length}`} />
             <ProfileMetric label="Goals" value={goals.length.toString()} />
-            <ProfileMetric label="Swims" value={swims.length.toString()} />
-            <ProfileMetric label="Distance signal" value={`${totalDistanceSignal}m`} />
+            <ProfileMetric label="Official" value={officialSwims.length.toString()} />
+            <ProfileMetric label="Training" value={trainingSwims.toString()} />
+            <ProfileMetric label="Official meters" value={`${totalDistanceSignal}m`} />
           </div>
           <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.08] p-4">
             <div className="flex items-start gap-3">
@@ -124,7 +135,7 @@ export function AthleteProfilePanel({
             </span>
             <div>
               <h2 className="text-xl font-semibold">Rewards</h2>
-              <p className="text-sm text-white/58">Unlocked by real entries.</p>
+              <p className="text-sm text-white/58">Unlocked by official meet results.</p>
             </div>
           </div>
           <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -151,6 +162,7 @@ export function AthleteProfilePanel({
             <input className="h-10 rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-stitch-cyan" placeholder="Trophy optional" value={trophy} onChange={(event) => setTrophy(event.target.value)} />
           </div>
           <button className="mt-3 h-10 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white" type="button" onClick={addAward}>Add award</button>
+          {awardStatus && <p className="mt-2 text-sm text-white/62">{awardStatus}</p>}
           <div className="mt-4 space-y-2">
             {awards.length === 0 && <div className="rounded-md border border-dashed border-white/12 p-4 text-center text-sm text-white/58">No awards saved yet.</div>}
             {awards.map((award) => (

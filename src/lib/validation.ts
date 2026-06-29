@@ -3,6 +3,7 @@ import { supportedEvents } from "@/lib/events";
 
 export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
+export const swimResultKindSchema = z.enum(["OFFICIAL", "TRAINING"]);
 export const gymWorkoutTypeSchema = z.enum(["STRENGTH", "CORE", "MOBILITY", "DRYLAND", "CARDIO", "RECOVERY"]);
 
 const cleanText = (min: number, max: number) => z
@@ -29,6 +30,7 @@ export const manualSwimSchema = z.object({
   course: courseSchema.default("LCM"),
   timeSeconds: z.number().finite().positive().max(7_200),
   meetName: cleanText(1, 120),
+  resultKind: swimResultKindSchema.default("OFFICIAL"),
   notes: cleanText(1, 500).optional()
 }).strict();
 
@@ -88,6 +90,7 @@ export const gymWorkoutSchema = z.object({
 
 export const csvImportSchema = z.object({
   csv: z.string().min(1).max(100_000),
+  resultKind: swimResultKindSchema.default("OFFICIAL"),
   persist: z.boolean().default(false)
 }).strict();
 

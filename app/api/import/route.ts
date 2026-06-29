@@ -31,7 +31,8 @@ export async function POST(request: Request) {
         userId: account.context.userId,
         ...row,
         notes: row.notes ?? undefined,
-        source: "CSV"
+        source: "CSV",
+        resultKind: row.resultKind ?? parsed.data.resultKind
       }))
     );
 

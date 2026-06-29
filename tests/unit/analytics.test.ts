@@ -53,6 +53,18 @@ describe("analytics engine", () => {
     expect(analytics.swimPowerIndex.score).toBeGreaterThan(0);
   });
 
+  it("keeps training times out of official PBs and predictions", () => {
+    const mixedResults: SwimResult[] = [
+      { id: "official-1", userId: "u1", date: "2026-01-01", event: "50 Freestyle", course: "LCM", timeSeconds: 26.4, meetName: "City Meet", resultKind: "OFFICIAL" },
+      { id: "training-1", userId: "u1", date: "2026-01-10", event: "50 Freestyle", course: "LCM", timeSeconds: 24.1, meetName: "Practice set", resultKind: "TRAINING" }
+    ];
+    const analytics = buildDashboardAnalytics(mixedResults);
+
+    expect(analytics.overview.totalSwims).toBe(2);
+    expect(analytics.personalBests[0].currentPb).toBe(26.4);
+    expect(analytics.predictions[0].currentTime).toBe(26.4);
+  });
+
   it("keeps a new account genuinely empty", () => {
     const analytics = buildDashboardAnalytics([]);
 

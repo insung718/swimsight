@@ -213,11 +213,15 @@ textarea {
   top: 77%;
 }
 
+.hero-signal-graph {
+  transform: perspective(1200px) rotateY(-18deg) rotateX(4deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 .hero-signal-glow,
 .hero-signal-line {
   stroke-linecap: round;
-  transform: perspective(1200px) rotateY(-18deg) rotateX(4deg);
-  transform-origin: center;
 }
 
 .hero-signal-glow {
@@ -237,6 +241,11 @@ textarea {
 
 .hero-signal-point circle:first-child {
   fill: #f6feff;
+}
+
+.hero-signal-point {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .hero-signal-point circle:last-child {
@@ -613,24 +622,25 @@ textarea {
 }
 
 .pb-confetti-piece {
-  animation: pb-confetti-fall 1800ms cubic-bezier(0.22, 1, 0.36, 1) var(--confetti-delay) both;
-  background: linear-gradient(135deg, #5ee7f5, #ffffff);
-  border-radius: 3px;
-  height: 12px;
+  animation: pb-confetti-fall 2200ms cubic-bezier(0.22, 1, 0.36, 1) var(--confetti-delay) both;
+  background: var(--confetti-color);
+  border-radius: 4px;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--confetti-color) 42%, transparent);
+  height: calc(var(--confetti-size) * 1.4);
   left: var(--confetti-left);
   position: absolute;
-  top: -18px;
-  width: 7px;
+  top: -36px;
+  width: var(--confetti-size);
   will-change: transform, opacity;
 }
 
 .pb-confetti-piece:nth-child(3n) {
-  background: #b8fbff;
-  width: 10px;
+  border-radius: 999px;
 }
 
 .pb-confetti-piece:nth-child(4n) {
-  background: #061826;
+  height: calc(var(--confetti-size) * 0.9);
+  width: calc(var(--confetti-size) * 1.8);
 }
 
 @keyframes flip-text {

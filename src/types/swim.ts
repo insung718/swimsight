@@ -19,6 +19,7 @@ export type SwimEvent =
   | "400 IM";
 
 export type Course = "SCM" | "LCM" | "SCY";
+export type SwimResultKind = "OFFICIAL" | "TRAINING";
 
 export type TrendLabel = "Improving" | "Plateauing" | "Declining";
 
@@ -34,6 +35,7 @@ export interface SwimResult {
   timeSeconds: number;
   meetName: string;
   source?: "MANUAL" | "CSV" | "MEET_IMPORT";
+  resultKind?: SwimResultKind;
   notes?: string | null;
 }
 

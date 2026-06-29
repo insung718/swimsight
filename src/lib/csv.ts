@@ -1,6 +1,6 @@
 import { normalizeEvent } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
-import type { Course, SwimResult } from "@/types/swim";
+import type { Course, SwimResult, SwimResultKind } from "@/types/swim";
 
 export interface CsvImportResult {
   validRows: Omit<SwimResult, "id" | "userId">[];
@@ -11,6 +11,7 @@ export interface CsvImportResult {
 }
 
 const allowedCourses = new Set<Course>(["SCM", "LCM", "SCY"]);
+const allowedResultKinds = new Set<SwimResultKind>(["OFFICIAL", "TRAINING"]);
 
 function splitCsvLine(line: string) {
   const cells: string[] = [];
@@ -56,7 +57,7 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   }
 
   const headers = splitCsvLine(lines[0]).map((header) => header.toLowerCase());
-  const allowedHeaders = new Set(["date", "event", "time", "course", "meet"]);
+  const allowedHeaders = new Set(["date", "event", "time", "course", "meet", "type", "resultkind", "result_kind"]);
   const unexpectedHeader = headers.find((header) => !allowedHeaders.has(header));
   if (unexpectedHeader || new Set(headers).size !== headers.length) {
     return { validRows: [], errors: [{ row: 1, message: "CSV contains duplicate or unsupported headers." }] };
@@ -66,6 +67,7 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   const timeIndex = headers.indexOf("time");
   const courseIndex = headers.indexOf("course");
   const meetIndex = headers.indexOf("meet");
+  const resultKindIndex = headers.findIndex((header) => header === "type" || header === "resultkind" || header === "result_kind");
 
   if (dateIndex === -1 || eventIndex === -1 || timeIndex === -1) {
     return {
@@ -86,6 +88,8 @@ export function validateSwimCsv(csv: string): CsvImportResult {
     const timeSeconds = parseTimeInput(cells[timeIndex] ?? "");
     const course = (cells[courseIndex] || "LCM").toUpperCase() as Course;
     const meetName = cells[meetIndex] || "Imported meet";
+    const kindValue = (cells[resultKindIndex] || "OFFICIAL").trim().toUpperCase();
+    const resultKind = (kindValue === "MEET" ? "OFFICIAL" : kindValue === "OFFICIAL MEET" ? "OFFICIAL" : kindValue === "PRACTICE" || kindValue === "UNOFFICIAL" ? "TRAINING" : kindValue) as SwimResultKind;
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T00:00:00.000Z`).getTime())) {
       result.errors.push({ row: rowNumber, message: "Date must be a valid ISO date." });
@@ -107,12 +111,18 @@ export function validateSwimCsv(csv: string): CsvImportResult {
       return;
     }
 
+    if (!allowedResultKinds.has(resultKind)) {
+      result.errors.push({ row: rowNumber, message: "Type must be OFFICIAL or TRAINING." });
+      return;
+    }
+
     result.validRows.push({
       date,
       event,
       timeSeconds,
       course,
-      meetName
+      meetName,
+      resultKind
     });
   });
 

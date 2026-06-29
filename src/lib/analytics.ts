@@ -42,6 +42,10 @@ function byDateAsc(a: SwimResult, b: SwimResult) {
   return new Date(a.date).getTime() - new Date(b.date).getTime();
 }
 
+export function isOfficialResult(swim: Pick<SwimResult, "resultKind">) {
+  return (swim.resultKind ?? "OFFICIAL") === "OFFICIAL";
+}
+
 function eventCourseKey(swim: Pick<SwimResult, "event" | "course">): EventCourseKey {
   return `${swim.event}__${swim.course}`;
 }
@@ -597,11 +601,12 @@ function calculateSpecialtyProfile(rankings: EventRanking[]): StrokeSpecialty[] 
 
 export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = []): DashboardAnalytics {
   const trainingSignal = calculateTrainingLoadSignal(workouts);
+  const officialSwims = swims.filter(isOfficialResult);
 
-  if (!swims.length) {
+  if (!officialSwims.length) {
     return {
       overview: {
-        totalSwims: 0,
+        totalSwims: swims.length,
         personalBestCount: 0,
         bestEvent: undefined,
         mostImprovedEvent: undefined,
@@ -626,8 +631,8 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
     };
   }
 
-  const rankings = rankEvents(swims);
-  const personalBests = getPersonalBests(swims);
+  const rankings = rankEvents(officialSwims);
+  const personalBests = getPersonalBests(officialSwims);
   const mostImproved = [...rankings].sort((a, b) => b.improvementPercent - a.improvementPercent)[0];
 
   return {
@@ -636,16 +641,16 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
       personalBestCount: personalBests.length,
       bestEvent: rankings[0].event,
       mostImprovedEvent: mostImproved.event,
-      weeklyImprovement: averageWindowImprovement(swims, 7),
-      monthlyImprovement: averageWindowImprovement(swims, 30),
-      yearlyImprovement: averageWindowImprovement(swims, 365)
+      weeklyImprovement: averageWindowImprovement(officialSwims, 7),
+      monthlyImprovement: averageWindowImprovement(officialSwims, 30),
+      yearlyImprovement: averageWindowImprovement(officialSwims, 365)
     },
     personalBests,
     rankings,
     strongestEvents: rankings.slice(0, 3),
     weakestEvents: rankings.slice(-3).reverse(),
-    predictions: generatePredictions(swims, workouts),
-    goalProjection: goal && swims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(swims, goal) : undefined,
+    predictions: generatePredictions(officialSwims, workouts),
+    goalProjection: goal && officialSwims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(officialSwims, goal) : undefined,
     swimPowerIndex: calculateSwimPowerIndex(rankings),
     specialtyProfile: calculateSpecialtyProfile(rankings),
     trainingLoad: {

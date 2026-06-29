@@ -2,6 +2,7 @@
 
 import { Menu, X, Waves } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Route } from "next";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ interface StaggeredMenuProps {
 
 export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const panelId = "swimsight-navigation-menu";
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -108,7 +110,13 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         <nav aria-label="Main navigation" className="mt-12 space-y-2">
           {items.map((item, index) => {
             const href = item.href ?? item.link ?? "#";
-            const className = "group flex items-center justify-between rounded-lg border border-white/10 bg-white/12 px-4 py-4 text-lg font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition hover:border-stitch-cyan/60 hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan";
+            const isActive = href.startsWith("/") && (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)));
+            const className = cn(
+              "group flex items-center justify-between rounded-lg border px-4 py-4 text-lg font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan",
+              isActive
+                ? "border-stitch-cyan/70 bg-stitch-cyan/18 text-stitch-cyan"
+                : "border-white/10 bg-white/12 text-white hover:border-stitch-cyan/60 hover:bg-white/18"
+            );
             const style = {
               transform: open ? "translateY(0)" : "translateY(18px)",
               opacity: open ? 1 : 0,
@@ -125,6 +133,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
               return (
                 <Link
                   aria-label={item.ariaLabel ?? item.label}
+                  aria-current={isActive ? "page" : undefined}
                   className={className}
                   href={href as Route}
                   key={`${href}-${item.label}`}
@@ -139,6 +148,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             return (
               <a
                 aria-label={item.ariaLabel ?? item.label}
+                aria-current={isActive ? "page" : undefined}
                 className={className}
                 href={href}
                 key={`${href}-${item.label}`}

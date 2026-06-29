@@ -46,6 +46,7 @@ export function toSwimResult(record: {
   timeSeconds: number;
   meetName: string;
   source?: string;
+  resultKind?: string;
   notes?: string | null;
 }): SwimResult {
   return {
@@ -57,6 +58,7 @@ export function toSwimResult(record: {
     timeSeconds: record.timeSeconds,
     meetName: record.meetName,
     source: record.source as SwimResult["source"],
+    resultKind: (record.resultKind ?? "OFFICIAL") as SwimResult["resultKind"],
     notes: record.notes
   };
 }

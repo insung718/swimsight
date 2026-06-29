@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { isLanguageCode, languageChangeEvent, languageStorageKey, translations, type LanguageCode } from "@/lib/i18n";
+import { isLanguageCode, languageChangeEvent, languageStorageKey, translations, wordTranslations, type LanguageCode } from "@/lib/i18n";
 
 const translatedToEnglish = new Map<string, string>();
 for (const dictionary of Object.values(translations)) {
@@ -31,11 +31,29 @@ function translateValue(value: string, language: LanguageCode) {
 
   if (language === "en") return value.replace(trimmed, english);
 
-  let translated = translations[language][english] ?? english;
+  const exactTranslation = translations[language][english];
+  if (exactTranslation) return value.replace(trimmed, exactTranslation);
+
+  let translated = english;
+  let replacedKnownPhrase = false;
   for (const phrase of englishPhrases) {
     const next = translations[language][phrase];
-    if (next && translated.includes(phrase)) translated = translated.split(phrase).join(next);
+    if (next && translated.includes(phrase)) {
+      translated = translated.split(phrase).join(next);
+      replacedKnownPhrase = true;
+    }
   }
+  if (replacedKnownPhrase) return value.replace(trimmed, translated);
+
+  const words = wordTranslations[language];
+  translated = translated.replace(/[A-Za-z][A-Za-z'-]*/g, (word, offset, fullText) => {
+    const before = fullText[offset - 1];
+    const after = fullText[offset + word.length];
+    const touchesNonAsciiWord = (before && /[\p{L}\p{N}]/u.test(before)) || (after && /[\p{L}\p{N}]/u.test(after));
+    if (touchesNonAsciiWord) return word;
+    const lower = word.toLowerCase();
+    return words[lower] ?? word;
+  });
 
   return value.replace(trimmed, translated);
 }

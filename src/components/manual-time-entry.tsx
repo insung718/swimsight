@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
-import type { Course, SwimEvent, SwimResult } from "@/types/swim";
+import type { Course, SwimEvent, SwimResult, SwimResultKind } from "@/types/swim";
 
 const courses: Course[] = ["LCM", "SCM", "SCY"];
 
@@ -16,6 +16,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
   const [date, setDate] = useState("");
   const [event, setEvent] = useState<SwimEvent | "">("");
   const [course, setCourse] = useState<Course>("LCM");
+  const [resultKind, setResultKind] = useState<SwimResultKind>("OFFICIAL");
   const [time, setTime] = useState("");
   const [meetName, setMeetName] = useState("");
   const [status, setStatus] = useState("");
@@ -36,12 +37,13 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       event,
       course,
       timeSeconds,
-      meetName
+      meetName,
+      resultKind
     };
     const previousBest = swims
-      .filter((swim) => swim.event === event && swim.course === course)
+      .filter((swim) => swim.event === event && swim.course === course && (swim.resultKind ?? "OFFICIAL") === "OFFICIAL")
       .reduce<number | undefined>((best, swim) => (best === undefined || swim.timeSeconds < best ? swim.timeSeconds : best), undefined);
-    const isPersonalBest = previousBest === undefined || timeSeconds < previousBest;
+    const isPersonalBest = resultKind === "OFFICIAL" && (previousBest === undefined || timeSeconds < previousBest);
 
     try {
       const response = await fetch("/api/swims", {
@@ -52,7 +54,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       const result = await response.json();
 
       if (response.ok) {
-        setStatus(isPersonalBest ? "Personal best saved." : "Saved to your SwimSight account.");
+        setStatus(isPersonalBest ? "Official personal best saved." : resultKind === "TRAINING" ? "Training time saved." : "Official meet time saved.");
         if (isPersonalBest) {
           setShowConfetti(true);
           window.setTimeout(() => setShowConfetti(false), 10_000);
@@ -74,7 +76,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Add A Time</h2>
-          <p className="text-sm text-white/70">Manual entry stays beside spreadsheet import</p>
+          <p className="text-sm text-white/70">Official meet times drive PBs. Training times stay separate.</p>
         </div>
         <button
           className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70"
@@ -85,6 +87,22 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           {saving ? <KineticLoader className="h-4 text-stitch-abyss" label="Saving time" /> : <Save aria-hidden className="h-4 w-4" />}
           {saving ? "Saving" : "Save Time"}
         </button>
+      </div>
+
+      <div className="mb-4 inline-flex rounded-md border border-white/10 bg-stitch-abyss p-1">
+        {[
+          ["OFFICIAL", "Official meet"],
+          ["TRAINING", "Training / unofficial"]
+        ].map(([value, label]) => (
+          <button
+            className={`h-9 rounded px-3 text-xs font-semibold transition ${resultKind === value ? "bg-stitch-cyan text-stitch-abyss" : "text-white/64 hover:text-white"}`}
+            key={value}
+            type="button"
+            onClick={() => setResultKind(value as SwimResultKind)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -139,7 +157,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           Meet
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
-            placeholder="Meet name"
+            placeholder={resultKind === "OFFICIAL" ? "Meet name" : "Training set / pool"}
             value={meetName}
             onChange={(changeEvent) => setMeetName(changeEvent.target.value)}
           />
@@ -154,14 +172,16 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
 function PbConfetti() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-[70] overflow-hidden">
-      {Array.from({ length: 42 }, (_, index) => (
+      {Array.from({ length: 96 }, (_, index) => (
         <span
           className="pb-confetti-piece"
           key={index}
           style={{
-            "--confetti-delay": `${(index % 12) * 90}ms`,
-            "--confetti-left": `${(index * 23) % 100}%`,
-            "--confetti-rotate": `${(index % 9) * 28}deg`
+            "--confetti-color": ["#ff3b30", "#ff9500", "#ffd60a", "#34c759", "#32ade6", "#5856d6", "#ff2d55", "#ffffff"][index % 8],
+            "--confetti-delay": `${(index % 16) * 55}ms`,
+            "--confetti-left": `${(index * 17) % 100}%`,
+            "--confetti-rotate": `${(index % 11) * 31}deg`,
+            "--confetti-size": `${10 + (index % 5) * 3}px`
           } as CSSProperties}
         />
       ))}

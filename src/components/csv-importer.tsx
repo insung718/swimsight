@@ -5,11 +5,13 @@ import { useRef, useState } from "react";
 import { validateSwimCsv, type CsvImportResult } from "@/lib/csv";
 import { formatTime } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
+import type { SwimResultKind } from "@/types/swim";
 
 export function CsvImporter() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [csv, setCsv] = useState("");
   const [result, setResult] = useState<CsvImportResult>({ validRows: [], errors: [] });
+  const [resultKind, setResultKind] = useState<SwimResultKind>("OFFICIAL");
   const [status, setStatus] = useState("");
   const [importing, setImporting] = useState(false);
 
@@ -20,7 +22,7 @@ export function CsvImporter() {
   async function importRows() {
     setImporting(true);
     try {
-      const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true }) });
+      const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true, resultKind }) });
       const data = await response.json();
       if (!response.ok) { setStatus(data.error ?? "Could not import spreadsheet."); return; }
       setResult(data);
@@ -42,7 +44,7 @@ export function CsvImporter() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Import Spreadsheet</h2>
-          <p className="text-sm text-white/70">Upload a CSV spreadsheet with Date, Event, Time</p>
+          <p className="text-sm text-white/70">Upload CSV columns: Date, Event, Time, optional Course, Meet, Type</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -80,11 +82,27 @@ export function CsvImporter() {
         </div>
       </div>
 
+      <div className="mb-4 inline-flex rounded-md border border-white/10 bg-stitch-abyss p-1">
+        {[
+          ["OFFICIAL", "Official meet import"],
+          ["TRAINING", "Training import"]
+        ].map(([value, label]) => (
+          <button
+            className={`h-9 rounded px-3 text-xs font-semibold transition ${resultKind === value ? "bg-white text-stitch-abyss" : "text-white/64 hover:text-white"}`}
+            key={value}
+            type="button"
+            onClick={() => setResultKind(value as SwimResultKind)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
         <textarea
           className="min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-stitch-abyss p-3 font-mono text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
           value={csv}
-          placeholder={'Date,Event,Time\n2026-03-16,50 Free,25.56'}
+          placeholder={'Date,Event,Time,Type\n2026-03-16,50 Free,25.56,OFFICIAL'}
           onChange={(event) => setCsv(event.target.value)}
         />
         <div className="rounded-lg border border-white/10 bg-white/10 p-3">

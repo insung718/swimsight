@@ -28,6 +28,48 @@ test("opens and closes the signed-out staggered menu", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Contact us and review the website." })).toBeVisible();
 });
 
+test("keeps the landing signal graph aligned and translated", async ({ page }) => {
+  await page.goto("/");
+
+  const graph = await page.evaluate(() => {
+    const path = document.querySelector(".hero-signal-line");
+    const dots = [...document.querySelectorAll(".hero-signal-point circle:first-child")];
+    return {
+      pathTransform: path ? getComputedStyle(path).transform : null,
+      dots: dots.map((dot) => [Number(dot.getAttribute("cx")), Number(dot.getAttribute("cy"))])
+    };
+  });
+
+  expect(graph.pathTransform).toBe("none");
+  expect(graph.dots).toEqual([
+    [80, 440],
+    [342, 290],
+    [620, 235],
+    [826, 138]
+  ]);
+
+  await page.getByRole("button", { name: "KO" }).click();
+  await expect(page.getByText("나만을 위한 수영 인텔리전스.")).toBeVisible();
+
+  await page.getByRole("button", { name: "VI" }).click();
+  await expect(page.getByText("Trí tuệ bơi lội. Cá nhân hóa.")).toBeVisible();
+});
+
+test("shows the active page in the staggered menu", async ({ page }) => {
+  await page.goto("/features");
+
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  await expect(page.getByRole("link", { name: "Features", exact: true })).toHaveAttribute("aria-current", "page");
+});
+
+test("does not horizontally overflow on mobile landing", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
 test("protects account APIs when signed out", async ({ request }) => {
   const protectedReads = [
     "/api/me",

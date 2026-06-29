@@ -90,14 +90,21 @@ export function LandingPage() {
             <div className="hero-console-rail hero-console-rail-b" />
             <div className="hero-console-rail hero-console-rail-c" />
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 900 620">
-              <path className="hero-signal-glow" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" />
-              <path className="hero-signal-line" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" />
-              {[80, 342, 620, 826].map((cx, index) => (
-                <g className="hero-signal-point" key={cx} style={{ animationDelay: `${index * 420}ms` }}>
-                  <circle cx={cx} cy={[440, 290, 235, 138][index]} r="10" />
-                  <circle cx={cx} cy={[440, 290, 235, 138][index]} r="26" />
-                </g>
-              ))}
+              <g className="hero-signal-graph">
+                <path className="hero-signal-glow" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" vectorEffect="non-scaling-stroke" />
+                <path className="hero-signal-line" d="M80 440 C190 330 255 390 342 290 S520 175 620 235 S758 300 826 138" fill="none" vectorEffect="non-scaling-stroke" />
+                {[
+                  [80, 440],
+                  [342, 290],
+                  [620, 235],
+                  [826, 138]
+                ].map(([cx, cy], index) => (
+                  <g className="hero-signal-point" key={cx} style={{ animationDelay: `${index * 420}ms` }}>
+                    <circle cx={cx} cy={cy} r="10" />
+                    <circle cx={cx} cy={cy} r="26" />
+                  </g>
+                ))}
+              </g>
             </svg>
             <div className="hero-data-card hero-data-card-a">
               <span>PB signal</span>
