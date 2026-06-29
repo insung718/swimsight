@@ -958,6 +958,136 @@ const viCoverage: TranslationMap = {
 Object.assign(ko, koCoverage);
 Object.assign(vi, viCoverage);
 
+Object.assign(ko, {
+  "Performance": "경기력",
+  "Performance workspace": "경기력 작업 공간",
+  "Performance overview": "경기력 개요",
+  "Analytics": "분석",
+  "Training": "훈련",
+  "Goals & Meets": "목표와 대회",
+  "Profile": "프로필",
+  "Your data": "내 데이터",
+  "Dryland signal": "드라이랜드 신호",
+  "What comes next": "다음 단계",
+  "Athlete page": "선수 페이지",
+  "Profile & community": "프로필과 커뮤니티",
+  "Dashboard dock": "대시보드 독",
+  "Tap an event to open its forecast.": "종목을 눌러 예측을 열어 보세요.",
+  "Current": "현재",
+  "Improvement": "향상",
+  "Stable": "안정",
+  "s": "초",
+  "s faster": "초 단축",
+  "s projected improvement in 365 days": "초의 365일 예상 향상",
+  "gym sessions / 28d": "28일간 웨이트 세션",
+  "30 days": "30일",
+  "90 days": "90일",
+  "180 days": "180일",
+  "365 days": "365일",
+  "No Limits": "한계 없음",
+  "With hard work, there are no limits.": "꾸준히 노력하면 한계는 없습니다.",
+  "Race Your Goals": "목표와 레이스하기",
+  "The real race is always the same. It's me against my goals.": "진짜 레이스는 언제나 같습니다. 나와 내 목표의 싸움입니다.",
+  "One Day Better": "하루씩 더 나아지기",
+  "But just improving each day, that's just the ultimate goal.": "매일 조금씩 나아지는 것, 그것이 궁극적인 목표입니다.",
+  "Own The Standard": "기준을 내 것으로",
+  "I never go into a meet with a certain medal count in mind.": "저는 특정 메달 개수를 마음에 두고 대회에 들어가지 않습니다.",
+  "Win The Next Rep": "다음 반복을 이기기",
+  "Trust The Trend": "추세를 믿기",
+  "Race Countdown": "레이스 카운트다운",
+  "Add your next meet so SwimSight can turn your training into a countdown plan.": "다음 대회를 추가하면 SwimSight가 훈련을 카운트다운 계획으로 바꿉니다.",
+  "PassItOn": "패스잇온",
+  "Stanford News": "스탠퍼드 뉴스",
+  "BrainyQuote": "브레이니쿼트",
+  "Bustle": "버슬",
+  "a clearer trend.": "더 선명한 추세.",
+  "a smarter goal.": "더 똑똑한 목표.",
+  "your next breakthrough.": "다음 돌파구.",
+  "50 Freestyle": "50 자유형",
+  "100 Freestyle": "100 자유형",
+  "200 Freestyle": "200 자유형",
+  "400 Freestyle": "400 자유형",
+  "800 Freestyle": "800 자유형",
+  "1500 Freestyle": "1500 자유형",
+  "50 Butterfly": "50 접영",
+  "100 Butterfly": "100 접영",
+  "200 Butterfly": "200 접영",
+  "50 Backstroke": "50 배영",
+  "100 Backstroke": "100 배영",
+  "200 Backstroke": "200 배영",
+  "50 Breaststroke": "50 평영",
+  "100 Breaststroke": "100 평영",
+  "200 Breaststroke": "200 평영",
+  "100 IM": "100 개인혼영",
+  "200 IM": "200 개인혼영",
+  "400 IM": "400 개인혼영"
+});
+
+Object.assign(vi, {
+  "Performance": "Hiệu suất",
+  "Performance workspace": "Không gian hiệu suất",
+  "Performance overview": "Tổng quan hiệu suất",
+  "Analytics": "Phân tích",
+  "Training": "Tập luyện",
+  "Goals & Meets": "Mục tiêu và giải đấu",
+  "Profile": "Hồ sơ",
+  "Your data": "Dữ liệu của bạn",
+  "Dryland signal": "Tín hiệu thể lực trên cạn",
+  "What comes next": "Điều tiếp theo",
+  "Athlete page": "Trang VĐV",
+  "Profile & community": "Hồ sơ và cộng đồng",
+  "Dashboard dock": "Thanh điều hướng bảng điều khiển",
+  "Tap an event to open its forecast.": "Chạm vào một nội dung để mở dự báo.",
+  "Current": "Hiện tại",
+  "Improvement": "Cải thiện",
+  "Stable": "Ổn định",
+  "s": " giây",
+  "s faster": " giây nhanh hơn",
+  "s projected improvement in 365 days": " giây cải thiện dự kiến trong 365 ngày",
+  "gym sessions / 28d": "buổi thể lực / 28 ngày",
+  "30 days": "30 ngày",
+  "90 days": "90 ngày",
+  "180 days": "180 ngày",
+  "365 days": "365 ngày",
+  "No Limits": "Không giới hạn",
+  "With hard work, there are no limits.": "Với sự chăm chỉ, không có giới hạn.",
+  "Race Your Goals": "Đua với mục tiêu của bạn",
+  "The real race is always the same. It's me against my goals.": "Cuộc đua thật sự luôn giống nhau: tôi đối mặt với mục tiêu của mình.",
+  "One Day Better": "Tốt hơn mỗi ngày",
+  "But just improving each day, that's just the ultimate goal.": "Chỉ cần cải thiện mỗi ngày, đó chính là mục tiêu cuối cùng.",
+  "Own The Standard": "Làm chủ tiêu chuẩn",
+  "I never go into a meet with a certain medal count in mind.": "Tôi không bao giờ bước vào giải đấu với một số huy chương cụ thể trong đầu.",
+  "Win The Next Rep": "Thắng lần lặp tiếp theo",
+  "Trust The Trend": "Tin vào xu hướng",
+  "Race Countdown": "Đếm ngược cuộc đua",
+  "Add your next meet so SwimSight can turn your training into a countdown plan.": "Thêm giải tiếp theo để SwimSight biến tập luyện của bạn thành kế hoạch đếm ngược.",
+  "PassItOn": "PassItOn",
+  "Stanford News": "Tin Stanford",
+  "BrainyQuote": "BrainyQuote",
+  "Bustle": "Bustle",
+  "a clearer trend.": "một xu hướng rõ hơn.",
+  "a smarter goal.": "một mục tiêu thông minh hơn.",
+  "your next breakthrough.": "bước đột phá tiếp theo.",
+  "50 Freestyle": "50 tự do",
+  "100 Freestyle": "100 tự do",
+  "200 Freestyle": "200 tự do",
+  "400 Freestyle": "400 tự do",
+  "800 Freestyle": "800 tự do",
+  "1500 Freestyle": "1500 tự do",
+  "50 Butterfly": "50 bướm",
+  "100 Butterfly": "100 bướm",
+  "200 Butterfly": "200 bướm",
+  "50 Backstroke": "50 ngửa",
+  "100 Backstroke": "100 ngửa",
+  "200 Backstroke": "200 ngửa",
+  "50 Breaststroke": "50 ếch",
+  "100 Breaststroke": "100 ếch",
+  "200 Breaststroke": "200 ếch",
+  "100 IM": "100 hỗn hợp",
+  "200 IM": "200 hỗn hợp",
+  "400 IM": "400 hỗn hợp"
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {
@@ -1229,7 +1359,35 @@ export function isLanguageCode(value: string | null): value is LanguageCode {
   return value === "en" || value === "ko" || value === "vi";
 }
 
+const translationPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary)))).sort((a, b) => b.length - a.length);
+
 export function translateText(value: string, language: LanguageCode) {
   if (language === "en") return value;
-  return translations[language][value] ?? value;
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+
+  const exactTranslation = translations[language][trimmed];
+  if (exactTranslation) return value.replace(trimmed, exactTranslation);
+
+  let translated = trimmed;
+  let replacedKnownPhrase = false;
+  for (const phrase of translationPhrases) {
+    const next = translations[language][phrase];
+    if (next && translated.includes(phrase)) {
+      translated = translated.split(phrase).join(next);
+      replacedKnownPhrase = true;
+    }
+  }
+  if (replacedKnownPhrase) return value.replace(trimmed, translated);
+
+  const words = wordTranslations[language];
+  translated = translated.replace(/[A-Za-z][A-Za-z'-]*/g, (word, offset, fullText) => {
+    const before = fullText[offset - 1];
+    const after = fullText[offset + word.length];
+    const touchesNonAsciiWord = (before && /[\p{L}\p{N}]/u.test(before)) || (after && /[\p{L}\p{N}]/u.test(after));
+    if (touchesNonAsciiWord) return word;
+    return words[word.toLowerCase()] ?? word;
+  });
+
+  return value.replace(trimmed, translated);
 }

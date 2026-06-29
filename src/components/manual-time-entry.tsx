@@ -1,9 +1,9 @@
 "use client";
 
 import { Save } from "lucide-react";
-import type { CSSProperties } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Confetti } from "@/components/ui/confetti";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
@@ -72,7 +72,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
 
   return (
     <section className="stitch-panel min-w-0 p-4 lg:p-5">
-      {showConfetti && <PbConfetti />}
+      {showConfetti && <Confetti autoFire count={180} />}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Add A Time</h2>
@@ -166,25 +166,5 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
 
       <p className="mt-3 text-sm text-white/72">{status}</p>
     </section>
-  );
-}
-
-function PbConfetti() {
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-[70] overflow-hidden">
-      {Array.from({ length: 96 }, (_, index) => (
-        <span
-          className="pb-confetti-piece"
-          key={index}
-          style={{
-            "--confetti-color": ["#ff3b30", "#ff9500", "#ffd60a", "#34c759", "#32ade6", "#5856d6", "#ff2d55", "#ffffff"][index % 8],
-            "--confetti-delay": `${(index % 16) * 55}ms`,
-            "--confetti-left": `${(index * 17) % 100}%`,
-            "--confetti-rotate": `${(index % 11) * 31}deg`,
-            "--confetti-size": `${10 + (index % 5) * 3}px`
-          } as CSSProperties}
-        />
-      ))}
-    </div>
   );
 }

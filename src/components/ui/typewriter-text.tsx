@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslator } from "@/components/i18n/use-language";
 
 export interface TypewriterProps {
   text: string | string[];
@@ -21,12 +22,21 @@ export function Typewriter({
   delay = 1600,
   className,
 }: TypewriterProps) {
-  const textArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
+  const { t } = useTranslator();
+  const sourceTextArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
+  const textArray = useMemo(() => sourceTextArray.map((item) => t(item)), [sourceTextArray, t]);
   const [displayText, setDisplayText] = useState("");
   const [textIndex, setTextIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const currentText = textArray[textIndex] ?? "";
+
+  useEffect(() => {
+    setDisplayText("");
+    setTextIndex(0);
+    setIsDeleting(false);
+    setIsPaused(false);
+  }, [textArray.join("|")]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -64,7 +74,7 @@ export function Typewriter({
   }, [currentText, delay, deleteSpeed, displayText, isDeleting, isPaused, loop, speed, textArray.length]);
 
   return (
-    <span className={className}>
+    <span className={className} data-no-translate>
       {displayText}
       <span aria-hidden className="animate-pulse">{cursor}</span>
     </span>

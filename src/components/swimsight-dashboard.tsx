@@ -6,6 +6,7 @@ import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell
 import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
+import { useTranslator } from "@/components/i18n/use-language";
 import { EventRankings } from "@/components/event-rankings";
 import { GoalTracker } from "@/components/goal-tracker";
 import { GymWorkoutPanel } from "@/components/gym-workout-panel";
@@ -148,7 +149,9 @@ function DashboardPanel({ children }: { children: ReactNode }) {
 }
 
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={title}>{title}</FlipText></h2></div>;
+  const { t } = useTranslator();
+  const translatedTitle = t(title);
+  return <div data-no-translate><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {

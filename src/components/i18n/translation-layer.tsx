@@ -48,6 +48,7 @@ function translateValue(value: string, language: LanguageCode) {
 
 function shouldSkipElement(element: Element | null) {
   if (!element) return true;
+  if (element.closest("[data-no-translate]")) return true;
   return ["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "CODE", "PRE"].includes(element.tagName);
 }
 
