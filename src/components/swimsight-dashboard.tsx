@@ -155,12 +155,13 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
+  const { t } = useTranslator();
   const numericValue = Number(value);
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
     <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58">
-      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div>
+      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{t(label)}</div>
       <div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">
         {shouldCount ? (
           <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
@@ -173,23 +174,27 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 function ResultSplitSummary({ officialCount, trainingCount }: { officialCount: number; trainingCount: number }) {
+  const { t } = useTranslator();
+
   return (
     <section className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-lg border border-white/60 bg-white/55 p-4 text-stitch-abyss shadow-[0_18px_55px_rgba(4,17,29,0.07)] backdrop-blur-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">Official meet times</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">{t("Official meet times")}</p>
         <div className="mt-2 font-mono text-3xl font-semibold">{officialCount}</div>
-        <p className="mt-2 text-sm text-stitch-abyss/58">Counts toward PBs, SPI, predictions, rewards, and awards.</p>
+        <p className="mt-2 text-sm text-stitch-abyss/58">{t("Counts toward PBs, SPI, predictions, rewards, and awards.")}</p>
       </div>
       <div className="rounded-lg border border-white/45 bg-white/35 p-4 text-stitch-abyss backdrop-blur-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">Training / unofficial</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">{t("Training / unofficial")}</p>
         <div className="mt-2 font-mono text-3xl font-semibold">{trainingCount}</div>
-        <p className="mt-2 text-sm text-stitch-abyss/58">Stored for context, but kept out of official rankings and badges.</p>
+        <p className="mt-2 text-sm text-stitch-abyss/58">{t("Stored for context, but kept out of official rankings and badges.")}</p>
       </div>
     </section>
   );
 }
 
 function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
+  const { t } = useTranslator();
+
   return (
     <button
       className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
@@ -200,7 +205,7 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
       type="button"
       onClick={onClick}
     >
-      {label}
+      {t(label)}
       <ArrowRight aria-hidden className="h-4 w-4" />
     </button>
   );
@@ -215,6 +220,8 @@ function PredictionSpotlight({
   onAddResult: () => void;
   prediction?: DashboardAnalytics["predictions"][number];
 }) {
+  const { t } = useTranslator();
+
   return (
     <motion.article
       animate={{ opacity: 1, scale: 1 }}
@@ -228,11 +235,11 @@ function PredictionSpotlight({
             <CalendarClock aria-hidden className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-sm font-semibold">Next prediction</p>
-            <p className="text-xs text-stitch-abyss/55">{prediction ? `${prediction.confidence}% confidence` : "Waiting for your first result"}</p>
+            <p className="text-sm font-semibold">{t("Next prediction")}</p>
+            <p className="text-xs text-stitch-abyss/55">{prediction ? `${prediction.confidence}% ${t("confidence")}` : t("Waiting for your first result")}</p>
           </div>
         </div>
-        {prediction && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{prediction.event} · {prediction.course}</span>}
+        {prediction && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{t(prediction.event)} · {prediction.course}</span>}
       </div>
 
       {prediction ? (
@@ -244,10 +251,10 @@ function PredictionSpotlight({
       ) : (
         <div className="mt-5 rounded-lg border border-dashed border-stitch-abyss/15 bg-white/45 p-4">
           <p className="text-sm leading-6 text-stitch-abyss/64">
-            {hasResults ? "Add another event to expand your forecast." : "Add a time and SwimSight will generate your first baseline forecast."}
+            {hasResults ? t("Add another event to expand your forecast.") : t("Add a time and SwimSight will generate your first baseline forecast.")}
           </p>
           <button className="mt-3 text-sm font-semibold text-aqua-700" type="button" onClick={onAddResult}>
-            Add result
+            {t("Add result")}
           </button>
         </div>
       )}
@@ -256,9 +263,11 @@ function PredictionSpotlight({
 }
 
 function PredictionMini({ label, value }: { label: string; value: string }) {
+  const { t } = useTranslator();
+
   return (
     <div className="rounded-md border border-white/60 bg-white/54 p-3">
-      <div className="text-xs font-semibold uppercase text-stitch-abyss/46">{label}</div>
+      <div className="text-xs font-semibold uppercase text-stitch-abyss/46">{t(label)}</div>
       <div className="mt-1 font-mono text-lg font-semibold text-stitch-abyss">{value}</div>
     </div>
   );
@@ -275,12 +284,14 @@ function SeasonSnapshot({
   prediction?: DashboardAnalytics["predictions"][number];
   trainingLoad: DashboardAnalytics["trainingLoad"];
 }) {
+  const { t } = useTranslator();
+
   return (
     <section className="dashboard-glass overflow-hidden p-5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Season intelligence</h2>
-          <p className="mt-1 text-sm text-white/62">What matters first.</p>
+          <h2 className="text-lg font-semibold text-white">{t("Season intelligence")}</h2>
+          <p className="mt-1 text-sm text-white/62">{t("What matters first.")}</p>
         </div>
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-aqua-100">
           {overview.weeklyImprovement}% week
@@ -297,11 +308,11 @@ function SeasonSnapshot({
           <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(78,232,255,0.28),transparent_34%)] opacity-80 transition group-hover:opacity-100" />
           <div className="relative">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">Prediction lane</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{t("Prediction lane")}</span>
               <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition group-hover:translate-x-0.5" />
             </div>
             <div className="mt-10 text-3xl font-semibold leading-tight text-white">
-              {prediction ? `${prediction.event} · ${prediction.course}` : "Forecast locked."}
+              {prediction ? `${t(prediction.event)} · ${prediction.course}` : t("Forecast locked.")}
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2">
               <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />
@@ -310,10 +321,10 @@ function SeasonSnapshot({
             </div>
           </div>
         </motion.button>
-        <SnapshotMetric detail={`${overview.personalBestCount} PB events`} icon={Activity} label="Logged" value={overview.totalSwims.toString()} />
-        <SnapshotMetric detail={overview.bestEvent ?? "No ranking yet"} icon={Medal} label="Strongest" value={overview.bestEvent ? "Top 1" : "—"} />
-        <SnapshotMetric detail={overview.mostImprovedEvent ?? "No trend yet"} icon={TrendingUp} label="Year pace" value={`${overview.yearlyImprovement}%`} />
-        <SnapshotMetric detail={trainingLoad.label} icon={Dumbbell} label="Gym load" value={trainingLoad.weeklyLoad ? `${trainingLoad.weeklyLoad}` : "—"} />
+        <SnapshotMetric detail={`${overview.personalBestCount} ${t("PB events")}`} icon={Activity} label="Logged" value={overview.totalSwims.toString()} />
+        <SnapshotMetric detail={overview.bestEvent ? t(overview.bestEvent) : t("No ranking yet")} icon={Medal} label="Strongest" value={overview.bestEvent ? t("Top 1") : "—"} />
+        <SnapshotMetric detail={overview.mostImprovedEvent ? t(overview.mostImprovedEvent) : t("No trend yet")} icon={TrendingUp} label="Year pace" value={`${overview.yearlyImprovement}%`} />
+        <SnapshotMetric detail={t(trainingLoad.label)} icon={Dumbbell} label="Gym load" value={trainingLoad.weeklyLoad ? `${trainingLoad.weeklyLoad}` : "—"} />
       </div>
     </section>
   );
@@ -330,10 +341,12 @@ function SnapshotMetric({
   label: string;
   value: string;
 }) {
+  const { t } = useTranslator();
+
   return (
     <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/56">{label}</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/56">{t(label)}</span>
         <Icon aria-hidden className="h-4 w-4 text-aqua-200" />
       </div>
       <div className="mt-4 font-mono text-2xl font-semibold text-white">{value}</div>
@@ -385,6 +398,7 @@ function buildDataQualityWarnings(swims: SwimResult[]) {
 }
 
 function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
+  const { t } = useTranslator();
   const warnings = buildDataQualityWarnings(swims);
 
   return (
@@ -394,15 +408,15 @@ function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
           <AlertTriangle aria-hidden className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-lg font-semibold">Data quality</h2>
-          <p className="mt-1 text-sm text-white/66">Forecast confidence depends on clean, repeated data.</p>
+          <h2 className="text-lg font-semibold">{t("Data quality")}</h2>
+          <p className="mt-1 text-sm text-white/66">{t("Forecast confidence depends on clean, repeated data.")}</p>
         </div>
       </div>
       <div className="mt-5 space-y-3">
         {warnings.map((warning) => (
           <article className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={`${warning.title}-${warning.body}`}>
-            <p className="text-sm font-semibold text-white">{warning.title}</p>
-            <p className="mt-1 text-sm leading-6 text-white/64">{warning.body}</p>
+            <p className="text-sm font-semibold text-white">{t(warning.title)}</p>
+            <p className="mt-1 text-sm leading-6 text-white/64">{t(warning.body)}</p>
           </article>
         ))}
       </div>
@@ -411,6 +425,7 @@ function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
 }
 
 function EventIntelligencePanel({ analytics }: { analytics: DashboardAnalytics }) {
+  const { t } = useTranslator();
   const strongest = analytics.strongestEvents[0] ?? analytics.rankings[0];
   const event = strongest?.event;
   const isFly = event?.includes("Butterfly");
@@ -432,19 +447,20 @@ function EventIntelligencePanel({ analytics }: { analytics: DashboardAnalytics }
           <Sparkles aria-hidden className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-lg font-semibold">Event intelligence</h2>
-          <p className="mt-1 text-sm text-white/66">{event ? `${event} · ${strongest.course}` : "Waiting for event data"}</p>
+          <h2 className="text-lg font-semibold">{t("Event intelligence")}</h2>
+          <p className="mt-1 text-sm text-white/66">{event ? `${t(event)} · ${strongest.course}` : t("Waiting for event data")}</p>
         </div>
       </div>
       <div className="mt-8">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{title}</p>
-        <p className="mt-3 text-sm leading-6 text-white/70">{body}</p>
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{t(title)}</p>
+        <p className="mt-3 text-sm leading-6 text-white/70">{t(body)}</p>
       </div>
     </section>
   );
 }
 
 function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
+  const { t } = useTranslator();
   const consistencyAverage = analytics.rankings.length
     ? Math.round(analytics.rankings.reduce((sum, ranking) => sum + ranking.consistencyScore, 0) / analytics.rankings.length)
     : 0;
@@ -456,24 +472,26 @@ function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
         <div>
           <div className="inline-flex items-center gap-2 rounded-md bg-stitch-abyss px-2.5 py-1 text-xs font-bold text-stitch-cyan shadow-glow">
             <Gauge aria-hidden className="h-4 w-4" />
-            SPI model
+            {t("SPI model")}
           </div>
-          <h2 className="mt-4 text-lg font-semibold">Why your score moved</h2>
+          <h2 className="mt-4 text-lg font-semibold">{t("Why your score moved")}</h2>
         </div>
         <div className="font-mono text-3xl font-semibold text-stitch-cyan">{analytics.swimPowerIndex.score}</div>
       </div>
       <p className="mt-4 text-sm leading-6 text-white/68">
-        Swim Power Index combines speed, improvement rate, consistency, and event difficulty into one 0-100 performance score.
+        {t("Swim Power Index combines speed, improvement rate, consistency, and event difficulty into one 0-100 performance score.")}
       </p>
       <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">This month</span><strong className="font-mono text-stitch-cyan">{analytics.overview.monthlyImprovement}%</strong></div>
-        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">Strongest</span><strong className="truncate font-mono text-stitch-cyan">{analytics.overview.bestEvent ?? "None"}</strong></div>
-        <div className="col-span-2 rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">Consistency</span><strong className="font-mono text-stitch-cyan">{consistencyAverage}/100 {consistencyLabel}</strong></div>
+        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("This month")}</span><strong className="font-mono text-stitch-cyan">{analytics.overview.monthlyImprovement}%</strong></div>
+        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("Strongest")}</span><strong className="truncate font-mono text-stitch-cyan">{analytics.overview.bestEvent ? t(analytics.overview.bestEvent) : t("None")}</strong></div>
+        <div className="col-span-2 rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("Consistency")}</span><strong className="font-mono text-stitch-cyan">{consistencyAverage}/100 {t(consistencyLabel)}</strong></div>
       </div>
     </section>
   );
 }
 
 function EmptyState({ title, body, action, onAction }: { title: string; body: string; action: string; onAction: () => void }) {
-  return <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{title}</h2><p className="mt-4 leading-7 text-white/78">{body}</p><button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onAction}>{action}</button></div></section>;
+  const { t } = useTranslator();
+
+  return <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{t(title)}</h2><p className="mt-4 leading-7 text-white/78">{t(body)}</p><button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onAction}>{t(action)}</button></div></section>;
 }

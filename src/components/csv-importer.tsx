@@ -2,12 +2,14 @@
 
 import { CheckCircle2, Upload, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import { useTranslator } from "@/components/i18n/use-language";
 import { validateSwimCsv, type CsvImportResult } from "@/lib/csv";
 import { formatTime } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { SwimResultKind } from "@/types/swim";
 
 export function CsvImporter() {
+  const { t } = useTranslator();
   const inputRef = useRef<HTMLInputElement>(null);
   const [csv, setCsv] = useState("");
   const [result, setResult] = useState<CsvImportResult>({ validRows: [], errors: [] });
@@ -24,9 +26,9 @@ export function CsvImporter() {
     try {
       const response = await fetch("/api/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv, persist: true, resultKind }) });
       const data = await response.json();
-      if (!response.ok) { setStatus(data.error ?? "Could not import spreadsheet."); return; }
+      if (!response.ok) { setStatus(data.error ?? t("Could not import spreadsheet.")); return; }
       setResult(data);
-      setStatus(`${data.swims?.length ?? 0} results imported.`);
+      setStatus(`${data.swims?.length ?? 0} ${t("results imported.")}`);
       window.location.reload();
     } finally {
       setImporting(false);
@@ -43,8 +45,8 @@ export function CsvImporter() {
     <section className="stitch-panel min-w-0 p-4 lg:p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Import Spreadsheet</h2>
-          <p className="text-sm text-white/70">Upload CSV columns: Date, Event, Time, optional Course, Meet, Type</p>
+          <h2 className="text-lg font-semibold text-white">{t("Import spreadsheet")}</h2>
+          <p className="text-sm text-white/70">{t("Upload CSV columns: Date, Event, Time, optional Course, Meet, Type")}</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -65,7 +67,7 @@ export function CsvImporter() {
             onClick={() => inputRef.current?.click()}
           >
             <Upload aria-hidden className="h-4 w-4" />
-            Upload CSV
+            {t("Upload CSV")}
           </button>
           <button
             className="inline-flex h-10 items-center gap-2 rounded-md bg-white px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan"
@@ -73,11 +75,11 @@ export function CsvImporter() {
             onClick={validate}
           >
             <CheckCircle2 aria-hidden className="h-4 w-4" />
-            Validate
+            {t("Validate")}
           </button>
           <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={importing} type="button" onClick={importRows}>
-            {importing && <KineticLoader className="h-4 text-stitch-abyss" label="Importing spreadsheet" />}
-            {importing ? "Importing" : "Import"}
+            {importing && <KineticLoader className="h-4 text-stitch-abyss" label={t("Importing spreadsheet")} />}
+            {importing ? t("Importing") : t("Import")}
           </button>
         </div>
       </div>
@@ -93,7 +95,7 @@ export function CsvImporter() {
             type="button"
             onClick={() => setResultKind(value as SwimResultKind)}
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
@@ -102,16 +104,16 @@ export function CsvImporter() {
         <textarea
           className="min-h-[180px] w-full resize-y rounded-lg border border-white/10 bg-stitch-abyss p-3 font-mono text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
           value={csv}
-          placeholder={'Date,Event,Time,Type\n2026-03-16,50 Free,25.56,OFFICIAL'}
+          placeholder={t("Date,Event,Time,Type\n2026-03-16,50 Free,25.56,OFFICIAL")}
           onChange={(event) => setCsv(event.target.value)}
         />
         <div className="rounded-lg border border-white/10 bg-white/10 p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">
-                {result.validRows.length} valid rows
+                {result.validRows.length} {t("valid rows")}
               </p>
-              <p className="text-sm text-white/70">{result.errors.length} errors</p>
+              <p className="text-sm text-white/70">{result.errors.length} {t("errors")}</p>
             </div>
             {result.errors.length ? (
               <XCircle aria-hidden className="h-6 w-6 text-coral-500" />
@@ -132,7 +134,7 @@ export function CsvImporter() {
             ))}
             {result.errors.map((error) => (
               <div className="rounded-md bg-coral-400/10 px-3 py-2 text-sm text-coral-500" key={error.row}>
-                Row {error.row}: {error.message}
+                {t("Row")} {error.row}: {t(error.message)}
               </div>
             ))}
           </div>

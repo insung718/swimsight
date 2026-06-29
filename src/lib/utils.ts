@@ -18,16 +18,24 @@ export function dateToDays(date: string) {
   return new Date(date).getTime() / 86_400_000;
 }
 
-export function formatDate(date: string) {
-  return new Intl.DateTimeFormat("en", {
+type SupportedLocale = "en" | "ko" | "vi";
+
+function localeForLanguage(language: SupportedLocale = "en") {
+  if (language === "ko") return "ko-KR";
+  if (language === "vi") return "vi-VN";
+  return "en";
+}
+
+export function formatDate(date: string, language: SupportedLocale = "en") {
+  return new Intl.DateTimeFormat(localeForLanguage(language), {
     month: "short",
     day: "numeric",
     year: "numeric"
   }).format(new Date(date));
 }
 
-export function formatShortDate(date: string) {
-  return new Intl.DateTimeFormat("en", {
+export function formatShortDate(date: string, language: SupportedLocale = "en") {
+  return new Intl.DateTimeFormat(localeForLanguage(language), {
     month: "short",
     day: "numeric"
   }).format(new Date(date));

@@ -1,4 +1,7 @@
+"use client";
+
 import { Activity, ArrowDown, ArrowUp } from "lucide-react";
+import { useTranslator } from "@/components/i18n/use-language";
 import type { EventRanking } from "@/types/swim";
 
 interface EventRankingsProps {
@@ -15,13 +18,15 @@ function RankingList({
   rankings: EventRanking[];
   icon: typeof ArrowUp;
 }) {
+  const { t } = useTranslator();
+
   return (
     <div className="dashboard-glass p-4">
       <div className="mb-4 flex items-center gap-3">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
           <Icon aria-hidden className="h-5 w-5" />
         </span>
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <h2 className="text-lg font-semibold text-white">{t(title)}</h2>
       </div>
       <div className="space-y-3">
         {rankings.map((ranking, index) => (
@@ -32,10 +37,10 @@ function RankingList({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {index + 1}. {ranking.event} <span className="ml-1 font-mono text-xs text-aqua-100">{ranking.course}</span>
+                  {index + 1}. {t(ranking.event)} <span className="ml-1 font-mono text-xs text-aqua-100">{ranking.course}</span>
                 </p>
                 <p className="mt-1 text-xs text-white/74">
-                  {ranking.trend} · {ranking.improvementPercent}% improvement
+                  {t(ranking.trend)} · {ranking.improvementPercent}% {t("improvement")}
                 </p>
               </div>
               <span className="text-lg font-bold text-stitch-cyan">
@@ -56,6 +61,8 @@ function RankingList({
 }
 
 export function EventRankings({ strongestEvents, weakestEvents }: EventRankingsProps) {
+  const { t } = useTranslator();
+
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       <div className="dashboard-glass p-4 text-white">
@@ -64,22 +71,22 @@ export function EventRankings({ strongestEvents, weakestEvents }: EventRankingsP
             <Activity aria-hidden className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold">Event Ranking Model</h2>
-            <p className="text-sm text-white/76">Improvement, consistency, and recent trend</p>
+            <h2 className="text-lg font-semibold">{t("Event Ranking Model")}</h2>
+            <p className="text-sm text-white/76">{t("Improvement, consistency, and recent trend")}</p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-3 gap-3 text-center">
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">40%</div>
-            <div className="mt-1 text-xs text-white/74">Improvement</div>
+            <div className="mt-1 text-xs text-white/74">{t("Improvement")}</div>
           </div>
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">30%</div>
-            <div className="mt-1 text-xs text-white/74">Consistency</div>
+            <div className="mt-1 text-xs text-white/74">{t("Consistency")}</div>
           </div>
           <div className="rounded-md bg-white/[0.12] p-3">
             <div className="text-xl font-bold">30%</div>
-            <div className="mt-1 text-xs text-white/74">Trend</div>
+            <div className="mt-1 text-xs text-white/74">{t("Trend")}</div>
           </div>
         </div>
       </div>

@@ -61,7 +61,7 @@ test("keeps the landing signal graph aligned and translated", async ({ page }) =
   await page.getByRole("button", { name: "KO" }).click();
   await expect(page.getByText("나만을 위한 수영 인텔리전스.")).toBeVisible();
 
-  await page.getByRole("button", { name: "VI" }).click();
+  await page.getByRole("button", { name: "베트남어" }).click();
   await expect(page.getByText("Trí tuệ bơi lội. Cá nhân hóa.")).toBeVisible();
 });
 

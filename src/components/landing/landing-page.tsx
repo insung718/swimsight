@@ -3,9 +3,11 @@ import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { RaceTelemetry } from "@/components/landing/race-telemetry";
 import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
+import { PerspectiveSeasonText } from "@/components/landing/perspective-season-text";
 import { SectionTransition } from "@/components/landing/section-transition";
 import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
 import { SiteNav } from "@/components/landing/site-nav";
+import { StrokeProgressSection } from "@/components/landing/stroke-progress-section";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
 import { MagicBento } from "@/components/ui/magic-bento";
@@ -186,6 +188,7 @@ export function LandingPage() {
       </section>
       <SectionTransition label="from signal to analytics" />
       <RaceTelemetry />
+      <StrokeProgressSection />
       <SectionTransition label="from signal to system" />
 
       <section id="features" className="relative overflow-hidden bg-white py-24 sm:py-36">
@@ -227,6 +230,7 @@ export function LandingPage() {
       </section>
 
       <SeasonDepthCarousel />
+      <PerspectiveSeasonText />
 
       <section className="overflow-hidden bg-[#dff8ff] py-24 sm:py-36">
         <div className="mx-auto max-w-6xl px-5 text-center">
