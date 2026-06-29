@@ -53,7 +53,7 @@ export const friendRequestSchema = z.object({
 
 export const friendActionSchema = z.object({
   friendshipId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
-  action: z.enum(["accept", "block"])
+  action: z.enum(["accept", "block", "remove"])
 }).strict();
 
 export const profileRoleSchema = z.object({

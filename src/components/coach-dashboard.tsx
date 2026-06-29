@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
+import { LanguageToggle } from "@/components/landing/language-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
@@ -43,7 +44,10 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
               <div className="text-xs text-stitch-abyss/55">Team performance workspace</div>
             </span>
           </button>
-          <UserActions />
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <UserActions />
+          </div>
         </div>
       </header>
 

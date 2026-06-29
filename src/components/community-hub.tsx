@@ -4,6 +4,15 @@ import { Building2, UserPlus, UsersRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { CoachClubSummary, CommunitySummary } from "@/types/swim";
 
+type FriendshipRecord = {
+  id: string;
+  requesterId: string;
+  addresseeId: string;
+  status: "PENDING" | "ACCEPTED" | "BLOCKED";
+  requester: { id: string; name: string; imageUrl?: string | null };
+  addressee: { id: string; name: string; imageUrl?: string | null };
+};
+
 const comparisonModes = [
   ["Past self", "Default", "Your current season against your own previous swims."],
   ["Age group", "Optional", "A same-age benchmark when enough private data exists."],
@@ -18,16 +27,19 @@ export function CommunityHub() {
   const [joinCode, setJoinCode] = useState("");
   const [coachClubCode, setCoachClubCode] = useState("");
   const [friendEmail, setFriendEmail] = useState("");
+  const [friendships, setFriendships] = useState<FriendshipRecord[]>([]);
   const [status, setStatus] = useState("");
 
   useEffect(() => {
     Promise.all([
       fetch("/api/communities").then((response) => response.json()),
-      fetch("/api/coach/clubs/join").then((response) => response.json())
+      fetch("/api/coach/clubs/join").then((response) => response.json()),
+      fetch("/api/friends").then((response) => response.json())
     ])
-      .then(([communityData, clubData]) => {
+      .then(([communityData, clubData, friendData]) => {
         setCommunities(communityData.communities ?? []);
         setCoachClubs(clubData.clubs ?? []);
+        setFriendships(friendData.friendships ?? []);
         setStatus("");
       })
       .catch(() => setStatus("Could not load communities."));
@@ -93,6 +105,26 @@ export function CommunityHub() {
     });
     const result = await response.json();
     setStatus(response.ok ? "Friend request sent." : result.error ?? "Could not send request.");
+  }
+
+  async function updateFriendship(friendshipId: string, action: "accept" | "block" | "remove") {
+    const response = await fetch("/api/friends", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ friendshipId, action })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      setStatus(result.error ?? "Could not update friend.");
+      return;
+    }
+    if (action === "remove") {
+      setFriendships((current) => current.filter((friendship) => friendship.id !== friendshipId));
+      setStatus("Friend removed.");
+      return;
+    }
+    setFriendships((current) => current.map((friendship) => friendship.id === friendshipId ? { ...friendship, status: result.friendship.status } : friendship));
+    setStatus(action === "accept" ? "Friend accepted." : "Friend blocked.");
   }
 
   return (
@@ -213,6 +245,33 @@ export function CommunityHub() {
             <div className="mt-1 text-sm text-white/72">{club.memberCount} swimmers · coach club</div>
           </div>
         ))}
+      </div>
+      <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.07] p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-white">Friends</h3>
+            <p className="text-sm text-white/62">Accept, block, or remove connections.</p>
+          </div>
+          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{friendships.length}</span>
+        </div>
+        <div className="mt-4 space-y-2">
+          {friendships.length === 0 && <div className="rounded-md border border-dashed border-white/12 p-4 text-center text-sm text-white/60">No friend requests yet.</div>}
+          {friendships.slice(0, 6).map((friendship) => {
+            return (
+              <article className="flex flex-col gap-3 rounded-md border border-white/10 bg-stitch-abyss/55 p-3 sm:flex-row sm:items-center sm:justify-between" key={friendship.id}>
+                <div>
+                  <p className="font-semibold text-white">{friendship.requester.name} / {friendship.addressee.name}</p>
+                  <p className="text-xs text-white/50">{friendship.status === "ACCEPTED" ? "Accepted" : friendship.status === "PENDING" ? "Pending" : "Blocked"}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {friendship.status === "PENDING" && <button className="h-8 rounded-md bg-stitch-cyan px-3 text-xs font-semibold text-stitch-abyss" type="button" onClick={() => updateFriendship(friendship.id, "accept")}>Accept</button>}
+                  <button className="h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-stitch-cyan" type="button" onClick={() => updateFriendship(friendship.id, "remove")}>Remove</button>
+                  {friendship.status !== "BLOCKED" && <button className="h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-rose-300" type="button" onClick={() => updateFriendship(friendship.id, "block")}>Block</button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

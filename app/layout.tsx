@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { OptionalClerkProvider } from "@/components/auth/optional-clerk-provider";
+import { TranslationLayer } from "@/components/i18n/translation-layer";
 
 export const metadata: Metadata = {
   title: "SwimSight",
@@ -33,6 +34,7 @@ export default function RootLayout({
           }}
         />
         <OptionalClerkProvider>{children}</OptionalClerkProvider>
+        <TranslationLayer />
         <Analytics />
       </body>
     </html>

@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    ignores: [".next/**", "node_modules/**", "playwright-report/**", "coverage/**", "next-env.d.ts"]
+    ignores: [".agents/**", ".codex/**", ".next/**", "node_modules/**", "playwright-report/**", "coverage/**", "next-env.d.ts"]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

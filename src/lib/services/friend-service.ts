@@ -49,15 +49,23 @@ export async function createFriendRequest(input: { requesterId: string; email: s
 export async function updateFriendship(input: {
   userId: string;
   friendshipId: string;
-  action: "accept" | "block";
+  action: "accept" | "block" | "remove";
 }) {
   const friendship = await prisma.friendship.findUnique({
     where: { id: input.friendshipId }
   });
 
-  if (!friendship || friendship.addresseeId !== input.userId) {
+  if (!friendship) {
     return null;
   }
+
+  if (input.action === "remove") {
+    if (friendship.requesterId !== input.userId && friendship.addresseeId !== input.userId) return null;
+    await prisma.friendship.delete({ where: { id: input.friendshipId } });
+    return { ...friendship, status: "BLOCKED" as const };
+  }
+
+  if (friendship.addresseeId !== input.userId) return null;
 
   return prisma.friendship.update({
     where: { id: input.friendshipId },

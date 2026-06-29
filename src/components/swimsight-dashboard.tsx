@@ -2,12 +2,14 @@
 
 import { type ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TrendingUp, Users, Waves } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TrendingUp, UserRound, Users, Waves } from "lucide-react";
+import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
 import { EventRankings } from "@/components/event-rankings";
 import { GoalTracker } from "@/components/goal-tracker";
 import { GymWorkoutPanel } from "@/components/gym-workout-panel";
+import { LanguageToggle } from "@/components/landing/language-toggle";
 import { ManualTimeEntry } from "@/components/manual-time-entry";
 import { MotivationPanel } from "@/components/motivation-panel";
 import { PersonalBestTable } from "@/components/personal-best-table";
@@ -23,7 +25,7 @@ import { FlipText } from "@/components/ui/flip-text";
 import { formatTime } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, GymWorkout, SwimResult } from "@/types/swim";
 
-type DashboardTab = "overview" | "results" | "analytics" | "training" | "goals" | "community";
+type DashboardTab = "overview" | "results" | "analytics" | "training" | "goals" | "community" | "profile";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -31,7 +33,8 @@ const tabs = [
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "training", label: "Training", icon: Dumbbell },
   { id: "goals", label: "Goals & Meets", icon: Target },
-  { id: "community", label: "Community", icon: Users }
+  { id: "community", label: "Community", icon: Users },
+  { id: "profile", label: "Profile", icon: UserRound }
 ] as const;
 
 export function SwimSightDashboard({
@@ -58,7 +61,10 @@ export function SwimSightDashboard({
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
             <span><span className="block font-semibold text-stitch-abyss">SwimSight</span><span className="block text-xs text-stitch-abyss/55">Performance workspace</span></span>
           </button>
-          <UserActions />
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <UserActions />
+          </div>
         </div>
       </header>
 
@@ -70,9 +76,7 @@ export function SwimSightDashboard({
               <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
                 Your season, lit up by the times you enter.
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">
-                Add a swim, set your next meet, and SwimSight turns your race history into trends, goals, predictions, and private comparison.
-              </p>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">Log. Read. Adjust.</p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <QuickAction label="Add result" onClick={() => setActiveTab("results")} />
                 <QuickAction label="Log gym" onClick={() => setActiveTab("training")} secondary />
@@ -99,11 +103,6 @@ export function SwimSightDashboard({
                   <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
                   <SeasonSnapshot overview={overview} prediction={primaryPrediction} trainingLoad={analytics.trainingLoad} onViewPredictions={() => setActiveTab("analytics")} />
                 </section>
-                <section className="grid gap-4 lg:grid-cols-3">
-                  <SpiExplainer analytics={analytics} />
-                  <DataQualityPanel swims={swims} />
-                  <EventIntelligencePanel analytics={analytics} />
-                </section>
                 <ProgressionChart swims={swims} />
               </>
             )}
@@ -111,7 +110,7 @@ export function SwimSightDashboard({
           </DashboardPanel>
         )}
 
-        {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
+        {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ManualTimeEntry swims={swims} /><CsvImporter />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
         {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={swims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={swims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No analytics yet." body="Your charts and predictions will appear after you add race results." action="Add a result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
@@ -120,6 +119,8 @@ export function SwimSightDashboard({
         {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
         {activeTab === "community" && <DashboardPanel><SectionHeading eyebrow="Private comparison" title="Community" /><CommunityHub /></DashboardPanel>}
+
+        {activeTab === "profile" && <DashboardPanel><SectionHeading eyebrow="Athlete page" title="Profile" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /></DashboardPanel>}
       </div>
       <Dock
         items={tabs.map(({ id, label, icon: Icon }) => ({
@@ -259,7 +260,7 @@ function SeasonSnapshot({
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-white">Season intelligence</h2>
-          <p className="mt-1 text-sm text-white/70">A cleaner bento view of what matters first.</p>
+          <p className="mt-1 text-sm text-white/62">What matters first.</p>
         </div>
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-aqua-100">
           {overview.weeklyImprovement}% week
@@ -280,7 +281,7 @@ function SeasonSnapshot({
               <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition group-hover:translate-x-0.5" />
             </div>
             <div className="mt-10 text-3xl font-semibold leading-tight text-white">
-              {prediction ? `${prediction.event} · ${prediction.course}` : "Add a swim to unlock forecasting."}
+              {prediction ? `${prediction.event} · ${prediction.course}` : "Forecast locked."}
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2">
               <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />

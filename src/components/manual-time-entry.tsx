@@ -1,16 +1,17 @@
 "use client";
 
 import { Save } from "lucide-react";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
-import type { Course, SwimEvent } from "@/types/swim";
+import type { Course, SwimEvent, SwimResult } from "@/types/swim";
 
 const courses: Course[] = ["LCM", "SCM", "SCY"];
 
-export function ManualTimeEntry() {
+export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
   const router = useRouter();
   const [date, setDate] = useState("");
   const [event, setEvent] = useState<SwimEvent | "">("");
@@ -18,6 +19,7 @@ export function ManualTimeEntry() {
   const [time, setTime] = useState("");
   const [meetName, setMeetName] = useState("");
   const [status, setStatus] = useState("");
+  const [showConfetti, setShowConfetti] = useState(false);
   const [saving, setSaving] = useState(false);
 
   async function submitTime() {
@@ -36,6 +38,11 @@ export function ManualTimeEntry() {
       timeSeconds,
       meetName
     };
+    const previousBest = swims
+      .filter((swim) => swim.event === event && swim.course === course)
+      .reduce<number | undefined>((best, swim) => (best === undefined || swim.timeSeconds < best ? swim.timeSeconds : best), undefined);
+    const isPersonalBest = previousBest === undefined || timeSeconds < previousBest;
+
     try {
       const response = await fetch("/api/swims", {
         method: "POST",
@@ -45,7 +52,11 @@ export function ManualTimeEntry() {
       const result = await response.json();
 
       if (response.ok) {
-        setStatus("Saved to your SwimSight account.");
+        setStatus(isPersonalBest ? "Personal best saved." : "Saved to your SwimSight account.");
+        if (isPersonalBest) {
+          setShowConfetti(true);
+          window.setTimeout(() => setShowConfetti(false), 10_000);
+        }
         setTime("");
         setMeetName("");
         router.refresh();
@@ -59,6 +70,7 @@ export function ManualTimeEntry() {
 
   return (
     <section className="stitch-panel min-w-0 p-4 lg:p-5">
+      {showConfetti && <PbConfetti />}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Add A Time</h2>
@@ -136,5 +148,23 @@ export function ManualTimeEntry() {
 
       <p className="mt-3 text-sm text-white/72">{status}</p>
     </section>
+  );
+}
+
+function PbConfetti() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-[70] overflow-hidden">
+      {Array.from({ length: 42 }, (_, index) => (
+        <span
+          className="pb-confetti-piece"
+          key={index}
+          style={{
+            "--confetti-delay": `${(index % 12) * 90}ms`,
+            "--confetti-left": `${(index * 23) % 100}%`,
+            "--confetti-rotate": `${(index % 9) * 28}deg`
+          } as CSSProperties}
+        />
+      ))}
+    </div>
   );
 }

@@ -10,3 +10,4 @@ test-results
 prisma/dev.db
 .agents/
 skills-lock.json
+.codex/

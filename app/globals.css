@@ -598,6 +598,41 @@ textarea {
   }
 }
 
+@keyframes pb-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0) rotate(var(--confetti-rotate));
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(24vw, 110vh, 0) rotate(calc(var(--confetti-rotate) + 540deg));
+  }
+}
+
+.pb-confetti-piece {
+  animation: pb-confetti-fall 1800ms cubic-bezier(0.22, 1, 0.36, 1) var(--confetti-delay) both;
+  background: linear-gradient(135deg, #5ee7f5, #ffffff);
+  border-radius: 3px;
+  height: 12px;
+  left: var(--confetti-left);
+  position: absolute;
+  top: -18px;
+  width: 7px;
+  will-change: transform, opacity;
+}
+
+.pb-confetti-piece:nth-child(3n) {
+  background: #b8fbff;
+  width: 10px;
+}
+
+.pb-confetti-piece:nth-child(4n) {
+  background: #061826;
+}
+
 @keyframes flip-text {
   0%,
   100% {
@@ -630,7 +665,8 @@ textarea {
   .dashboard-enter-delayed,
   .depth-card,
   .depth-track,
-  .flip-char {
+  .flip-char,
+  .pb-confetti-piece {
     animation: none;
     opacity: 1;
     transform: none;
