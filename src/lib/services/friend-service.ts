@@ -59,13 +59,16 @@ export async function updateFriendship(input: {
     return null;
   }
 
+  const isParticipant = friendship.requesterId === input.userId || friendship.addresseeId === input.userId;
+
   if (input.action === "remove") {
-    if (friendship.requesterId !== input.userId && friendship.addresseeId !== input.userId) return null;
+    if (!isParticipant) return null;
     await prisma.friendship.delete({ where: { id: input.friendshipId } });
     return { ...friendship, status: "BLOCKED" as const };
   }
 
-  if (friendship.addresseeId !== input.userId) return null;
+  if (input.action === "accept" && friendship.addresseeId !== input.userId) return null;
+  if (input.action === "block" && !isParticipant) return null;
 
   return prisma.friendship.update({
     where: { id: input.friendshipId },

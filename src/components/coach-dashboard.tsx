@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
+import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
@@ -24,6 +25,7 @@ const tabs = [
 ] as const;
 
 export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData }) {
+  const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<CoachTab>("overview");
   const allSwimmers = useMemo(
     () => Array.from(new Map(dashboard.clubs.flatMap((club) => club.swimmers).map((swimmer) => [swimmer.id, swimmer])).values()),
@@ -40,8 +42,8 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
               <Waves aria-hidden className="h-5 w-5" />
             </span>
             <span>
-              <div className="font-semibold text-stitch-abyss">SwimSight Coach</div>
-              <div className="text-xs text-stitch-abyss/55">Team performance workspace</div>
+              <div className="font-semibold text-stitch-abyss">{t("SwimSight Coach")}</div>
+              <div className="text-xs text-stitch-abyss/55">{t("Team performance workspace")}</div>
             </span>
           </button>
           <div className="flex items-center gap-2">
@@ -55,12 +57,12 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
         <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-5 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold text-aqua-600">Coach command center</p>
+              <p className="text-sm font-semibold text-aqua-600">{t("Coach command center")}</p>
               <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
-                Every swimmer, club, goal, and trend in one calm view.
+                {t("Every swimmer, club, goal, and trend in one calm view.")}
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">
-                Create clubs, add swimmers, and see the development signal behind every athlete without losing the premium SwimSight feel.
+                {t("Create clubs, add swimmers, and see the development signal behind every athlete without losing the premium SwimSight feel.")}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <QuickAction label="Create club" onClick={() => setActiveTab("clubs")} />
@@ -136,25 +138,31 @@ function DashboardPanel({ children }: { children: ReactNode }) {
 }
 
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{eyebrow}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={title}>{title}</FlipText></h2></div>;
+  const { t } = useTranslator();
+  const translatedTitle = t(title);
+
+  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
 }
 
 function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
+  const { t } = useTranslator();
+
   return (
     <button className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
-      {label}
+      {t(label)}
       <TrendingUp aria-hidden className="h-4 w-4" />
     </button>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
+  const { t } = useTranslator();
   const numericValue = Number(value);
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
     <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58">
-      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{label}</div>
+      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{t(label)}</div>
       <div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">
         {shouldCount ? (
           <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
@@ -167,6 +175,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
+  const { t } = useTranslator();
+
   return (
     <motion.article animate={{ opacity: 1, scale: 1 }} className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl" initial={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
       <div className="flex items-center justify-between gap-3">
@@ -175,11 +185,11 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
             <UsersRound aria-hidden className="h-5 w-5" />
           </span>
           <div>
-            <p className="text-sm font-semibold">Development spotlight</p>
-            <p className="text-xs text-stitch-abyss/55">{swimmer ? `${swimmer.yearlyImprovement}% yearly improvement` : "Waiting for your first swimmer"}</p>
+            <p className="text-sm font-semibold">{t("Development spotlight")}</p>
+            <p className="text-xs text-stitch-abyss/55">{swimmer ? `${swimmer.yearlyImprovement}% ${t("yearly improvement")}` : t("Waiting for your first swimmer")}</p>
           </div>
         </div>
-        {swimmer && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">SPI {swimmer.swimPowerIndex}</span>}
+        {swimmer && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{t("SPI")} {swimmer.swimPowerIndex}</span>}
       </div>
 
       {swimmer ? (
@@ -190,7 +200,7 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
         </div>
       ) : (
         <div className="mt-5 rounded-lg border border-dashed border-stitch-abyss/15 bg-white/45 p-4 text-sm leading-6 text-stitch-abyss/64">
-          Create a club and add swimmers to unlock coach analytics.
+          {t("Create a club and add swimmers to unlock coach analytics.")}
         </div>
       )}
     </motion.article>
@@ -198,33 +208,39 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
 }
 
 function CoachMini({ label, value }: { label: string; value: string }) {
-  return <div className="min-w-0 rounded-md border border-white/60 bg-white/54 p-3"><div className="text-xs font-semibold uppercase text-stitch-abyss/46">{label}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
+  const { t } = useTranslator();
+
+  return <div className="min-w-0 rounded-md border border-white/60 bg-white/54 p-3"><div className="text-xs font-semibold uppercase text-stitch-abyss/46">{t(label)}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
 }
 
 function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
+  const { t } = useTranslator();
+
   return (
     <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center">
       <div className="max-w-lg">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Building2 aria-hidden className="h-6 w-6" /></div>
-        <h2 className="mt-6 text-3xl font-semibold text-white">Your coach workspace is ready.</h2>
-        <p className="mt-4 leading-7 text-white/78">Create your first swim club, share its join code, and swimmers can connect from their Community tab.</p>
-        <button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onCreate}>Create a club</button>
+        <h2 className="mt-6 text-3xl font-semibold text-white">{t("Your coach workspace is ready.")}</h2>
+        <p className="mt-4 leading-7 text-white/78">{t("Create your first swim club, share its join code, and swimmers can connect from their Community tab.")}</p>
+        <button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onCreate}>{t("Create a club")}</button>
       </div>
     </section>
   );
 }
 
 function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
+  const { t } = useTranslator();
+
   return (
     <section className="dashboard-glass p-5">
-      <h2 className="text-lg font-semibold text-white">Active clubs</h2>
+      <h2 className="text-lg font-semibold text-white">{t("Active clubs")}</h2>
       <div className="mt-4 grid gap-3">
         {clubs.slice(0, 4).map((club) => (
           <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="font-semibold text-white">{club.name}</div>
-                <div className="mt-1 text-sm text-white/62">{club.memberCount} swimmers</div>
+                <div className="mt-1 text-sm text-white/62">{club.memberCount} {t("swimmers")}</div>
               </div>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
             </div>
@@ -236,6 +252,7 @@ function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
 }
 
 function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
+  const { t } = useTranslator();
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -252,7 +269,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
         body: JSON.stringify({ name, description: description || undefined })
       });
       const result = await response.json();
-      setStatus(response.ok ? "Club created." : result.error ?? "Could not create club.");
+      setStatus(response.ok ? t("Club created.") : result.error ? t(result.error) : t("Could not create club."));
       if (response.ok) {
         setName("");
         setDescription("");
@@ -267,39 +284,39 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
     <section className="dashboard-glass p-5">
       <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4">
-          <h2 className="text-lg font-semibold text-white">Create club</h2>
-          <input className="mt-4 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder="Club name" value={name} onChange={(event) => setName(event.target.value)} />
-          <textarea className="mt-3 min-h-24 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder="Optional description" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <h2 className="text-lg font-semibold text-white">{t("Create club")}</h2>
+          <input className="mt-4 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Club name")} value={name} onChange={(event) => setName(event.target.value)} />
+          <textarea className="mt-3 min-h-24 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Optional description")} value={description} onChange={(event) => setDescription(event.target.value)} />
           <button className="mt-3 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={createClub}>
-            {saving ? <KineticLoader className="h-4 text-stitch-abyss" label="Creating club" /> : <Plus aria-hidden className="h-4 w-4" />}
-            {saving ? "Creating" : "Create club"}
+            {saving ? <KineticLoader className="h-4 text-stitch-abyss" label={t("Creating club")} /> : <Plus aria-hidden className="h-4 w-4" />}
+            {saving ? t("Creating") : t("Create club")}
           </button>
           {status && <p className="mt-3 text-sm text-white/72">{status}</p>}
         </div>
         <div className="space-y-3">
-          {clubs.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">No clubs yet.</div>}
+          {clubs.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">{t("No clubs yet.")}</div>}
           {clubs.map((club) => (
             <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="font-semibold text-white">{club.name}</div>
-                  <div className="mt-1 text-sm text-white/58">{club.memberCount} swimmers · share code {club.joinCode}</div>
+                  <div className="mt-1 text-sm text-white/58">{club.memberCount} {t("swimmers")} · {t("share code")} {club.joinCode}</div>
                 </div>
                 <button
                   className="inline-flex h-9 items-center gap-2 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-stitch-cyan"
                   type="button"
                   onClick={() => {
                     navigator.clipboard?.writeText(club.joinCode);
-                    setStatus("Club code copied. Swimmers can join from their Community tab.");
+                    setStatus(t("Club code copied. Swimmers can join from their Community tab."));
                   }}
                 >
                   <Copy aria-hidden className="h-4 w-4" />
-                  Copy code
+                  {t("Copy code")}
                 </button>
               </div>
               <div className="mt-3 flex items-start gap-2 rounded-md border border-aqua-200/15 bg-aqua-300/10 p-3 text-sm leading-6 text-white/68">
                 <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-aqua-100" />
-                Swimmers must join with this code before their times and goals appear here.
+                {t("Swimmers must join with this code before their times and goals appear here.")}
               </div>
             </div>
           ))}
@@ -310,32 +327,34 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
 }
 
 function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
+  const { t } = useTranslator();
+
   return (
     <section className="dashboard-glass min-w-0 overflow-hidden p-5">
       {swimmers.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">Add swimmers to a club to see roster analytics.</div>
+        <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">{t("Add swimmers to a club to see roster analytics.")}</div>
       ) : (
         <div className="max-w-full overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-white/15 text-xs uppercase text-white/58">
-                <th className="py-3 pr-3 font-semibold">Swimmer</th>
-                <th className="px-3 py-3 font-semibold">Strongest</th>
-                <th className="px-3 py-3 font-semibold">SPI</th>
-                <th className="px-3 py-3 font-semibold">Consistency</th>
-                <th className="px-3 py-3 font-semibold">Yearly</th>
-                <th className="py-3 pl-3 font-semibold">Latest</th>
+                <th className="py-3 pr-3 font-semibold">{t("Swimmer")}</th>
+                <th className="px-3 py-3 font-semibold">{t("Strongest")}</th>
+                <th className="px-3 py-3 font-semibold">{t("SPI")}</th>
+                <th className="px-3 py-3 font-semibold">{t("Consistency")}</th>
+                <th className="px-3 py-3 font-semibold">{t("Yearly")}</th>
+                <th className="py-3 pl-3 font-semibold">{t("Latest")}</th>
               </tr>
             </thead>
             <tbody>
               {swimmers.map((swimmer) => (
                 <tr className="border-b border-white/10 last:border-0" key={swimmer.id}>
-                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">Joined {new Date(swimmer.joinedAt).toLocaleDateString()}</div></td>
-                  <td className="px-3 py-3 text-white/72">{swimmer.strongestEvent ?? "No event yet"}</td>
+                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">{t("Joined")} {new Date(swimmer.joinedAt).toLocaleDateString()}</div></td>
+                  <td className="px-3 py-3 text-white/72">{swimmer.strongestEvent ?? t("No event yet")}</td>
                   <td className="px-3 py-3 font-mono font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</td>
                   <td className="px-3 py-3 text-white/72">{Math.round(swimmer.consistencyScore)}</td>
                   <td className="px-3 py-3 text-mint-200">{swimmer.yearlyImprovement}%</td>
-                  <td className="py-3 pl-3 text-white/72">{swimmer.latestResult ? `${swimmer.latestResult.event} ${swimmer.latestResult.course} · ${formatTime(swimmer.latestResult.timeSeconds)}` : "No result"}</td>
+                  <td className="py-3 pl-3 text-white/72">{swimmer.latestResult ? `${swimmer.latestResult.event} ${swimmer.latestResult.course} · ${formatTime(swimmer.latestResult.timeSeconds)}` : t("No result")}</td>
                 </tr>
               ))}
             </tbody>
@@ -347,16 +366,17 @@ function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
 }
 
 function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
+  const { t } = useTranslator();
   const ranked = [...swimmers].sort((a, b) => b.swimPowerIndex - a.swimPowerIndex || b.yearlyImprovement - a.yearlyImprovement);
 
   return (
     <section className="dashboard-glass p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Swimmer ranking</h2>
-          <p className="mt-1 text-sm text-white/64">Ranked by SPI first, then yearly improvement. Use this as a coaching signal, not a public ego board.</p>
+          <h2 className="text-lg font-semibold text-white">{t("Swimmer ranking")}</h2>
+          <p className="mt-1 text-sm text-white/64">{t("Ranked by SPI first, then yearly improvement. Use this as a coaching signal, not a public ego board.")}</p>
         </div>
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{ranked.length} swimmers</span>
+        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{ranked.length} {t("swimmers")}</span>
       </div>
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
         {ranked.slice(0, 6).map((swimmer, index) => (
@@ -365,26 +385,27 @@ function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }
               <div>
                 <p className="font-mono text-xs font-semibold text-aqua-100">#{index + 1}</p>
                 <h3 className="mt-2 font-semibold text-white">{swimmer.name}</h3>
-                <p className="mt-1 text-sm text-white/58">{swimmer.strongestEvent ?? "No strongest event yet"}</p>
+                <p className="mt-1 text-sm text-white/58">{swimmer.strongestEvent ?? t("No strongest event yet")}</p>
               </div>
               <div className="text-right">
                 <div className="font-mono text-2xl font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</div>
-                <div className="text-xs text-white/48">SPI</div>
+                <div className="text-xs text-white/48">{t("SPI")}</div>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">Yearly</span><strong className="font-mono text-mint-200">{swimmer.yearlyImprovement}%</strong></div>
-              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">Swims</span><strong className="font-mono text-white">{swimmer.totalSwims}</strong></div>
+              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">{t("Yearly")}</span><strong className="font-mono text-mint-200">{swimmer.yearlyImprovement}%</strong></div>
+              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">{t("Swims")}</span><strong className="font-mono text-white">{swimmer.totalSwims}</strong></div>
             </div>
           </article>
         ))}
-        {!ranked.length && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72 lg:col-span-3">Swimmer rankings appear after athletes join and log results.</div>}
+        {!ranked.length && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72 lg:col-span-3">{t("Swimmer rankings appear after athletes join and log results.")}</div>}
       </div>
     </section>
   );
 }
 
 function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimmerAnalytics[]; expanded?: boolean }) {
+  const { t } = useTranslator();
   const defaultSwimmer = useMemo(() => [...swimmers].sort((a, b) => b.progression.length - a.progression.length)[0], [swimmers]);
   const [selectedSwimmerId, setSelectedSwimmerId] = useState(defaultSwimmer?.id ?? "all");
   const [selectedEvent, setSelectedEvent] = useState<SwimEvent | "all">("all");
@@ -405,30 +426,30 @@ function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimm
     <section className="dashboard-glass min-w-0 p-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Development graph</h2>
-          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name}'s filtered logged results` : "Add swimmers with results to populate this graph."}</p>
+          <h2 className="text-lg font-semibold text-white">{t("Development graph")}</h2>
+          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name} · ${t("filtered logged results")}` : t("Add swimmers with results to populate this graph.")}</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <CoachSelect label="Swimmer" value={selectedSwimmerId} onChange={setSelectedSwimmerId}>
-            <option value="all">Most active</option>
+            <option value="all">{t("Most active")}</option>
             {swimmers.map((swimmer) => <option key={swimmer.id} value={swimmer.id}>{swimmer.name}</option>)}
           </CoachSelect>
           <CoachSelect label="Event" value={selectedEvent} onChange={(value) => setSelectedEvent(value as SwimEvent | "all")}>
-            <option value="all">All events</option>
+            <option value="all">{t("All events")}</option>
             {eventOptions.map((event) => <option key={event} value={event}>{event}</option>)}
           </CoachSelect>
           <CoachSelect label="Course" value={selectedCourse} onChange={(value) => setSelectedCourse(value as Course | "all")}>
-            <option value="all">All courses</option>
+            <option value="all">{t("All courses")}</option>
             {courseOptions.map((course) => <option key={course} value={course}>{course}</option>)}
           </CoachSelect>
           <CoachSelect label="Year" value={selectedYear} onChange={setSelectedYear}>
-            <option value="all">All years</option>
+            <option value="all">{t("All years")}</option>
             {yearOptions.map((year) => <option key={year} value={year}>{year}</option>)}
           </CoachSelect>
         </div>
       </div>
       <div className="mt-4 flex justify-end">
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{data.length} points</span>
+        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{data.length} {t("points")}</span>
       </div>
       <div className={`${expanded ? "h-[460px]" : "h-[320px]"} mt-5`}>
         {data.length > 1 ? (
@@ -447,7 +468,7 @@ function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimm
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-white/12 bg-white/[0.05] text-sm text-white/72">Need at least two results from one swimmer.</div>
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-white/12 bg-white/[0.05] px-4 text-center text-sm text-white/72">{t("Need at least two results from one swimmer.")}</div>
         )}
       </div>
     </section>
@@ -465,9 +486,11 @@ function CoachSelect({
   onChange: (value: string) => void;
   value: string;
 }) {
+  const { t } = useTranslator();
+
   return (
     <label className="min-w-0">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-white/44">{label}</span>
+      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-white/44">{t(label)}</span>
       <select
         className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
         value={value}

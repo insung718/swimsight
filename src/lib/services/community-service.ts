@@ -221,6 +221,40 @@ export async function compareTwoMembers(input: {
   userId: string;
   friendId: string;
 }): Promise<FriendComparison | null> {
+  if (input.userId === input.friendId) {
+    return null;
+  }
+
+  const [acceptedFriendship, sharedCommunity] = await Promise.all([
+    prisma.friendship.findFirst({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { requesterId: input.userId, addresseeId: input.friendId },
+          { requesterId: input.friendId, addresseeId: input.userId }
+        ]
+      },
+      select: { id: true }
+    }),
+    prisma.communityMembership.findFirst({
+      where: {
+        userId: input.userId,
+        community: {
+          memberships: {
+            some: {
+              userId: input.friendId
+            }
+          }
+        }
+      },
+      select: { id: true }
+    })
+  ]);
+
+  if (!acceptedFriendship && !sharedCommunity) {
+    return null;
+  }
+
   const users = await prisma.user.findMany({
     where: {
       id: {
