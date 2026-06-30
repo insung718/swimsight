@@ -267,7 +267,7 @@ function PredictionExpandedCard({
                 <div>
                   <h4 className="text-lg font-semibold text-white">{t("Forecast readout")}</h4>
                   <p className="mt-1 max-w-2xl text-sm leading-6 text-white/66">
-                    {t("Predictions stay conservative and update as more official meet results are added.")}
+                    {t("Predictions stay grounded and update as more official meet results are added.")}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-mint-300/20 bg-mint-300/10 px-3 py-1 text-sm font-semibold text-mint-100">

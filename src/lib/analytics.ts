@@ -240,6 +240,15 @@ function priorConfidenceAdjustment(prior?: PredictionPrior) {
   return -2;
 }
 
+function priorProjectedSlope(prior: PredictionPrior | undefined, currentTime: number) {
+  if (!prior || prior.annualImprovementCap <= 0 || prior.slopeSecondsPerDay >= 0) {
+    return 0;
+  }
+
+  const annualFraction = clamp(prior.annualImprovementCap * 0.72, 0.006, 0.075);
+  return -(currentTime * annualFraction) / 365;
+}
+
 function dampedSlope(slope: number, confidence: number, trainingSignal: TrainingLoadSignal) {
   const reliability = clamp((confidence - 28) / 64, 0, 1);
 
@@ -248,6 +257,36 @@ function dampedSlope(slope: number, confidence: number, trainingSignal: Training
   }
 
   return slope * clamp(0.25 + reliability * 0.35, 0.25, 0.6);
+}
+
+function blendedPredictionSlope({
+  confidence,
+  currentTime,
+  personalSlope,
+  prior,
+  sampleSize,
+  trainingSignal
+}: {
+  confidence: number;
+  currentTime: number;
+  personalSlope: number;
+  prior?: PredictionPrior;
+  sampleSize: number;
+  trainingSignal: TrainingLoadSignal;
+}) {
+  const personal = dampedSlope(personalSlope, confidence, trainingSignal);
+  const priorSlope = priorProjectedSlope(prior, currentTime);
+
+  if (priorSlope >= 0) {
+    return personal;
+  }
+
+  const sampleWeight =
+    sampleSize <= 1 ? 0.16 : sampleSize === 2 ? 0.24 : sampleSize <= 4 ? 0.16 : 0.06;
+  const confidenceWeight = clamp(confidence / 72, 0.35, 1);
+  const priorWeight = sampleWeight * confidenceWeight;
+
+  return personal * (1 - priorWeight) + priorSlope * priorWeight;
 }
 
 export function calculateConsistencyScore(swims: SwimResult[]) {
@@ -294,6 +333,16 @@ function trendScore(swims: SwimResult[]) {
 
 function improvementScore(improvementPercent: number) {
   return round(clamp(improvementPercent * 11), 1);
+}
+
+function performanceScore(timeSeconds: number, event: SwimEvent, course: Course) {
+  const recordFloor = getRecordFloor(event, course);
+  if (!recordFloor) {
+    return 50;
+  }
+
+  const worldClassRatio = timeSeconds / recordFloor;
+  return round(clamp(116 - (worldClassRatio - 1) * 82, 10, 100), 1);
 }
 
 function recentProgressPercent(swims: SwimResult[]) {
@@ -359,13 +408,19 @@ export function rankEvents(swims: SwimResult[]) {
       swim.timeSeconds < fastest.timeSeconds ? swim : fastest
     );
     const improvementPercent = round(((first.timeSeconds - best.timeSeconds) / first.timeSeconds) * 100, 2);
+    const eventPerformanceScore = performanceScore(best.timeSeconds, first.event, first.course);
     const consistencyScore = calculateConsistencyScore(sorted);
     const eventTrendScore = trendScore(sorted);
     const eventRecentProgress = recentProgressPercent(sorted);
-    const score = round(
+    const developmentScore = round(
       improvementScore(improvementPercent) * 0.4 +
         consistencyScore * 0.3 +
         eventTrendScore * 0.3,
+      1
+    );
+    const score = round(
+      eventPerformanceScore * 0.55 +
+        developmentScore * 0.45,
       1
     );
 
@@ -373,6 +428,7 @@ export function rankEvents(swims: SwimResult[]) {
       event: first.event,
       course: first.course,
       score,
+      performanceScore: eventPerformanceScore,
       improvementPercent,
       consistencyScore,
       trend: detectTrend(sorted),
@@ -453,7 +509,14 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
   const prior = getPredictionPrior(latest.event, latest.course);
   const baseConfidence = predictionConfidence(sorted.length, consistencyScore, slope);
   const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment + priorConfidenceAdjustment(prior)), 1);
-  const adjustedSlope = dampedSlope(slope, confidence, trainingSignal);
+  const adjustedSlope = blendedPredictionSlope({
+    confidence,
+    currentTime: latest.timeSeconds,
+    personalSlope: slope,
+    prior,
+    sampleSize: sorted.length,
+    trainingSignal
+  });
 
   const project = (days: number) => {
     const predicted = latest.timeSeconds + adjustedSlope * days;
@@ -511,7 +574,14 @@ export function calculateGoalProjection(swims: SwimResult[], goal: Goal): GoalPr
   const consistencyScore = calculateConsistencyScore(eventSwims);
   const prior = getPredictionPrior(latest.event, latest.course);
   const confidence = clamp(predictionConfidence(eventSwims.length, consistencyScore, slope) + priorConfidenceAdjustment(prior), 0, 100);
-  const adjustedSlope = dampedSlope(slope, confidence, neutralTrainingSignal);
+  const adjustedSlope = blendedPredictionSlope({
+    confidence,
+    currentTime: latest.timeSeconds,
+    personalSlope: slope,
+    prior,
+    sampleSize: eventSwims.length,
+    trainingSignal: neutralTrainingSignal
+  });
   const daysRemaining = Math.max(dateToDays(goal.targetDate) - dateToDays(latest.date), 1);
   const weeksRemaining = daysRemaining / 7;
   const monthsRemaining = daysRemaining / 30.44;
@@ -548,26 +618,28 @@ function calculateSwimPowerIndex(rankings: EventRanking[]): SwimPowerIndex {
   const averageConsistency =
     rankings.reduce((sum, ranking) => sum + ranking.consistencyScore, 0) / rankings.length;
   const averageTrend = rankings.reduce((sum, ranking) => sum + ranking.trendScore, 0) / rankings.length;
+  const bestImprovement = Math.max(...rankings.map((ranking) => ranking.improvementPercent));
   const score = round(
-    improvementScore(strongest.improvementPercent) * 0.4 +
-      averageConsistency * 0.3 +
-      averageTrend * 0.3,
+    strongest.performanceScore * 0.45 +
+      improvementScore(bestImprovement) * 0.2 +
+      averageConsistency * 0.18 +
+      averageTrend * 0.17,
     1
   );
 
-  if (score >= 90) {
+  if (score >= 88) {
     return { score, level: "National Level" };
   }
 
-  if (score >= 80) {
+  if (score >= 76) {
     return { score, level: "Elite" };
   }
 
-  if (score >= 65) {
+  if (score >= 56) {
     return { score, level: "Competitive" };
   }
 
-  if (score >= 45) {
+  if (score >= 34) {
     return { score, level: "Developing" };
   }
 

@@ -464,6 +464,9 @@ function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
   const consistencyAverage = analytics.rankings.length
     ? Math.round(analytics.rankings.reduce((sum, ranking) => sum + ranking.consistencyScore, 0) / analytics.rankings.length)
     : 0;
+  const performanceAverage = analytics.rankings.length
+    ? Math.round(analytics.rankings.reduce((sum, ranking) => sum + ranking.performanceScore, 0) / analytics.rankings.length)
+    : 0;
   const consistencyLabel = consistencyAverage >= 80 ? "bonus" : consistencyAverage >= 60 ? "neutral" : "penalty";
 
   return (
@@ -482,7 +485,7 @@ function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
         {t("Swim Power Index combines speed, improvement rate, consistency, and event difficulty into one 0-100 performance score.")}
       </p>
       <div className="mt-5 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("This month")}</span><strong className="font-mono text-stitch-cyan">{analytics.overview.monthlyImprovement}%</strong></div>
+        <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("Speed score")}</span><strong className="font-mono text-stitch-cyan">{performanceAverage}/100</strong></div>
         <div className="rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("Strongest")}</span><strong className="truncate font-mono text-stitch-cyan">{analytics.overview.bestEvent ? t(analytics.overview.bestEvent) : t("None")}</strong></div>
         <div className="col-span-2 rounded-md bg-white/[0.10] p-3"><span className="block text-white/48">{t("Consistency")}</span><strong className="font-mono text-stitch-cyan">{consistencyAverage}/100 {t(consistencyLabel)}</strong></div>
       </div>

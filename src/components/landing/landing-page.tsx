@@ -16,7 +16,7 @@ const features = [
   [BarChart3, "01", "See every race become progress.", "Personal bests, event trends, consistency, and future projections update from the times you actually enter."],
   [CalendarDays, "02", "Train toward something real.", "Set a goal, add your next meet, and understand the pace required to arrive ready."],
   [Users, "03", "Compare without the noise.", "Start with your past self, then compare inside private teams, age groups, or anonymous percentile views."],
-  [ShieldCheck, "04", "Trust the signal.", "Data-quality warnings, conservative predictions, and private access keep analytics useful for swimmers and school teams."]
+  [ShieldCheck, "04", "Trust the signal.", "Data-quality warnings, grounded predictions, and private access keep analytics useful for swimmers and school teams."]
 ] as const;
 
 const bentoCards = features.map(([Icon, number, title, description]) => ({

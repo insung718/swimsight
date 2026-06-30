@@ -76,6 +76,16 @@ describe("analytics engine", () => {
     expect(analytics.trainingLoad.label).toBe("No gym data");
   });
 
+  it("does not classify a fast national-level single result as beginner", () => {
+    const analytics = buildDashboardAnalytics([
+      { id: "fast-1", userId: "u1", date: "2026-06-01", event: "50 Freestyle", course: "LCM", timeSeconds: 25.56, meetName: "National Meet", resultKind: "OFFICIAL" }
+    ]);
+
+    expect(analytics.rankings[0].performanceScore).toBeGreaterThan(90);
+    expect(analytics.swimPowerIndex.score).toBeGreaterThanOrEqual(56);
+    expect(analytics.swimPowerIndex.level).toBe("Competitive");
+  });
+
   it("uses gym training load as a conservative prediction signal", () => {
     const workouts: GymWorkout[] = [
       { id: "gym-1", userId: "user-1", date: "2026-04-01", workoutType: "STRENGTH", durationMinutes: 45, intensity: 6, focus: "Pull strength", notes: null, trainingLoad: 270 },
@@ -98,7 +108,8 @@ describe("analytics engine", () => {
     expect(analytics.predictions).toHaveLength(1);
     expect(analytics.predictions[0].event).toBe(sampleSwims[0].event);
     expect(analytics.predictions[0].confidence).toBe(43);
-    expect(analytics.predictions[0].predictedTimes.days365).toBe(sampleSwims[0].timeSeconds);
+    expect(analytics.predictions[0].predictedTimes.days365).toBeLessThan(sampleSwims[0].timeSeconds);
+    expect(sampleSwims[0].timeSeconds - analytics.predictions[0].predictedTimes.days365).toBeLessThan(0.25);
   });
 
   it("caps aggressive forecasts so predictions stay realistic", () => {

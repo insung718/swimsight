@@ -8,7 +8,7 @@ const seasonStatements = [
   "Official times stay official.",
   "Training times stay separate.",
   "Goals keep the pace honest.",
-  "Predictions stay conservative.",
+  "Predictions stay grounded.",
   "Coach views require consent.",
   "Progress becomes easier to trust."
 ] as const;

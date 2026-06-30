@@ -34,9 +34,9 @@ export function SwimPowerIndexPanel({ spi }: { spi: SwimPowerIndex }) {
         <span>{t("Elite")}</span>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] uppercase tracking-[0.12em] text-white/52">
-        <span>{t("40% improvement")}</span>
-        <span>{t("30% consistency")}</span>
-        <span>{t("30% trend")}</span>
+        <span>{t("45% speed")}</span>
+        <span>{t("20% improvement")}</span>
+        <span>{t("35% stability")}</span>
       </div>
     </section>
   );

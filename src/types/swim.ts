@@ -94,6 +94,7 @@ export interface EventRanking {
   event: SwimEvent;
   course: Course;
   score: number;
+  performanceScore: number;
   improvementPercent: number;
   consistencyScore: number;
   trend: TrendLabel;
