@@ -4,7 +4,7 @@ import { rankEvents } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
-import type { CommunityMember, CommunitySummary, FriendComparison, SwimEvent } from "@/types/swim";
+import type { CommunityMember, CommunitySummary, Course, FriendComparison, SwimEvent } from "@/types/swim";
 
 const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -100,7 +100,8 @@ export async function joinCommunity(input: { userId: string; joinCode: string })
   if (!community) {
     return null;
   }
-  if (community.ownerId === input.userId) {
+  const currentMembership = community.memberships.find((membership) => membership.userId === input.userId);
+  if (community.ownerId === input.userId || currentMembership?.role === "OWNER") {
     throw new CannotJoinOwnedGroupError("community");
   }
 
@@ -195,7 +196,7 @@ export async function getCommunityComparison(communityId: string, userId: string
               imageUrl: true,
               age: true,
               swims: {
-                orderBy: { date: "asc" },
+                orderBy: [{ date: "asc" }, { createdAt: "asc" }],
                 take: 2_000
               }
             }
@@ -269,7 +270,8 @@ export async function compareTwoMembers(input: {
       imageUrl: true,
       age: true,
       swims: {
-        orderBy: { date: "asc" }
+        orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+        take: 2_000
       }
     }
   });
@@ -280,25 +282,30 @@ export async function compareTwoMembers(input: {
     return null;
   }
 
-  const bestByEvent = (swims: typeof user.swims) => {
-    return swims.reduce<Map<SwimEvent, number>>((bestTimes, swim) => {
+  const bestByEventCourse = (swims: typeof user.swims) => {
+    return swims.reduce<Map<string, { event: SwimEvent; course: Course; timeSeconds: number }>>((bestTimes, swim) => {
       const event = fromPrismaEvent(swim.event);
-      const existing = bestTimes.get(event);
-      if (!existing || swim.timeSeconds < existing) {
-        bestTimes.set(event, swim.timeSeconds);
+      const course = swim.course as Course;
+      const key = `${event}__${course}`;
+      const existing = bestTimes.get(key);
+      if (!existing || swim.timeSeconds < existing.timeSeconds) {
+        bestTimes.set(key, { event, course, timeSeconds: swim.timeSeconds });
       }
       return bestTimes;
     }, new Map());
   };
-  const userBest = bestByEvent(user.swims);
-  const friendBest = bestByEvent(friend.swims);
+  const userBest = bestByEventCourse(user.swims);
+  const friendBest = bestByEventCourse(friend.swims);
   const sharedEvents = Array.from(userBest.keys())
-    .filter((event) => friendBest.has(event))
-    .map((event) => {
-      const userTime = userBest.get(event) ?? 0;
-      const friendTime = friendBest.get(event) ?? 0;
+    .filter((eventCourse) => friendBest.has(eventCourse))
+    .map((eventCourse) => {
+      const userResult = userBest.get(eventCourse)!;
+      const friendResult = friendBest.get(eventCourse)!;
+      const userTime = userResult.timeSeconds;
+      const friendTime = friendResult.timeSeconds;
       return {
-        event,
+        event: userResult.event,
+        course: userResult.course,
         userBest: userTime,
         friendBest: friendTime,
         gapSeconds: Math.round((userTime - friendTime) * 100) / 100

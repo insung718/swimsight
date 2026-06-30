@@ -67,7 +67,7 @@ export async function updateFriendship(input: {
     return { ...friendship, status: "BLOCKED" as const };
   }
 
-  if (input.action === "accept" && friendship.addresseeId !== input.userId) return null;
+  if (input.action === "accept" && (friendship.addresseeId !== input.userId || friendship.status !== "PENDING")) return null;
   if (input.action === "block" && !isParticipant) return null;
 
   return prisma.friendship.update({

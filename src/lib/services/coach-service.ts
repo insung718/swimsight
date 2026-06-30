@@ -244,7 +244,8 @@ export async function joinCoachClub(input: { userId: string; joinCode: string })
   });
 
   if (!team) return null;
-  if (team.ownerId === input.userId) {
+  const currentMembership = team.memberships.find((membership) => membership.userId === input.userId);
+  if (team.ownerId === input.userId || currentMembership?.role === "OWNER" || currentMembership?.role === "COACH") {
     throw new CannotJoinOwnedGroupError("coach club");
   }
 

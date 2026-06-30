@@ -49,6 +49,7 @@ model SwimResult {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, event, date])
+  @@index([userId, resultKind, date])
 }
 
 model Goal {
@@ -104,6 +105,7 @@ model TeamMembership {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
+  @@index([userId, role])
 }
 
 model Community {
@@ -148,6 +150,7 @@ model Friendship {
   addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
 
   @@unique([requesterId, addresseeId])
+  @@index([requesterId, status])
   @@index([addresseeId, status])
 }
 

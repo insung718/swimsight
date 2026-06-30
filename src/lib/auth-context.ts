@@ -12,6 +12,10 @@ export interface AuthContext {
   onboardingCompleted: boolean;
 }
 
+function isVerifiedEmail(emailAddress: NonNullable<Awaited<ReturnType<typeof currentUser>>>["emailAddresses"][number]) {
+  return emailAddress.verification?.status === "verified";
+}
+
 export async function getAuthContext(): Promise<AuthContext | null> {
   if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
     return null;
@@ -24,9 +28,11 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   }
 
   const clerkUser = await currentUser();
-  const email =
-    clerkUser?.primaryEmailAddress?.emailAddress ??
-    clerkUser?.emailAddresses[0]?.emailAddress;
+  const verifiedEmail =
+    clerkUser?.primaryEmailAddress && isVerifiedEmail(clerkUser.primaryEmailAddress)
+      ? clerkUser.primaryEmailAddress
+      : clerkUser?.emailAddresses.find(isVerifiedEmail);
+  const email = verifiedEmail?.emailAddress;
   if (!email) return null;
   const name =
     clerkUser?.fullName ||
@@ -47,29 +53,36 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   const userByClerkId = await prisma.user.findUnique({
     where: { clerkId: authResult.userId }
   });
-  const user = userByClerkId
-    ? await prisma.user.update({
-        where: { id: userByClerkId.id },
-        data: {
-          email,
-          name,
-          imageUrl: clerkUser?.imageUrl
-        }
-      })
-    : await prisma.user.upsert({
-        where: { email },
-        update: {
-          clerkId: authResult.userId,
-          name,
-          imageUrl: clerkUser?.imageUrl
-        },
-        create: {
-          clerkId: authResult.userId,
-          email,
-          name,
-          imageUrl: clerkUser?.imageUrl
-        }
-      });
+  let user;
+  if (userByClerkId) {
+    const emailOwner = await prisma.user.findFirst({
+      where: { email, id: { not: userByClerkId.id } },
+      select: { id: true }
+    });
+    user = await prisma.user.update({
+      where: { id: userByClerkId.id },
+      data: {
+        ...(emailOwner ? {} : { email }),
+        name,
+        imageUrl: clerkUser?.imageUrl
+      }
+    });
+  } else {
+    user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        clerkId: authResult.userId,
+        name,
+        imageUrl: clerkUser?.imageUrl
+      },
+      create: {
+        clerkId: authResult.userId,
+        email,
+        name,
+        imageUrl: clerkUser?.imageUrl
+      }
+    });
+  }
   const trustedRole = resolveTrustedRole(user.role, user.email);
 
   if (trustedRole !== user.role) {

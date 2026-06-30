@@ -240,6 +240,7 @@ export interface FriendComparison {
   friend: CommunityMember;
   sharedEvents: {
     event: SwimEvent;
+    course: Course;
     userBest: number;
     friendBest: number;
     gapSeconds: number;

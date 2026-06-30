@@ -67,10 +67,24 @@ describe("community comparison privacy", () => {
     expect(result?.sharedEvents).toEqual([
       {
         event: "50 Freestyle",
+        course: "LCM",
         userBest: 25.5,
         friendBest: 26.1,
         gapSeconds: -0.6
       }
     ]);
+  });
+
+  it("does not compare swims across different course types", async () => {
+    prismaMock.friendship.findFirst.mockResolvedValueOnce({ id: "friendship_1" });
+    prismaMock.communityMembership.findFirst.mockResolvedValueOnce(null);
+    prismaMock.user.findMany.mockResolvedValueOnce([
+      { id: "user_1", name: "Athlete", imageUrl: null, swims: [userSwim] },
+      { id: "user_2", name: "Friend", imageUrl: null, swims: [{ ...friendSwim, course: "SCM" }] }
+    ]);
+
+    const result = await compareTwoMembers({ userId: "user_1", friendId: "user_2" });
+
+    expect(result?.sharedEvents).toEqual([]);
   });
 });
