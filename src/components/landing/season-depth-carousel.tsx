@@ -136,14 +136,14 @@ export function SeasonDepthCarousel() {
         className="absolute top-24 h-80 w-80 rounded-full bg-aqua-300/26 blur-3xl"
         style={{ left: haloX }}
       />
-      <div className="relative mx-auto flex max-w-[1500px] flex-col justify-start px-5 py-16 sm:py-24 lg:min-h-[calc(100svh-3rem)] lg:justify-center">
+      <div className="relative mx-auto flex max-w-[1500px] flex-col justify-start px-4 py-16 sm:px-5 sm:py-24 lg:min-h-[calc(100svh-3rem)] lg:justify-center">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
             <div className="relative z-10 max-w-xl">
               <p className="text-sm font-semibold text-cyan-700">Interactive season model</p>
-              <h2 id="season-depth-heading" className="mt-4 text-balance text-4xl font-semibold leading-[0.98] sm:text-6xl lg:text-7xl">
+              <h2 id="season-depth-heading" className="mt-4 text-balance text-[2.75rem] font-semibold leading-[0.98] sm:text-6xl lg:text-7xl">
                 A season you can move through.
               </h2>
-              <p className="mt-6 text-base leading-7 text-black/62 sm:text-lg sm:leading-8">
+              <p className="mt-5 text-base leading-7 text-black/64 sm:mt-6 sm:text-lg sm:leading-8">
                 From first entry to meet day, SwimSight turns your training into one cinematic path: data in, signal out, teammates connected, goals in view.
               </p>
             </div>
@@ -167,11 +167,11 @@ export function SeasonDepthCarousel() {
           </div>
 
           <div
-            className="depth-scroller relative z-10 mt-14 overflow-x-auto pb-3 lg:mt-16"
+            className="depth-scroller relative z-10 -mx-4 mt-10 overflow-x-auto px-4 pb-3 sm:-mx-5 sm:px-5 lg:mx-0 lg:mt-16 lg:px-0"
             ref={trackRef}
             onScroll={updateTrackProgress}
           >
-            <motion.div className="depth-track flex flex-col gap-4 lg:w-max lg:flex-row lg:gap-5">
+            <motion.div className="depth-track flex w-max snap-x snap-mandatory flex-row gap-3 lg:gap-5">
               {stages.map((stage, index) => (
                 <DepthCard index={index} isDesktop={isDesktop} key={stage.title} progress={smoothProgress}>
                   <div className="flex items-center justify-between gap-4">
@@ -188,11 +188,11 @@ export function SeasonDepthCarousel() {
                       {stage.metric}
                     </span>
                   </div>
-                  <h3 className="mt-16 max-w-sm text-balance text-4xl font-semibold leading-[0.96] text-[#101820] sm:text-5xl lg:mt-20">
+                  <h3 className="mt-12 max-w-sm text-balance text-3xl font-semibold leading-[0.98] text-[#101820] sm:mt-16 sm:text-5xl lg:mt-20">
                     {stage.title}
                   </h3>
-                  <p className="mt-6 max-w-md text-base leading-7 text-black/62">{stage.body}</p>
-                  <div className="mt-10 h-28 overflow-hidden rounded-lg border border-white/70 bg-[#061827] p-4 shadow-inner">
+                  <p className="mt-5 max-w-md text-sm leading-6 text-black/64 sm:mt-6 sm:text-base sm:leading-7">{stage.body}</p>
+                  <div className="mt-8 h-24 overflow-hidden rounded-lg border border-white/70 bg-[#061827] p-4 shadow-inner sm:mt-10 sm:h-28">
                     <div className="flex h-full items-end gap-2">
                       {[54, 74, 62, 88, 70, 96, 84].map((height, barIndex) => (
                         <motion.span
@@ -238,7 +238,7 @@ function DepthCard({
 
   return (
     <motion.article
-      className="depth-card relative min-h-[520px] shrink-0 overflow-hidden rounded-lg border border-white/80 bg-white/76 p-6 shadow-[0_30px_100px_rgba(2,37,60,0.13)] backdrop-blur-2xl sm:p-8 lg:w-[min(560px,42vw)]"
+      className="depth-card relative min-h-[430px] w-[84vw] max-w-[390px] shrink-0 snap-center overflow-hidden rounded-lg border border-white/80 bg-white/76 p-5 shadow-[0_30px_100px_rgba(2,37,60,0.13)] backdrop-blur-2xl sm:min-h-[500px] sm:w-[430px] sm:p-8 lg:w-[min(560px,42vw)]"
       style={isDesktop ? { opacity, rotateY, scale, y } : undefined}
     >
       <div aria-hidden className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.76),rgba(255,255,255,0.24)_45%,rgba(34,201,232,0.15))]" />

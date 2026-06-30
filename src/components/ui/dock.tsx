@@ -29,7 +29,7 @@ export function Dock({ items, className }: DockProps) {
             aria-label={label}
             aria-pressed={item.active}
             className={cn(
-              "group relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border text-white transition duration-300 hover:-translate-y-1.5 hover:scale-105 focus-visible:-translate-y-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan sm:h-12 sm:w-12 sm:hover:-translate-y-2 sm:hover:scale-110 sm:focus-visible:-translate-y-2",
+              "group relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border text-white transition duration-300 hover:-translate-y-1.5 hover:scale-105 focus-visible:-translate-y-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan sm:h-12 sm:w-12 sm:hover:-translate-y-2 sm:hover:scale-110 sm:focus-visible:-translate-y-2",
               item.active
                 ? "border-stitch-cyan bg-stitch-cyan text-stitch-abyss shadow-glow"
                 : "border-white/15 bg-white/10 hover:border-stitch-cyan/50 hover:bg-white/15"
@@ -40,7 +40,7 @@ export function Dock({ items, className }: DockProps) {
             onClick={item.onClick}
           >
             {item.icon}
-            <span className="pointer-events-none absolute bottom-[calc(100%+0.55rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/20 bg-stitch-abyss px-2 py-1 text-xs font-semibold text-white opacity-0 shadow-stitch transition group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100">
+            <span className="pointer-events-none absolute bottom-[calc(100%+0.55rem)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/20 bg-stitch-abyss px-2 py-1 text-xs font-semibold text-white opacity-0 shadow-stitch transition group-hover:translate-y-[-2px] group-hover:opacity-100 group-focus-visible:translate-y-[-2px] group-focus-visible:opacity-100 sm:block">
               {label}
             </span>
           </button>

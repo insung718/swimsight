@@ -15,19 +15,19 @@ export function StrokeProgressSection() {
   return (
     <section className="relative overflow-hidden bg-[#04111d] text-white" ref={ref}>
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(78,232,255,0.20),transparent_28rem),linear-gradient(180deg,#04111d,#020811)]" />
-      <div className="relative mx-auto grid min-h-[130svh] max-w-7xl gap-10 px-5 py-24 lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:py-32">
+      <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-20 sm:px-5 lg:min-h-[130svh] lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-10 lg:py-32">
         <div className="relative z-10 max-w-2xl">
           <p className="text-sm font-semibold text-aqua-200">{t("Stroke path")}</p>
-          <h2 className="mt-5 text-balance text-4xl font-semibold leading-[0.96] sm:text-6xl lg:text-7xl">
+          <h2 className="mt-4 text-balance text-[2.75rem] font-semibold leading-[0.98] sm:mt-5 sm:text-6xl lg:text-7xl">
             {t("Every entry draws the next lane.")}
           </h2>
-          <p className="mt-6 max-w-xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
+          <p className="mt-5 max-w-xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8">
             {t("A race result becomes a line: first the baseline, then the trend, then the goal you can actually chase.")}
           </p>
         </div>
 
         <motion.div
-          className="relative min-h-[520px] overflow-hidden rounded-lg border border-white/14 bg-white/[0.06] shadow-[0_50px_160px_rgba(0,190,230,0.16)] backdrop-blur-2xl"
+          className="relative min-h-[560px] overflow-hidden rounded-lg border border-white/14 bg-white/[0.06] shadow-[0_50px_160px_rgba(0,190,230,0.16)] backdrop-blur-2xl sm:min-h-[520px]"
           style={{ y: cardY }}
         >
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:100%_78px,12.5%_100%]" />
@@ -66,16 +66,16 @@ export function StrokeProgressSection() {
               </motion.g>
             ))}
           </svg>
-          <div className="absolute bottom-4 left-4 right-4 grid gap-3 sm:grid-cols-3">
+          <div className="absolute bottom-3 left-3 right-3 grid gap-2 sm:bottom-4 sm:left-4 sm:right-4 sm:gap-3 sm:grid-cols-3">
             {[
               ["01", "Baseline", "First official result"],
               ["02", "Signal", "Trend and consistency"],
               ["03", "Target", "Forecast with context"]
             ].map(([number, title, body]) => (
-              <article className="rounded-lg border border-white/12 bg-[#03111f]/78 p-4 backdrop-blur-xl" key={title}>
-                <p className="font-mono text-lg font-semibold text-aqua-200">{number}</p>
-                <h3 className="mt-3 font-semibold text-white">{t(title)}</h3>
-                <p className="mt-1 text-sm text-white/60">{t(body)}</p>
+              <article className="rounded-lg border border-white/12 bg-[#03111f]/82 p-3 backdrop-blur-xl sm:p-4" key={title}>
+                <p className="font-mono text-base font-semibold text-aqua-200 sm:text-lg">{number}</p>
+                <h3 className="mt-2 font-semibold text-white sm:mt-3">{t(title)}</h3>
+                <p className="mt-1 text-xs leading-5 text-white/64 sm:text-sm">{t(body)}</p>
               </article>
             ))}
           </div>

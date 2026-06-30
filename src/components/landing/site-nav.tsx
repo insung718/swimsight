@@ -23,7 +23,9 @@ export function SiteNav() {
         </a>
         <div className="flex items-center gap-2">
           <LanguageToggle />
-          <UserActions compact />
+          <div className="hidden sm:block">
+            <UserActions compact />
+          </div>
           <StaggeredMenu items={publicNavItems} />
         </div>
       </div>

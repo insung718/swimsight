@@ -46,8 +46,6 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
   }, [open]);
 
   const panelSide = position === "right" ? "right-4" : "left-4";
-  const closedTransform = position === "right" ? "translate-x-[112%]" : "-translate-x-[112%]";
-
   return (
     <div className={cn("relative", className)}>
       <button
@@ -74,7 +72,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         className={cn(
           "fixed top-4 z-[85] h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
           panelSide,
-          open ? "translate-x-0 opacity-100 delay-75" : `${closedTransform} opacity-0`
+          open ? "visible translate-x-0 scale-100 opacity-100 delay-75" : "invisible translate-x-0 scale-95 opacity-0"
         )}
       />
       <aside
@@ -84,7 +82,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         className={cn(
           "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
           panelSide,
-          open ? "pointer-events-auto translate-x-0 opacity-100 delay-100" : `pointer-events-none ${closedTransform} opacity-0`
+          open ? "visible pointer-events-auto translate-x-0 scale-100 opacity-100 delay-100" : "invisible pointer-events-none translate-x-0 scale-95 opacity-0"
         )}
         id={panelId}
         role="dialog"
@@ -125,7 +123,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             const content = (
               <>
                 <span>{item.label}</span>
-                <span className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
+                <span aria-hidden className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
               </>
             );
 

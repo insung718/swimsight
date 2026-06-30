@@ -54,7 +54,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
       </header>
 
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-32 pt-7 sm:px-6 lg:px-8">
-        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-5 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
+        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold text-aqua-600">{t("Coach command center")}</p>
@@ -71,7 +71,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
             </div>
             <CoachSpotlight swimmer={spotlight} />
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
             <MiniStat label="Clubs" value={dashboard.overview.clubCount.toString()} />
             <MiniStat label="Swimmers" value={dashboard.overview.swimmerCount.toString()} />
             <MiniStat label="Logged swims" value={dashboard.overview.totalSwims.toString()} />
@@ -141,7 +141,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
   const { t } = useTranslator();
   const translatedTitle = t(title);
 
-  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-3xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
+  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-2xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
 }
 
 function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
@@ -161,9 +161,9 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
-    <div className="rounded-lg border border-white/60 bg-white/45 p-4 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58">
-      <div className="text-xs font-semibold uppercase text-stitch-abyss/48">{t(label)}</div>
-      <div className="mt-1 font-mono text-3xl font-semibold text-stitch-abyss">
+    <div className="min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58 sm:p-4">
+      <div className="truncate text-[0.68rem] font-semibold uppercase text-stitch-abyss/48 sm:text-xs">{t(label)}</div>
+      <div className="mt-1 font-mono text-2xl font-semibold text-stitch-abyss sm:text-3xl">
         {shouldCount ? (
           <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
         ) : (

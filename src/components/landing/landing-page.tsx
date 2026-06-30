@@ -80,12 +80,12 @@ export function LandingPage() {
     <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav />
 
-      <section id="top" className="hero-scene relative min-h-[94svh] overflow-hidden bg-[#020811] pt-12 text-white">
+      <section id="top" className="hero-scene relative min-h-[100svh] overflow-hidden bg-[#020811] pt-12 text-white lg:min-h-[94svh]">
         <div aria-hidden className="hero-lane-field absolute inset-0" />
         <div aria-hidden className="hero-water-sheen absolute inset-0" />
         <div aria-hidden className="hero-depth-shade absolute inset-0" />
 
-        <div aria-hidden className="absolute inset-y-12 right-[-8%] hidden w-[72%] lg:block">
+        <div aria-hidden className="absolute right-[-56%] top-20 block h-[45svh] w-[118%] opacity-50 sm:right-[-34%] sm:w-[96%] lg:inset-y-12 lg:right-[-8%] lg:h-auto lg:w-[72%] lg:opacity-100">
           <div className="hero-console relative h-full">
             <div className="hero-console-rail hero-console-rail-a" />
             <div className="hero-console-rail hero-console-rail-b" />
@@ -107,17 +107,17 @@ export function LandingPage() {
                 ))}
               </g>
             </svg>
-            <div className="hero-data-card hero-data-card-a">
+            <div className="hero-data-card hero-data-card-a hidden lg:block">
               <span>PB signal</span>
               <strong>-1.24s</strong>
               <small>100 Fly</small>
             </div>
-            <div className="hero-data-card hero-data-card-b">
+            <div className="hero-data-card hero-data-card-b hidden lg:block">
               <span>SPI</span>
               <strong>88</strong>
               <small>Competitive</small>
             </div>
-            <div className="hero-data-card hero-data-card-c">
+            <div className="hero-data-card hero-data-card-c hidden lg:block">
               <span>Forecast</span>
               <strong>90d</strong>
               <small>Goal path active</small>
@@ -125,19 +125,19 @@ export function LandingPage() {
           </div>
         </div>
 
-        <div className="relative mx-auto flex min-h-[calc(94svh-3rem)] max-w-6xl items-center px-5 py-16">
+        <div className="relative mx-auto flex min-h-[calc(100svh-3rem)] max-w-6xl items-center px-4 py-10 sm:px-5 sm:py-16 lg:min-h-[calc(94svh-3rem)]">
           <div className="landing-hero-copy max-w-3xl">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-white/[0.06] px-3 py-1 text-sm font-semibold text-cyan-200 backdrop-blur-xl">
               <Activity aria-hidden className="h-4 w-4" />
               Swim intelligence. Made personal.
             </p>
-            <h1 className="text-balance text-5xl font-semibold leading-[0.94] sm:text-7xl lg:text-[92px]">Your season, finally in motion.</h1>
-            <p className="mt-7 max-w-xl text-lg leading-7 text-white/74 sm:text-xl">SwimSight turns every result into a live map of progress, prediction, goals, training, and team signal.</p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <h1 className="max-w-[9ch] text-balance text-[3.35rem] font-semibold leading-[0.92] sm:max-w-none sm:text-7xl lg:text-[92px]">Your season, finally in motion.</h1>
+            <p className="mt-6 max-w-xl text-base leading-7 text-white/78 sm:mt-7 sm:text-xl">SwimSight turns every result into a live map of progress, prediction, goals, training, and team signal.</p>
+            <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9">
               <UserActions hero />
               <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium transition hover:bg-white hover:text-black" href="/features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
             </div>
-            <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
+            <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
               {[
                 ["01", "Log", "Times, meets, gym"],
                 ["02", "Analyze", "PBs, SPI, trend"],
@@ -155,16 +155,16 @@ export function LandingPage() {
       </section>
 
       <KineticRibbon />
-      <section className="relative overflow-hidden bg-[#03070e] py-24 text-white sm:py-32">
+      <section className="relative overflow-hidden bg-[#03070e] py-[4.5rem] text-white sm:py-32">
         <div aria-hidden className="absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center opacity-16" />
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.98),rgba(3,7,14,0.84)_48%,rgba(3,7,14,0.96))]" />
         <div className="relative mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
           <Reveal>
             <p className="text-sm font-semibold text-cyan-300">Athletic intelligence</p>
-            <h2 className="mt-4 max-w-xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">
+            <h2 className="mt-4 max-w-xl text-balance text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl">
               Clean signals from every race.
             </h2>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/68">
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8">
               SwimSight keeps the cinematic feeling, but the product stays simple: enter a result, watch your progress, and know what to focus on next.
             </p>
           </Reveal>
@@ -192,8 +192,8 @@ export function LandingPage() {
       <section id="features" className="relative overflow-hidden bg-white py-24 sm:py-36">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#03070e] to-transparent opacity-[0.08]" />
         <div className="mx-auto max-w-6xl px-5">
-          <Reveal><p className="text-sm font-semibold text-cyan-700">One place for the whole season.</p><h2 className="mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">Less dashboard. More direction.</h2></Reveal>
-          <Reveal className="mt-16" delay={100}>
+          <Reveal><p className="text-sm font-semibold text-cyan-700">One place for the whole season.</p><h2 className="mt-4 max-w-4xl text-balance text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl">Less dashboard. More direction.</h2></Reveal>
+          <Reveal className="mt-10 sm:mt-16" delay={100}>
             <MagicBento cards={bentoCards} />
           </Reveal>
         </div>
@@ -204,14 +204,14 @@ export function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-5">
           <Reveal>
             <p className="text-sm font-semibold text-cyan-700">Trust signals</p>
-            <h2 className="mt-4 max-w-4xl text-balance text-4xl font-semibold leading-tight sm:text-6xl">
+            <h2 className="mt-4 max-w-4xl text-balance text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl">
               Analytics you can explain to a coach.
             </h2>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-black/58">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-black/62 sm:mt-6 sm:text-lg sm:leading-8">
               SwimSight is designed to make confidence visible: what went into the prediction, what data is private, and when a forecast needs more races.
             </p>
           </Reveal>
-          <div className="mt-14 grid gap-4 md:grid-cols-6">
+          <div className="mt-10 grid gap-4 md:mt-14 md:grid-cols-6">
             {trustSignals.map(({ body, icon: Icon, title }, index) => (
               <Reveal className={index < 2 ? "md:col-span-3" : "md:col-span-2"} delay={index * 60} key={title}>
                 <article className="group min-h-[230px] rounded-lg border border-white/75 bg-white/70 p-6 shadow-[0_28px_90px_rgba(4,17,29,0.07)] transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-white">

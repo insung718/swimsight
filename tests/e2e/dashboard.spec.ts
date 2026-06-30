@@ -78,8 +78,18 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(1);
+  await expect(page.getByRole("heading", { name: "Your season, finally in motion." })).toBeVisible();
+
+  for (const scrollY of [0, 720, 1500, 2600, 3900, 5400, 7000]) {
+    await page.evaluate((y) => window.scrollTo(0, y), scrollY);
+    await page.waitForTimeout(80);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `horizontal overflow at scrollY=${scrollY}`).toBeLessThanOrEqual(1);
+  }
+
+  const firstDepthCard = page.locator(".depth-card").first();
+  await firstDepthCard.scrollIntoViewIfNeeded();
+  await expect(firstDepthCard).toBeVisible();
 });
 
 test("protects account APIs when signed out", async ({ request }) => {
