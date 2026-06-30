@@ -16,7 +16,7 @@ export function UserActions({ compact = false, hero = false, light = false }: { 
   return (
     <>
       <SignedOut>
-        <SignInButton mode="modal">
+        <SignInButton fallbackRedirectUrl="/" forceRedirectUrl="/" mode="modal" signUpFallbackRedirectUrl="/" signUpForceRedirectUrl="/">
           <button className={cn(
             "inline-flex items-center gap-2 text-sm font-medium transition",
             compact && "h-8 rounded-full bg-black px-4 text-white hover:bg-black/75",
@@ -30,7 +30,7 @@ export function UserActions({ compact = false, hero = false, light = false }: { 
         </SignInButton>
       </SignedOut>
       <SignedIn>
-        <UserButton />
+        <UserButton afterSignOutUrl="/" />
       </SignedIn>
     </>
   );

@@ -131,6 +131,7 @@ function memberAnalytics(member: {
     id: string;
     name: string;
     imageUrl?: string | null;
+    age?: number | null;
     swims: Array<{
       id: string;
       userId: string;
@@ -147,7 +148,7 @@ function memberAnalytics(member: {
   createdAt: Date;
 }): CommunityMember {
   const swims = member.user.swims.map(toSwimResult);
-  const rankings = swims.length ? rankEvents(swims) : [];
+  const rankings = swims.length ? rankEvents(swims, member.user.age) : [];
   const averageScore = rankings.length
     ? rankings.reduce((sum, ranking) => sum + ranking.score, 0) / rankings.length
     : 0;
@@ -192,6 +193,7 @@ export async function getCommunityComparison(communityId: string, userId: string
               id: true,
               name: true,
               imageUrl: true,
+              age: true,
               swims: {
                 orderBy: { date: "asc" },
                 take: 2_000
@@ -265,6 +267,7 @@ export async function compareTwoMembers(input: {
       id: true,
       name: true,
       imageUrl: true,
+      age: true,
       swims: {
         orderBy: { date: "asc" }
       }

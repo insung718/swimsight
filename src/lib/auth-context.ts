@@ -7,6 +7,7 @@ export interface AuthContext {
   userId: string;
   clerkId: string;
   email: string;
+  age?: number | null;
   role: "ATHLETE" | "COACH" | "ADMIN";
   onboardingCompleted: boolean;
 }
@@ -37,25 +38,38 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       userId: authResult.userId,
       clerkId: authResult.userId,
       email,
+      age: null,
       role: "ATHLETE",
       onboardingCompleted: false
     };
   }
 
-  const user = await prisma.user.upsert({
-    where: { clerkId: authResult.userId },
-    update: {
-      email,
-      name,
-      imageUrl: clerkUser?.imageUrl
-    },
-    create: {
-      clerkId: authResult.userId,
-      email,
-      name,
-      imageUrl: clerkUser?.imageUrl
-    }
+  const userByClerkId = await prisma.user.findUnique({
+    where: { clerkId: authResult.userId }
   });
+  const user = userByClerkId
+    ? await prisma.user.update({
+        where: { id: userByClerkId.id },
+        data: {
+          email,
+          name,
+          imageUrl: clerkUser?.imageUrl
+        }
+      })
+    : await prisma.user.upsert({
+        where: { email },
+        update: {
+          clerkId: authResult.userId,
+          name,
+          imageUrl: clerkUser?.imageUrl
+        },
+        create: {
+          clerkId: authResult.userId,
+          email,
+          name,
+          imageUrl: clerkUser?.imageUrl
+        }
+      });
   const trustedRole = resolveTrustedRole(user.role, user.email);
 
   if (trustedRole !== user.role) {
@@ -69,6 +83,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     userId: user.id,
     clerkId: user.clerkId,
     email: user.email,
+    age: user.age,
     role: trustedRole,
     onboardingCompleted: user.onboardingCompleted
   };

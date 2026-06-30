@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { coachClubJoinSchema, communityJoinSchema, manualSwimSchema } from "@/lib/validation";
+import { coachClubJoinSchema, communityJoinSchema, manualSwimSchema, profileRoleSchema } from "@/lib/validation";
 import { validateSwimCsv } from "@/lib/csv";
 import { enforceApiRateLimit } from "@/lib/security/rate-limit";
 import { isTrustedAdminEmail, resolveTrustedRole } from "@/lib/security/admin";
@@ -27,6 +27,14 @@ describe("API security", () => {
     });
 
     expect(parsed.success).toBe(false);
+  });
+
+  it("requires bounded age for swimmer profile calibration", () => {
+    expect(profileRoleSchema.safeParse({ role: "ATHLETE" }).success).toBe(false);
+    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16 }).success).toBe(true);
+    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 5 }).success).toBe(false);
+    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, isAdmin: true }).success).toBe(false);
+    expect(profileRoleSchema.safeParse({ role: "COACH" }).success).toBe(true);
   });
 
   it("normalizes join codes and accepts legacy safe symbols", () => {

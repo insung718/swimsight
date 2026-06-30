@@ -3,6 +3,7 @@
 import {
   Brush,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -51,18 +52,30 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
   }, [availableCourses, selectedCourse]);
 
   const chartData = useMemo(() => {
-    return swims
+    const rows = new Map<string, {
+      date: string;
+      dateLabel: string;
+      LCM?: number;
+      SCM?: number;
+      SCY?: number;
+    }>();
+
+    swims
       .filter((swim) => swim.event === selectedEvent)
       .filter((swim) => selectedCourse === "All" || swim.course === selectedCourse)
       .filter((swim) => selectedYear === "All" || new Date(swim.date).getFullYear().toString() === selectedYear)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .map((swim) => ({
-        date: swim.date,
-        dateLabel: formatShortDate(swim.date),
-        [swim.course]: swim.timeSeconds,
-        course: swim.course,
-        meetName: swim.meetName
-      }));
+      .forEach((swim) => {
+        const row = rows.get(swim.date) ?? {
+          date: swim.date,
+          dateLabel: formatShortDate(swim.date)
+        };
+        const existing = row[swim.course];
+        row[swim.course] = existing ? Math.min(existing, swim.timeSeconds) : swim.timeSeconds;
+        rows.set(swim.date, row);
+      });
+
+    return Array.from(rows.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [selectedCourse, selectedEvent, selectedYear, swims]);
 
   const visibleCourses = selectedCourse === "All" ? availableCourses : [selectedCourse];
@@ -154,6 +167,11 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
               contentStyle={{ borderRadius: 8, border: "1px solid rgba(255,255,255,0.28)", background: "rgba(4,14,30,0.88)", color: "#ffffff", backdropFilter: "blur(20px)" }}
               formatter={(value, name) => [formatTime(Number(value)), String(name)]}
               labelFormatter={(label) => `${t(selectedEvent)} · ${label}`}
+            />
+            <Legend
+              formatter={(value) => <span className="font-mono text-xs text-white/78">{String(value)}</span>}
+              iconType="circle"
+              verticalAlign="top"
             />
             {visibleCourses.map((course) => (
               <Line

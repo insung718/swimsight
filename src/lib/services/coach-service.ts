@@ -34,6 +34,7 @@ function swimmerAnalytics(member: {
     id: string;
     name: string;
     imageUrl?: string | null;
+    age?: number | null;
     swims: Array<{
       id: string;
       userId: string;
@@ -56,7 +57,7 @@ function swimmerAnalytics(member: {
 }): CoachSwimmerAnalytics {
   const swims = member.user.swims.map(toSwimResult);
   const goals = member.user.goals.map(toGoal);
-  const analytics = buildDashboardAnalytics(swims, goals[0]);
+  const analytics = buildDashboardAnalytics(swims, goals[0], [], member.user.age);
   const latest = swims[swims.length - 1];
   const strongest = analytics.strongestEvents[0];
 
@@ -147,6 +148,7 @@ export async function getCoachDashboard(coachId: string): Promise<CoachDashboard
               id: true,
               name: true,
               imageUrl: true,
+              age: true,
               swims: {
                 orderBy: [{ date: "asc" }, { createdAt: "asc" }],
                 take: 2_000

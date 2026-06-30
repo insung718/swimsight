@@ -79,11 +79,11 @@ describe("analytics engine", () => {
   it("does not classify a fast national-level single result as beginner", () => {
     const analytics = buildDashboardAnalytics([
       { id: "fast-1", userId: "u1", date: "2026-06-01", event: "50 Freestyle", course: "LCM", timeSeconds: 25.56, meetName: "National Meet", resultKind: "OFFICIAL" }
-    ]);
+    ], undefined, [], 16);
 
     expect(analytics.rankings[0].performanceScore).toBeGreaterThan(90);
-    expect(analytics.swimPowerIndex.score).toBeGreaterThanOrEqual(56);
-    expect(analytics.swimPowerIndex.level).toBe("Competitive");
+    expect(analytics.swimPowerIndex.score).toBeGreaterThanOrEqual(76);
+    expect(["Elite", "National Level"]).toContain(analytics.swimPowerIndex.level);
   });
 
   it("uses gym training load as a conservative prediction signal", () => {

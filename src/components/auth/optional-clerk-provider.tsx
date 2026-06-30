@@ -9,5 +9,16 @@ export function OptionalClerkProvider({ children }: { children: React.ReactNode 
     return <>{children}</>;
   }
 
-  return <ClerkProvider publishableKey={publishableKey}>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider
+      afterSignOutUrl="/"
+      publishableKey={publishableKey}
+      signInFallbackRedirectUrl="/"
+      signInForceRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+      signUpForceRedirectUrl="/"
+    >
+      {children}
+    </ClerkProvider>
+  );
 }

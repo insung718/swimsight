@@ -59,8 +59,17 @@ export const friendActionSchema = z.object({
 }).strict();
 
 export const profileRoleSchema = z.object({
-  role: z.enum(["ATHLETE", "COACH"])
-}).strict();
+  role: z.enum(["ATHLETE", "COACH"]),
+  age: z.number().int().min(6).max(100).optional()
+}).strict().superRefine((value, context) => {
+  if (value.role === "ATHLETE" && !value.age) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Age is required for swimmer analytics.",
+      path: ["age"]
+    });
+  }
+});
 
 export const coachClubCreateSchema = z.object({
   name: cleanText(2, 96),

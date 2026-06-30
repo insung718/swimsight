@@ -139,6 +139,20 @@ function getRecordFloor(event: SwimEvent, course: Course) {
   return recordFloorSeconds[course]?.[event] ?? 0;
 }
 
+function ageBenchmarkMultiplier(age?: number | null) {
+  if (!age) return 1.18;
+  if (age <= 10) return 1.72;
+  if (age === 11) return 1.6;
+  if (age === 12) return 1.48;
+  if (age === 13) return 1.36;
+  if (age === 14) return 1.27;
+  if (age === 15) return 1.2;
+  if (age === 16) return 1.14;
+  if (age === 17) return 1.09;
+  if (age === 18) return 1.05;
+  return 1;
+}
+
 function standardDeviation(values: number[]) {
   if (values.length <= 1) {
     return 0;
@@ -203,11 +217,14 @@ function eventRegression(swims: SwimResult[]) {
     const ageDays = latestDay - dateToDays(swim.date);
     const orderWeight = sorted.length <= 1 ? 1 : 0.72 + (index / (sorted.length - 1)) * 0.56;
     const recencyWeight = clamp(1 - ageDays / 730, 0.42, 1);
+    const previous = sorted[index - 1];
+    const jumpPercent = previous ? Math.abs(swim.timeSeconds - previous.timeSeconds) / previous.timeSeconds : 0;
+    const qualityWeight = jumpPercent > 0.16 ? 0.42 : jumpPercent > 0.1 ? 0.7 : 1;
 
     return {
       x: dateToDays(swim.date) - startDay,
       y: swim.timeSeconds,
-      weight: orderWeight * recencyWeight
+      weight: orderWeight * recencyWeight * qualityWeight
     };
   });
 
@@ -335,14 +352,15 @@ function improvementScore(improvementPercent: number) {
   return round(clamp(improvementPercent * 11), 1);
 }
 
-function performanceScore(timeSeconds: number, event: SwimEvent, course: Course) {
+function performanceScore(timeSeconds: number, event: SwimEvent, course: Course, athleteAge?: number | null) {
   const recordFloor = getRecordFloor(event, course);
   if (!recordFloor) {
     return 50;
   }
 
-  const worldClassRatio = timeSeconds / recordFloor;
-  return round(clamp(116 - (worldClassRatio - 1) * 82, 10, 100), 1);
+  const benchmark = recordFloor * ageBenchmarkMultiplier(athleteAge);
+  const benchmarkRatio = timeSeconds / benchmark;
+  return round(clamp(100 - Math.max(0, benchmarkRatio - 1) * 85, 18, 100), 1);
 }
 
 function recentProgressPercent(swims: SwimResult[]) {
@@ -398,7 +416,7 @@ export function getPersonalBests(swims: SwimResult[]) {
   return personalBests.sort((a, b) => a.event.localeCompare(b.event) || a.course.localeCompare(b.course));
 }
 
-export function rankEvents(swims: SwimResult[]) {
+export function rankEvents(swims: SwimResult[], athleteAge?: number | null) {
   const rankings: EventRanking[] = [];
 
   groupByEventCourse(swims).forEach((eventSwims) => {
@@ -408,7 +426,7 @@ export function rankEvents(swims: SwimResult[]) {
       swim.timeSeconds < fastest.timeSeconds ? swim : fastest
     );
     const improvementPercent = round(((first.timeSeconds - best.timeSeconds) / first.timeSeconds) * 100, 2);
-    const eventPerformanceScore = performanceScore(best.timeSeconds, first.event, first.course);
+    const eventPerformanceScore = performanceScore(best.timeSeconds, first.event, first.course, athleteAge);
     const consistencyScore = calculateConsistencyScore(sorted);
     const eventTrendScore = trendScore(sorted);
     const eventRecentProgress = recentProgressPercent(sorted);
@@ -419,8 +437,8 @@ export function rankEvents(swims: SwimResult[]) {
       1
     );
     const score = round(
-      eventPerformanceScore * 0.55 +
-        developmentScore * 0.45,
+      eventPerformanceScore * 0.62 +
+        developmentScore * 0.38,
       1
     );
 
@@ -619,11 +637,12 @@ function calculateSwimPowerIndex(rankings: EventRanking[]): SwimPowerIndex {
     rankings.reduce((sum, ranking) => sum + ranking.consistencyScore, 0) / rankings.length;
   const averageTrend = rankings.reduce((sum, ranking) => sum + ranking.trendScore, 0) / rankings.length;
   const bestImprovement = Math.max(...rankings.map((ranking) => ranking.improvementPercent));
+  const improvementComponent = bestImprovement > 0 ? improvementScore(bestImprovement) : 58;
   const score = round(
-    strongest.performanceScore * 0.45 +
-      improvementScore(bestImprovement) * 0.2 +
-      averageConsistency * 0.18 +
-      averageTrend * 0.17,
+    strongest.performanceScore * 0.58 +
+      improvementComponent * 0.12 +
+      averageConsistency * 0.16 +
+      averageTrend * 0.14,
     1
   );
 
@@ -671,7 +690,7 @@ function calculateSpecialtyProfile(rankings: EventRanking[]): StrokeSpecialty[] 
   });
 }
 
-export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = []): DashboardAnalytics {
+export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = [], athleteAge?: number | null): DashboardAnalytics {
   const trainingSignal = calculateTrainingLoadSignal(workouts);
   const officialSwims = swims.filter(isOfficialResult);
 
@@ -703,7 +722,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
     };
   }
 
-  const rankings = rankEvents(officialSwims);
+  const rankings = rankEvents(officialSwims, athleteAge);
   const personalBests = getPersonalBests(officialSwims);
   const mostImproved = [...rankings].sort((a, b) => b.improvementPercent - a.improvementPercent)[0];
 

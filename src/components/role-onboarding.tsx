@@ -31,9 +31,16 @@ export function RoleOnboarding() {
   const router = useRouter();
   const { t } = useTranslator();
   const [savingRole, setSavingRole] = useState<UserRole | null>(null);
+  const [age, setAge] = useState("");
   const [error, setError] = useState("");
 
   async function chooseRole(role: UserRole) {
+    const parsedAge = Number.parseInt(age, 10);
+    if (role === "ATHLETE" && (!Number.isInteger(parsedAge) || parsedAge < 6 || parsedAge > 100)) {
+      setError(t("Enter your swimmer age to calibrate analytics."));
+      return;
+    }
+
     setSavingRole(role);
     setError("");
 
@@ -41,7 +48,7 @@ export function RoleOnboarding() {
       const response = await fetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role })
+        body: JSON.stringify({ role, age: Number.isInteger(parsedAge) ? parsedAge : undefined })
       });
       const result = await response.json();
 
@@ -91,6 +98,23 @@ export function RoleOnboarding() {
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stitch-abyss/62">
               {t("You can build your own swimmer dashboard or manage athletes from a coach dashboard. The design stays the same; the tools change around your role.")}
             </p>
+            <div className="mx-auto mt-7 max-w-xs rounded-lg border border-white/65 bg-white/62 p-3 shadow-stitch backdrop-blur-2xl">
+              <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="swimmer-age">
+                {t("Swimmer age")}
+              </label>
+              <input
+                className="mt-2 h-12 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-center font-mono text-2xl font-semibold text-stitch-abyss outline-none transition focus:border-stitch-cyan"
+                id="swimmer-age"
+                inputMode="numeric"
+                max={100}
+                min={6}
+                placeholder={t("Age")}
+                type="number"
+                value={age}
+                onChange={(event) => setAge(event.target.value)}
+              />
+              <p className="mt-2 text-xs text-stitch-abyss/52">{t("Used only to calibrate age-aware swim analytics.")}</p>
+            </div>
           </motion.div>
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">

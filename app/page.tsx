@@ -31,7 +31,7 @@ export default async function Home() {
     return <DashboardUnavailable reason="SwimSight needs a production database before accounts can save data." />;
   }
 
-  if (!context.onboardingCompleted) {
+  if (!context.onboardingCompleted || (context.role === "ATHLETE" && !context.age)) {
     return <RoleOnboarding />;
   }
 
@@ -46,7 +46,7 @@ export default async function Home() {
       getSwimsForUser(context.userId),
       getGymWorkoutsForUser(context.userId)
     ]);
-    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts);
+    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, context.age ?? undefined);
 
     return (
       <SwimSightDashboard

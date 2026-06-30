@@ -13,6 +13,7 @@ model User {
   email               String   @unique
   name                String
   imageUrl            String?
+  age                 Int?
   role                UserRole @default(ATHLETE)
   onboardingCompleted Boolean  @default(false)
   createdAt           DateTime @default(now())
