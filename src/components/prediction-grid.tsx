@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarClock, CheckCircle2, Sparkles, TrendingDown, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslator } from "@/components/i18n/use-language";
 import { cn, formatTime } from "@/lib/utils";
 import type { Prediction } from "@/types/swim";
@@ -19,12 +20,17 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
   const id = useId();
   const sortedPredictions = useMemo(() => [...predictions].sort((a, b) => b.confidence - a.confidence), [predictions]);
   const [active, setActive] = useState<Prediction | null>(null);
+  const [mounted, setMounted] = useState(false);
   const bestForecast = sortedPredictions
     .map((prediction) => ({
       event: prediction.event,
       improvement: prediction.currentTime - prediction.predictedTimes.days365
     }))
     .sort((a, b) => b.improvement - a.improvement)[0];
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -39,21 +45,25 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
     };
   }, [active]);
 
-  return (
-    <section className="dashboard-glass min-w-0 overflow-hidden p-4 lg:p-5" data-no-translate>
-      <AnimatePresence>
-        {active && (
-          <>
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="fixed inset-0 z-[90] bg-[#020811]/70 backdrop-blur-xl"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
+  const expandedPrediction = mounted
+    ? createPortal(
+        <AnimatePresence>
+          {active && (
+            <PredictionExpandedCard
+              onClose={() => setActive(null)}
+              prediction={active}
+              t={t}
             />
-            <PredictionExpandedCard id={id} onClose={() => setActive(null)} prediction={active} t={t} />
-          </>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )
+    : null;
+
+  return (
+    <>
+      {expandedPrediction}
+      <section className="dashboard-glass min-w-0 overflow-hidden p-4 lg:p-5" data-no-translate>
 
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-center gap-3">
@@ -89,7 +99,8 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
           ))}
         </ul>
       )}
-    </section>
+      </section>
+    </>
   );
 }
 
@@ -144,59 +155,62 @@ function PredictionTriggerCard({
 }
 
 function PredictionExpandedCard({
-  id,
   onClose,
   prediction,
   t
 }: {
-  id: string;
   onClose: () => void;
   prediction: Prediction;
   t: (value: string) => string;
 }) {
-  const key = predictionKey(prediction);
   const delta365 = prediction.currentTime - prediction.predictedTimes.days365;
 
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain bg-[#03111f] text-white [scrollbar-width:none]"
+      className="fixed inset-0 z-[999] overflow-y-auto overscroll-contain bg-[#020811]/82 p-0 text-white backdrop-blur-xl [scrollbar-width:none] sm:p-4"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
     >
+      <button
+        aria-label={t("Close")}
+        className="fixed inset-0 z-0 cursor-default"
+        type="button"
+        onClick={onClose}
+      />
       <motion.div
         animate={{ scale: 1, y: 0 }}
-        className="min-h-[100dvh] w-full bg-[#03111f] shadow-[0_30px_120px_rgba(0,0,0,0.45)]"
-        exit={{ scale: 0.985, y: 16 }}
-        initial={{ scale: 0.985, y: 16 }}
+        className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-none overflow-hidden bg-[#03111f] shadow-[0_30px_120px_rgba(0,0,0,0.45)] sm:min-h-[calc(100dvh-2rem)] sm:rounded-lg"
+        exit={{ scale: 0.96, y: 28 }}
+        initial={{ scale: 0.92, y: 46 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className="sticky top-0 z-10 border-b border-white/10 bg-[radial-gradient(circle_at_18%_0%,rgba(91,242,255,0.24),transparent_38%),linear-gradient(135deg,rgba(3,17,31,0.96),rgba(3,17,31,0.86))] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:p-6 lg:p-8">
           <div className="mx-auto flex max-w-7xl items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
               <motion.div
                 className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-md border border-aqua-200/25 bg-aqua-200/10 text-aqua-100 shadow-glow sm:inline-flex"
-                layoutId={`prediction-visual-${key}-${id}`}
               >
                 <Sparkles aria-hidden className="h-6 w-6" />
               </motion.div>
               <div className="min-w-0">
-                <motion.h3 className="text-balance text-3xl font-semibold tracking-normal text-white sm:text-5xl" layoutId={`prediction-title-${key}-${id}`}>
+                <motion.h3 className="text-balance text-3xl font-semibold tracking-normal text-white sm:text-5xl">
                   {t(prediction.event)}
                 </motion.h3>
-                <motion.p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-aqua-100" layoutId={`prediction-course-${key}-${id}`}>
+                <motion.p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-aqua-100">
                   {prediction.course}
                 </motion.p>
               </div>
             </div>
             <div className="flex shrink-0 items-start gap-2">
-              <motion.div className="rounded-md bg-white/10 px-3 py-2 text-right text-xs font-semibold text-aqua-100" layoutId={`prediction-meta-${key}-${id}`}>
+              <motion.div className="rounded-md bg-white/10 px-3 py-2 text-right text-xs font-semibold text-aqua-100">
                 {prediction.confidence}%<br />
                 <span className="text-white/58">{t("confidence")}</span>
               </motion.div>
               <button
                 aria-label={t("Close")}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white transition hover:bg-white hover:text-stitch-abyss focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+                className="relative z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/14 text-white transition hover:bg-white hover:text-stitch-abyss focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
                 type="button"
                 onClick={onClose}
               >
