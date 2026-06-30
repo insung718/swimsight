@@ -158,12 +158,20 @@ function PredictionExpandedCard({
   const delta365 = prediction.currentTime - prediction.predictedTimes.days365;
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <motion.div
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain bg-[#03111f] text-white [scrollbar-width:none]"
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
+    >
       <motion.div
-        className="flex h-[100dvh] w-screen flex-col overflow-hidden bg-[#03111f] text-white shadow-[0_30px_120px_rgba(0,0,0,0.45)]"
-        layoutId={`prediction-card-${key}-${id}`}
+        animate={{ scale: 1, y: 0 }}
+        className="min-h-[100dvh] w-full bg-[#03111f] shadow-[0_30px_120px_rgba(0,0,0,0.45)]"
+        exit={{ scale: 0.985, y: 16 }}
+        initial={{ scale: 0.985, y: 16 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="shrink-0 border-b border-white/10 bg-[radial-gradient(circle_at_18%_0%,rgba(91,242,255,0.24),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-4 sm:p-6 lg:p-8">
+        <div className="sticky top-0 z-10 border-b border-white/10 bg-[radial-gradient(circle_at_18%_0%,rgba(91,242,255,0.24),transparent_38%),linear-gradient(135deg,rgba(3,17,31,0.96),rgba(3,17,31,0.86))] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:p-6 lg:p-8">
           <div className="mx-auto flex max-w-7xl items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
               <motion.div
@@ -200,7 +208,7 @@ function PredictionExpandedCard({
 
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 pb-28 [scrollbar-width:none] sm:px-6 lg:px-8"
+          className="px-4 py-5 pb-28 sm:px-6 lg:px-8"
           exit={{ opacity: 0, y: 10 }}
           initial={{ opacity: 0, y: 10 }}
         >
@@ -257,7 +265,7 @@ function PredictionExpandedCard({
           </div>
         </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
 
