@@ -1,7 +1,65 @@
 import { describe, expect, it } from "vitest";
-import { translateText } from "@/lib/i18n";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { translations, translateText } from "@/lib/i18n";
+
+function appTranslationKeys() {
+  const root = join(process.cwd(), "src");
+  const files = readdirSync(root, { recursive: true })
+    .filter((file) => typeof file === "string" && /\.(ts|tsx)$/.test(file));
+  const keys = new Set<string>();
+
+  for (const file of files) {
+    const source = readFileSync(join(root, file), "utf8");
+    for (const match of source.matchAll(/\bt\(\s*"([^"]+)"\s*\)/g)) {
+      keys.add(JSON.parse(`"${match[1]}"`) as string);
+    }
+  }
+
+  return [...keys].sort();
+}
+
+const allowedKoreanLatinTokens = new Set(["LCM", "SCM", "SCY", "ISO", "M", "SS"]);
+
+function visibleKoreanText(value: string) {
+  return value.replace(/@[A-Za-z0-9_.-]+/g, "");
+}
 
 describe("translations", () => {
+  it("has exact Korean and Vietnamese entries for every literal app translation key", () => {
+    const keys = appTranslationKeys();
+    const missingKorean = keys.filter((key) => !translations.ko[key]);
+    const missingVietnamese = keys.filter((key) => !translations.vi[key]);
+
+    expect(missingKorean).toEqual([]);
+    expect(missingVietnamese).toEqual([]);
+  });
+
+  it("does not leak English words into Korean UI strings", () => {
+    const leaked = appTranslationKeys()
+      .map((key) => [key, translateText(key, "ko")] as const)
+      .map(([key, translated]) => ({
+        key,
+        translated,
+        tokens: translated.match(/[A-Za-z]+/g)?.filter((token) => !allowedKoreanLatinTokens.has(token)) ?? []
+      }))
+      .filter((entry) => entry.tokens.length > 0);
+
+    expect(leaked).toEqual([]);
+  });
+
+  it("does not leak English words anywhere in the Korean dictionary", () => {
+    const leaked = Object.entries(translations.ko)
+      .map(([key, translated]) => ({
+        key,
+        translated,
+        tokens: visibleKoreanText(translated).match(/[A-Za-z]+/g)?.filter((token) => !allowedKoreanLatinTokens.has(token)) ?? []
+      }))
+      .filter((entry) => entry.tokens.length > 0);
+
+    expect(leaked).toEqual([]);
+  });
+
   it("keeps SPI and import copy fully Korean", () => {
     expect(translateText("Speed, improvement, consistency, and event difficulty compressed into one proprietary read.", "ko"))
       .toBe("속도, 향상도, 일관성, 종목 난이도를 하나의 자체 지표로 압축합니다.");

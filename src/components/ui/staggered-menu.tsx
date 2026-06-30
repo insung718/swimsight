@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Route } from "next";
+import { useTranslator } from "@/components/i18n/use-language";
 import { cn } from "@/lib/utils";
 
 interface StaggeredMenuItem {
@@ -21,6 +22,7 @@ interface StaggeredMenuProps {
 }
 
 export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
+  const { t } = useTranslator();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const panelId = "swimsight-navigation-menu";
@@ -51,7 +53,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
       <button
         aria-controls={panelId}
         aria-expanded={open}
-        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+        aria-label={open ? t("Close navigation menu") : t("Open navigation menu")}
         className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
         type="button"
         onClick={() => setOpen((current) => !current)}
@@ -77,7 +79,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
       />
       <aside
         aria-hidden={!open}
-        aria-label="SwimSight navigation menu"
+        aria-label={t("SwimSight navigation menu")}
         aria-modal="true"
         className={cn(
           "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
@@ -92,10 +94,10 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-stitch-cyan text-stitch-abyss">
               <Waves aria-hidden className="h-4 w-4" />
             </span>
-            SwimSight
+            {t("SwimSight")}
           </div>
           <button
-            aria-label="Close navigation menu"
+            aria-label={t("Close navigation menu")}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
             ref={closeButtonRef}
             type="button"
@@ -105,7 +107,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
           </button>
         </div>
 
-        <nav aria-label="Main navigation" className="mt-12 space-y-2">
+        <nav aria-label={t("Main navigation")} className="mt-12 space-y-2">
           {items.map((item, index) => {
             const href = item.href ?? item.link ?? "#";
             const isActive = href.startsWith("/") && (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)));
@@ -122,7 +124,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             };
             const content = (
               <>
-                <span>{item.label}</span>
+                <span>{t(item.label)}</span>
                 <span aria-hidden className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
               </>
             );
@@ -130,7 +132,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             if (href.startsWith("/")) {
               return (
                 <Link
-                  aria-label={item.ariaLabel ?? item.label}
+                  aria-label={t(item.ariaLabel ?? item.label)}
                   aria-current={isActive ? "page" : undefined}
                   className={className}
                   href={href as Route}
@@ -145,7 +147,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
 
             return (
               <a
-                aria-label={item.ariaLabel ?? item.label}
+                aria-label={t(item.ariaLabel ?? item.label)}
                 aria-current={isActive ? "page" : undefined}
                 className={className}
                 href={href}
@@ -160,9 +162,9 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         </nav>
 
         <div className="mt-auto rounded-lg border border-white/10 bg-white/10 p-4">
-          <p className="text-sm font-semibold text-stitch-cyan">Built for race-day clarity.</p>
+          <p className="text-sm font-semibold text-stitch-cyan">{t("Built for race-day clarity.")}</p>
           <p className="mt-2 text-sm leading-6 text-white/74">
-            Every section stays connected to one product system: clean glass, strong contrast, and fast movement.
+            {t("Every section stays connected to one product system: clean glass, strong contrast, and fast movement.")}
           </p>
         </div>
       </aside>

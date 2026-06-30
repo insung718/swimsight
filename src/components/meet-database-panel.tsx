@@ -2,6 +2,7 @@
 
 import { Database, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslator } from "@/components/i18n/use-language";
 import { formatTime } from "@/lib/utils";
 import type { SwimResult } from "@/types/swim";
 
@@ -14,6 +15,7 @@ type MeetEntry = {
 };
 
 export function MeetDatabasePanel({ swims }: { swims: SwimResult[] }) {
+  const { t } = useTranslator();
   const [query, setQuery] = useState("");
   const officialSwims = useMemo(() => swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "OFFICIAL"), [swims]);
   const meets = useMemo(() => {
@@ -49,15 +51,15 @@ export function MeetDatabasePanel({ swims }: { swims: SwimResult[] }) {
             <Database aria-hidden className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-white">Meet database</h2>
-            <p className="text-sm text-white/64">Search official meet history saved to your account.</p>
+            <h2 className="text-lg font-semibold text-white">{t("Meet database")}</h2>
+            <p className="text-sm text-white/64">{t("Search official meet history saved to your account.")}</p>
           </div>
         </div>
         <label className="relative block min-w-0 sm:w-72">
           <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/38" />
           <input
             className="h-10 w-full rounded-md border border-white/10 bg-stitch-abyss pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-stitch-cyan"
-            placeholder="Search meet or event"
+            placeholder={t("Search meet or event")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -65,21 +67,21 @@ export function MeetDatabasePanel({ swims }: { swims: SwimResult[] }) {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-5 text-center text-sm text-white/58 md:col-span-2 xl:col-span-3">No official meets found yet.</div>}
+        {filtered.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-5 text-center text-sm text-white/58 md:col-span-2 xl:col-span-3">{t("No official meets found yet.")}</div>}
         {filtered.slice(0, 9).map((meet) => (
           <article className="rounded-lg border border-white/10 bg-white/[0.07] p-4 transition duration-300 hover:-translate-y-0.5 hover:border-stitch-cyan/45 hover:bg-white/[0.10]" key={`${meet.name}-${meet.firstDate}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="truncate font-semibold text-white">{meet.name}</h3>
-                <p className="mt-1 text-xs text-white/48">{meet.firstDate === meet.lastDate ? meet.firstDate : `${meet.firstDate} to ${meet.lastDate}`}</p>
+                <p className="mt-1 text-xs text-white/48">{meet.firstDate === meet.lastDate ? meet.firstDate : `${meet.firstDate} - ${meet.lastDate}`}</p>
               </div>
               <span className="rounded-full border border-white/15 bg-white/10 px-2 py-1 font-mono text-xs text-aqua-100">{meet.results.length}</span>
             </div>
             {meet.best && (
               <div className="mt-5 rounded-md border border-white/10 bg-stitch-abyss/60 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/38">Fastest saved result</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/38">{t("Fastest saved result")}</p>
                 <p className="mt-2 font-mono text-xl font-semibold text-stitch-cyan">{formatTime(meet.best.timeSeconds)}</p>
-                <p className="mt-1 text-sm text-white/58">{meet.best.event} · {meet.best.course}</p>
+                <p className="mt-1 text-sm text-white/58">{t(meet.best.event)} · {meet.best.course}</p>
               </div>
             )}
           </article>

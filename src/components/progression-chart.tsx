@@ -11,6 +11,7 @@ import {
   YAxis
 } from "recharts";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslator } from "@/components/i18n/use-language";
 import { supportedEvents } from "@/lib/events";
 import { formatShortDate, formatTime } from "@/lib/utils";
 import type { Course, SwimEvent, SwimResult } from "@/types/swim";
@@ -20,6 +21,7 @@ interface ProgressionChartProps {
 }
 
 export function ProgressionChart({ swims }: ProgressionChartProps) {
+  const { t } = useTranslator();
   const availableEvents = useMemo(
     () => supportedEvents.filter((event) => swims.some((swim) => swim.event === event)),
     [swims]
@@ -74,12 +76,12 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     <section className="dashboard-glass p-4 lg:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Progression</h2>
-          <p className="text-sm text-white/74">Date vs time by event</p>
+          <h2 className="text-lg font-semibold text-white">{t("Progression")}</h2>
+          <p className="text-sm text-white/74">{t("Date vs time by event")}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <label className="sr-only" htmlFor="event-filter">
-            Event
+            {t("Event")}
           </label>
           <select
             id="event-filter"
@@ -89,12 +91,12 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           >
             {availableEvents.map((event) => (
               <option key={event} value={event}>
-                {event}
+                {t(event)}
               </option>
             ))}
           </select>
           <label className="sr-only" htmlFor="course-filter">
-            Course
+            {t("Course")}
           </label>
           <select
             id="course-filter"
@@ -102,7 +104,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             value={selectedCourse}
             onChange={(event) => setSelectedCourse(event.target.value as Course | "All")}
           >
-            <option value="All">All courses</option>
+            <option value="All">{t("All courses")}</option>
             {availableCourses.map((course) => (
               <option key={course} value={course}>
                 {course}
@@ -110,7 +112,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             ))}
           </select>
           <label className="sr-only" htmlFor="year-filter">
-            Year
+            {t("Year")}
           </label>
           <select
             id="year-filter"
@@ -118,7 +120,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             value={selectedYear}
             onChange={(event) => setSelectedYear(event.target.value)}
           >
-            <option value="All">All years</option>
+            <option value="All">{t("All years")}</option>
             {years.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -151,7 +153,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             <Tooltip
               contentStyle={{ borderRadius: 8, border: "1px solid rgba(255,255,255,0.28)", background: "rgba(4,14,30,0.88)", color: "#ffffff", backdropFilter: "blur(20px)" }}
               formatter={(value, name) => [formatTime(Number(value)), String(name)]}
-              labelFormatter={(label) => `${selectedEvent} · ${label}`}
+              labelFormatter={(label) => `${t(selectedEvent)} · ${label}`}
             />
             {visibleCourses.map((course) => (
               <Line
@@ -171,7 +173,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </ResponsiveContainer>
         ) : (
           <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-white/12 bg-white/8 text-sm text-white/72">
-            No swims match this filter yet.
+            {t("No swims match this filter yet.")}
           </div>
         )}
       </div>

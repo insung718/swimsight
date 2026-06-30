@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Dumbbell, ShieldCheck, UserRound, UsersRound, Waves } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
+import { useTranslator } from "@/components/i18n/use-language";
+import { LanguageToggle } from "@/components/landing/language-toggle";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { UserRole } from "@/types/swim";
 
@@ -27,6 +29,7 @@ const roleCards = [
 
 export function RoleOnboarding() {
   const router = useRouter();
+  const { t } = useTranslator();
   const [savingRole, setSavingRole] = useState<UserRole | null>(null);
   const [error, setError] = useState("");
 
@@ -43,7 +46,7 @@ export function RoleOnboarding() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error ?? "Could not save your role.");
+        setError(result.error ? t(result.error) : t("Could not save your role."));
         return;
       }
 
@@ -62,11 +65,14 @@ export function RoleOnboarding() {
               <Waves aria-hidden className="h-5 w-5" />
             </span>
             <div>
-              <div className="font-semibold">SwimSight</div>
-              <div className="text-xs text-stitch-abyss/55">Choose your workspace</div>
+              <div className="font-semibold">{t("SwimSight")}</div>
+              <div className="text-xs text-stitch-abyss/55">{t("Choose your workspace")}</div>
             </div>
           </div>
-          <UserActions />
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <UserActions />
+          </div>
         </div>
       </header>
 
@@ -78,12 +84,12 @@ export function RoleOnboarding() {
             initial={{ opacity: 0, y: 18 }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-sm font-semibold text-aqua-700">First setup</p>
+            <p className="text-sm font-semibold text-aqua-700">{t("First setup")}</p>
             <h1 className="mt-3 text-balance text-4xl font-semibold leading-tight sm:text-6xl">
-              What kind of SwimSight workspace do you need?
+              {t("What kind of SwimSight workspace do you need?")}
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stitch-abyss/62">
-              You can build your own swimmer dashboard or manage athletes from a coach dashboard. The design stays the same; the tools change around your role.
+              {t("You can build your own swimmer dashboard or manage athletes from a coach dashboard. The design stays the same; the tools change around your role.")}
             </p>
           </motion.div>
 
@@ -108,14 +114,14 @@ export function RoleOnboarding() {
                       <Icon aria-hidden className="h-6 w-6" />
                     </span>
                     <span className="rounded-full border border-stitch-abyss/10 bg-white/55 px-3 py-1 font-mono text-xs font-semibold text-stitch-abyss/58">
-                      {card.eyebrow}
+                      {t(card.eyebrow)}
                     </span>
                   </div>
-                  <h2 className="mt-16 text-3xl font-semibold tracking-normal text-stitch-abyss">{card.title}</h2>
-                  <p className="mt-4 text-base leading-7 text-stitch-abyss/62">{card.body}</p>
+                  <h2 className="mt-16 text-3xl font-semibold tracking-normal text-stitch-abyss">{t(card.title)}</h2>
+                  <p className="mt-4 text-base leading-7 text-stitch-abyss/62">{t(card.body)}</p>
                   <div className="mt-8 flex items-center gap-3 text-sm font-semibold text-aqua-700">
-                    {saving ? <KineticLoader className="h-5 text-aqua-700" label="Saving role" /> : <ShieldCheck aria-hidden className="h-5 w-5" />}
-                    {saving ? "Building workspace" : "Choose this workspace"}
+                    {saving ? <KineticLoader className="h-5 text-aqua-700" label={t("Saving role")} /> : <ShieldCheck aria-hidden className="h-5 w-5" />}
+                    {saving ? t("Building workspace") : t("Choose this workspace")}
                   </div>
                 </motion.button>
               );
@@ -130,7 +136,7 @@ export function RoleOnboarding() {
 
           <div className="mx-auto mt-8 flex max-w-xl items-center justify-center gap-2 rounded-full border border-white/55 bg-white/40 px-4 py-3 text-sm text-stitch-abyss/58 backdrop-blur-xl">
             <Dumbbell aria-hidden className="h-4 w-4 text-aqua-700" />
-            Coach tools can see swimmer data only when the swimmer is added to a coach-managed club.
+            {t("Coach tools can see swimmer data only when the swimmer is added to a coach-managed club.")}
           </div>
         </div>
       </section>

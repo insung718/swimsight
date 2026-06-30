@@ -49,6 +49,7 @@ export function SwimSightDashboard({
   goals: Goal[];
   swims: SwimResult[];
 }) {
+  const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const overview = analytics.overview;
   const officialSwims = swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "OFFICIAL");
@@ -62,7 +63,7 @@ export function SwimSightDashboard({
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <button className="flex items-center gap-3 text-left transition hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
-            <span><span className="block font-semibold text-stitch-abyss">SwimSight</span><span className="block text-xs text-stitch-abyss/55">Performance workspace</span></span>
+            <span><span className="block font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block text-xs text-stitch-abyss/55">{t("Performance workspace")}</span></span>
           </button>
           <div className="flex items-center gap-2">
             <LanguageToggle />
@@ -75,11 +76,11 @@ export function SwimSightDashboard({
         <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold text-aqua-600">Live training workspace</p>
+              <p className="text-sm font-semibold text-aqua-600">{t("Live training workspace")}</p>
               <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
-                Your season, lit up by the times you enter.
+                {t("Your season, lit up by the times you enter.")}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">Log. Read. Adjust.</p>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">{t("Log. Read. Adjust.")}</p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <QuickAction label="Add result" onClick={() => setActiveTab("results")} />
                 <QuickAction label="Log gym" onClick={() => setActiveTab("training")} secondary />
@@ -361,15 +362,21 @@ function buildDataQualityWarnings(swims: SwimResult[]) {
     current.set(key, [...(current.get(key) ?? []), swim]);
     return current;
   }, new Map());
-  const warnings: { title: string; body: string }[] = [];
+  const warnings: (
+    | { type: "thin"; event: string; course: string; count: number }
+    | { type: "jump"; event: string; course: string; percent: string }
+    | { type: "steady" }
+  )[] = [];
 
   for (const groupSwims of groups.values()) {
     const sorted = [...groupSwims].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const latest = sorted[sorted.length - 1];
     if (sorted.length < 3) {
       warnings.push({
-        title: `${latest.event} needs more data`,
-        body: `${latest.course} has ${sorted.length} result${sorted.length === 1 ? "" : "s"}. Predictions get stronger after 3 or more swims.`
+        type: "thin",
+        event: latest.event,
+        course: latest.course,
+        count: sorted.length
       });
     }
 
@@ -379,8 +386,10 @@ function buildDataQualityWarnings(swims: SwimResult[]) {
       const jump = Math.abs(current.timeSeconds - previous.timeSeconds) / previous.timeSeconds;
       if (jump >= 0.12) {
         warnings.push({
-          title: "Large time jump detected",
-          body: `${current.event} ${current.course} changed by ${(jump * 100).toFixed(1)}%. Check course, event, and time format.`
+          type: "jump",
+          event: current.event,
+          course: current.course,
+          percent: (jump * 100).toFixed(1)
         });
         break;
       }
@@ -388,10 +397,7 @@ function buildDataQualityWarnings(swims: SwimResult[]) {
   }
 
   if (!warnings.length) {
-    warnings.push({
-      title: "Data looks steady",
-      body: "No large jumps or thin event samples were found in the current view."
-    });
+    warnings.push({ type: "steady" });
   }
 
   return warnings.slice(0, 3);
@@ -413,10 +419,18 @@ function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
         </div>
       </div>
       <div className="mt-5 space-y-3">
-        {warnings.map((warning) => (
-          <article className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={`${warning.title}-${warning.body}`}>
-            <p className="text-sm font-semibold text-white">{t(warning.title)}</p>
-            <p className="mt-1 text-sm leading-6 text-white/64">{t(warning.body)}</p>
+        {warnings.map((warning, index) => (
+          <article className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={`${warning.type}-${index}`}>
+            <p className="text-sm font-semibold text-white">
+              {warning.type === "thin" ? `${t(warning.event)} ${t("needs more data")}` : warning.type === "jump" ? t("Large time jump detected") : t("Data looks steady")}
+            </p>
+            <p className="mt-1 text-sm leading-6 text-white/64">
+              {warning.type === "thin"
+                ? `${warning.course} · ${warning.count} ${t(warning.count === 1 ? "result" : "results")}. ${t("Predictions get stronger after 3 or more swims.")}`
+                : warning.type === "jump"
+                  ? `${t(warning.event)} ${warning.course} · ${warning.percent}%. ${t("Check course, event, and time format.")}`
+                  : t("No large jumps or thin event samples were found in the current view.")}
+            </p>
           </article>
         ))}
       </div>

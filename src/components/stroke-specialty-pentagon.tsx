@@ -1,6 +1,7 @@
 "use client";
 
 import { Activity } from "lucide-react";
+import { useTranslator } from "@/components/i18n/use-language";
 import type { StrokeSpecialty } from "@/types/swim";
 
 const center = 150;
@@ -20,6 +21,7 @@ function polygon(points: { x: number; y: number }[]) {
 }
 
 export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[] }) {
+  const { t } = useTranslator();
   const completeEnough = profile.filter((item) => item.eventCount > 0).length >= 3;
   const shapePoints = profile.map((item, index) => pointFor(index, maxRadius * (item.score / 100)));
   const axisPoints = profile.map((_, index) => pointFor(index, maxRadius));
@@ -32,18 +34,18 @@ export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[
             <Activity aria-hidden className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-white">Stroke specialty pentagon</h2>
-            <p className="text-sm text-white/72">Freestyle, fly, back, breast, and IM scored from your event rankings.</p>
+            <h2 className="text-lg font-semibold text-white">{t("Stroke specialty pentagon")}</h2>
+            <p className="text-sm text-white/72">{t("Freestyle, fly, back, breast, and IM scored from your event rankings.")}</p>
           </div>
         </div>
         <span className="w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-aqua-100">
-          {completeEnough ? "Profile active" : "Log 3 stroke groups"}
+          {completeEnough ? t("Profile active") : t("Log 3 stroke groups")}
         </span>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div className="mx-auto aspect-square w-full max-w-[360px]">
-          <svg aria-label="Stroke specialty pentagon" className="h-full w-full" role="img" viewBox="0 0 300 300">
+          <svg aria-label={t("Stroke specialty pentagon")} className="h-full w-full" role="img" viewBox="0 0 300 300">
             {[0.25, 0.5, 0.75, 1].map((scale) => (
               <polygon
                 fill="none"
@@ -72,7 +74,7 @@ export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[
                   x={labelPoint.x}
                   y={labelPoint.y}
                 >
-                  {item.stroke}
+                  {t(item.stroke)}
                 </text>
               );
             })}
@@ -82,13 +84,13 @@ export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[
           {profile.map((item) => (
             <div className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={item.stroke}>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-white">{item.stroke}</span>
+                <span className="text-sm font-semibold text-white">{t(item.stroke)}</span>
                 <span className="font-mono text-sm text-aqua-100">{item.score}</span>
               </div>
               <div className="mt-3 h-2 rounded-full bg-white/10">
                 <div className="h-2 rounded-full bg-stitch-cyan shadow-glow transition-all duration-700" style={{ width: `${item.score}%` }} />
               </div>
-              <p className="mt-2 text-xs text-white/58">{item.eventCount} course-specific event{item.eventCount === 1 ? "" : "s"} logged</p>
+              <p className="mt-2 text-xs text-white/58">{item.eventCount} {t(item.eventCount === 1 ? "course-specific event logged" : "course-specific events logged")}</p>
             </div>
           ))}
         </div>

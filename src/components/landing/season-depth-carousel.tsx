@@ -9,6 +9,7 @@ import {
   useTransform
 } from "framer-motion";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import { useTranslator } from "@/components/i18n/use-language";
 
 const stages = [
   {
@@ -61,6 +62,7 @@ const stages = [
 const timeline = ["2026", "30d", "90d", "180d", "365d"];
 
 export function SeasonDepthCarousel() {
+  const { t } = useTranslator();
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -139,12 +141,12 @@ export function SeasonDepthCarousel() {
       <div className="relative mx-auto flex max-w-[1500px] flex-col justify-start px-4 py-16 sm:px-5 sm:py-24 lg:min-h-[calc(100svh-3rem)] lg:justify-center">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
             <div className="relative z-10 max-w-xl">
-              <p className="text-sm font-semibold text-cyan-700">Interactive season model</p>
+              <p className="text-sm font-semibold text-cyan-700">{t("Interactive season model")}</p>
               <h2 id="season-depth-heading" className="mt-4 text-balance text-[2.75rem] font-semibold leading-[0.98] sm:text-6xl lg:text-7xl">
-                A season you can move through.
+                {t("A season you can move through.")}
               </h2>
               <p className="mt-5 text-base leading-7 text-black/64 sm:mt-6 sm:text-lg sm:leading-8">
-                From first entry to meet day, SwimSight turns your training into one cinematic path: data in, signal out, teammates connected, goals in view.
+                {t("From first entry to meet day, SwimSight turns your training into one cinematic path: data in, signal out, teammates connected, goals in view.")}
               </p>
             </div>
 
@@ -181,17 +183,17 @@ export function SeasonDepthCarousel() {
                       </span>
                       <div>
                         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">{stage.number}</p>
-                        <p className="mt-1 text-sm font-semibold text-black/46">{stage.kicker}</p>
+                        <p className="mt-1 text-sm font-semibold text-black/46">{t(stage.kicker)}</p>
                       </div>
                     </div>
                     <span className="rounded-full border border-black/10 bg-white/72 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.14em] text-black/56">
-                      {stage.metric}
+                      {t(stage.metric)}
                     </span>
                   </div>
                   <h3 className="mt-12 max-w-sm text-balance text-3xl font-semibold leading-[0.98] text-[#101820] sm:mt-16 sm:text-5xl lg:mt-20">
-                    {stage.title}
+                    {t(stage.title)}
                   </h3>
-                  <p className="mt-5 max-w-md text-sm leading-6 text-black/64 sm:mt-6 sm:text-base sm:leading-7">{stage.body}</p>
+                  <p className="mt-5 max-w-md text-sm leading-6 text-black/64 sm:mt-6 sm:text-base sm:leading-7">{t(stage.body)}</p>
                   <div className="mt-8 h-24 overflow-hidden rounded-lg border border-white/70 bg-[#061827] p-4 shadow-inner sm:mt-10 sm:h-28">
                     <div className="flex h-full items-end gap-2">
                       {[54, 74, 62, 88, 70, 96, 84].map((height, barIndex) => (

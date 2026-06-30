@@ -46,8 +46,8 @@ export function MotivationPanel() {
           <Sparkles aria-hidden className="h-5 w-5" />
         </span>
         <div>
-          <h2 className="text-lg font-semibold text-white">Motivation</h2>
-          <p className="text-sm text-white/70">Tips and Olympic mindset cues refresh every 30 seconds</p>
+          <h2 className="text-lg font-semibold text-white">{t("Motivation")}</h2>
+          <p className="text-sm text-white/70">{t("Tips and Olympic mindset cues refresh every 30 seconds")}</p>
         </div>
       </div>
 

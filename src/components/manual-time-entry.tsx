@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/ui/confetti";
+import { useTranslator } from "@/components/i18n/use-language";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
@@ -13,6 +14,7 @@ const courses: Course[] = ["LCM", "SCM", "SCY"];
 
 export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
   const router = useRouter();
+  const { t } = useTranslator();
   const [date, setDate] = useState("");
   const [event, setEvent] = useState<SwimEvent | "">("");
   const [course, setCourse] = useState<Course>("LCM");
@@ -27,7 +29,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
     const timeSeconds = parseTimeInput(time);
 
     if (!date || !event || !meetName.trim() || !Number.isFinite(timeSeconds) || timeSeconds <= 0) {
-      setStatus("Complete every field with a valid result.");
+      setStatus(t("Complete every field with a valid result."));
       return;
     }
 
@@ -54,7 +56,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       const result = await response.json();
 
       if (response.ok) {
-        setStatus(isPersonalBest ? "Official personal best saved." : resultKind === "TRAINING" ? "Training time saved." : "Official meet time saved.");
+        setStatus(t(isPersonalBest ? "Official personal best saved." : resultKind === "TRAINING" ? "Training time saved." : "Official meet time saved."));
         if (isPersonalBest) {
           setShowConfetti(true);
           window.setTimeout(() => setShowConfetti(false), 10_000);
@@ -64,7 +66,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
         router.refresh();
         return;
       }
-      setStatus(result.error ?? "Could not save result.");
+      setStatus(result.error ? t(result.error) : t("Could not save result."));
     } finally {
       setSaving(false);
     }
@@ -75,8 +77,8 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       {showConfetti && <Confetti autoFire count={180} />}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Add A Time</h2>
-          <p className="text-sm text-white/70">Official meet times drive PBs. Training times stay separate.</p>
+          <h2 className="text-lg font-semibold text-white">{t("Add A Time")}</h2>
+          <p className="text-sm text-white/70">{t("Official meet times drive PBs. Training times stay separate.")}</p>
         </div>
         <button
           className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70"
@@ -84,8 +86,8 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           type="button"
           onClick={submitTime}
         >
-          {saving ? <KineticLoader className="h-4 text-stitch-abyss" label="Saving time" /> : <Save aria-hidden className="h-4 w-4" />}
-          {saving ? "Saving" : "Save Time"}
+          {saving ? <KineticLoader className="h-4 text-stitch-abyss" label={t("Saving time")} /> : <Save aria-hidden className="h-4 w-4" />}
+          {saving ? t("Saving") : t("Save Time")}
         </button>
       </div>
 
@@ -100,14 +102,14 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
             type="button"
             onClick={() => setResultKind(value as SwimResultKind)}
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <label className="text-sm font-medium text-white/80">
-          Date
+          {t("Date")}
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             type="date"
@@ -116,22 +118,22 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           />
         </label>
         <label className="text-sm font-medium text-white/80">
-          Event
+          {t("Event")}
           <select
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             value={event}
             onChange={(changeEvent) => setEvent(changeEvent.target.value as SwimEvent | "")}
           >
-            <option value="">Select event</option>
+            <option value="">{t("Select event")}</option>
             {supportedEvents.map((swimEvent) => (
               <option key={swimEvent} value={swimEvent}>
-                {swimEvent}
+                {t(swimEvent)}
               </option>
             ))}
           </select>
         </label>
         <label className="text-sm font-medium text-white/80">
-          Course
+          {t("Course")}
           <select
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             value={course}
@@ -145,19 +147,19 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           </select>
         </label>
         <label className="text-sm font-medium text-white/80">
-          Time
+          {t("Time")}
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
-            placeholder="e.g. 1:03.80"
+            placeholder={t("e.g. 1:03.80")}
             value={time}
             onChange={(changeEvent) => setTime(changeEvent.target.value)}
           />
         </label>
         <label className="text-sm font-medium text-white/80">
-          Meet
+          {t("Meet")}
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
-            placeholder={resultKind === "OFFICIAL" ? "Meet name" : "Training set / pool"}
+            placeholder={t(resultKind === "OFFICIAL" ? "Meet name" : "Training set / pool")}
             value={meetName}
             onChange={(changeEvent) => setMeetName(changeEvent.target.value)}
           />
