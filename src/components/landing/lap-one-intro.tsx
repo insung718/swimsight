@@ -35,6 +35,18 @@ export function LapOneIntro() {
           style={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: heroOpacity, scale: heroScale }}
         >
           <div aria-hidden className="lap-one-bg absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center" />
+          <video
+            aria-hidden
+            autoPlay
+            className="lap-one-video absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+            loop
+            muted
+            playsInline
+            poster="/images/swimsight-pool-hero.jpg"
+            preload="metadata"
+          >
+            <source src="/videos/lap-one-swim.mp4" type="video/mp4" />
+          </video>
           <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.88),rgba(3,7,14,0.42)_48%,rgba(3,7,14,0.72)),linear-gradient(180deg,rgba(3,7,14,0.20),rgba(3,7,14,0.82))]" />
           <div aria-hidden className="absolute inset-0 backdrop-blur-[1.5px]" />
 
