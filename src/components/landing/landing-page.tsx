@@ -2,6 +2,7 @@ import { Activity, ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Database
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
 import { KineticRibbon } from "@/components/landing/kinetic-ribbon";
+import { LapOneIntro } from "@/components/landing/lap-one-intro";
 import { PerspectiveSeasonText } from "@/components/landing/perspective-season-text";
 import { SectionTransition } from "@/components/landing/section-transition";
 import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
@@ -78,7 +79,8 @@ const trustSignals = [
 export function LandingPage() {
   return (
     <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
-      <SiteNav />
+      <SiteNav immersive />
+      <LapOneIntro />
 
       <section id="top" className="hero-scene relative min-h-[100svh] overflow-hidden bg-[#020811] pt-12 text-white lg:min-h-[94svh]">
         <div aria-hidden className="hero-lane-field absolute inset-0" />

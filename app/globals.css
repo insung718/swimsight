@@ -197,6 +197,41 @@ textarea {
   isolation: isolate;
 }
 
+.lap-one-switcher {
+  display: block;
+  font-size: clamp(4rem, 10vw, 10.5rem);
+  font-weight: 600;
+  height: 1.08em;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  min-width: min(82vw, 720px);
+  position: relative;
+}
+
+.lap-one-word {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.lap-one-word-a {
+  animation: lap-one-word-out 5200ms var(--ease-ui-out) both;
+}
+
+.lap-one-word-b {
+  animation: lap-one-word-in 5200ms var(--ease-ui-out) both;
+}
+
+.lap-one-bg {
+  animation: lap-one-bg-drift 18s ease-in-out infinite alternate;
+  transform: scale(1.08);
+  transform-origin: center;
+  will-change: transform;
+}
+
 .hero-lane-field {
   background:
     linear-gradient(90deg, transparent 0 4%, rgba(255, 255, 255, 0.12) 4.12%, transparent 4.3% 15.5%, rgba(255, 255, 255, 0.10) 15.65%, transparent 15.85%),
@@ -638,6 +673,45 @@ textarea {
   }
 }
 
+@keyframes lap-one-word-out {
+  0%,
+  38% {
+    filter: blur(0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  58%,
+  100% {
+    filter: blur(10px);
+    opacity: 0;
+    transform: translate3d(0, -0.16em, 0) scale(0.985);
+  }
+}
+
+@keyframes lap-one-word-in {
+  0%,
+  40% {
+    filter: blur(10px);
+    opacity: 0;
+    transform: translate3d(0, 0.16em, 0) scale(0.985);
+  }
+  62%,
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes lap-one-bg-drift {
+  from {
+    transform: scale(1.08) translate3d(-1.2%, -0.8%, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(1.2%, 0.8%, 0);
+  }
+}
+
 @keyframes dashboard-enter {
   from {
     opacity: 0;
@@ -719,6 +793,9 @@ textarea {
   }
 
   .landing-hero-copy,
+  .lap-one-bg,
+  .lap-one-word-a,
+  .lap-one-word-b,
   .hero-console,
   .hero-data-card,
   .hero-signal-line,
@@ -748,5 +825,13 @@ textarea {
 
   .hero-signal-line {
     stroke-dashoffset: 0;
+  }
+
+  .lap-one-word-a {
+    display: none;
+  }
+
+  .lap-one-word-b {
+    opacity: 1;
   }
 }
