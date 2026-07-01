@@ -62,22 +62,22 @@ export function SwimSightDashboard({
   const primaryPrediction = [...analytics.predictions].sort((a, b) => b.confidence - a.confidence)[0];
 
   return (
-    <main className="dark dashboard-shell min-h-screen text-stitch-text">
+    <main className="dark dashboard-shell min-h-screen w-full overflow-x-clip text-stitch-text">
       <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
-        <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <button className="ui-press flex items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-3 py-2 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
+          <button className="ui-press flex min-w-0 items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
-            <span><span className="block font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block text-xs text-stitch-abyss/55">{t("Performance workspace")}</span></span>
+            <span className="min-w-0"><span className="block truncate font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block truncate text-xs text-stitch-abyss/55 max-[420px]:hidden">{t("Performance workspace")}</span></span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end sm:gap-2">
             <DashboardViewToggle mode={viewMode} />
-            <LanguageToggle />
+            <LanguageToggle compact />
             <UserActions />
           </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] px-4 pb-32 pt-7 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-32 pt-5 sm:px-6 sm:pt-7 lg:px-8">
         <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div className="max-w-3xl">
