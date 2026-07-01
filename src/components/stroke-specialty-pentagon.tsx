@@ -87,8 +87,8 @@ export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[
                 <span className="text-sm font-semibold text-white">{t(item.stroke)}</span>
                 <span className="font-mono text-sm text-aqua-100">{item.score}</span>
               </div>
-              <div className="mt-3 h-2 rounded-full bg-white/10">
-                <div className="h-2 rounded-full bg-stitch-cyan shadow-glow transition-all duration-700" style={{ width: `${item.score}%` }} />
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="ui-progress-fill h-full w-full rounded-full bg-stitch-cyan shadow-glow" style={{ transform: `scaleX(${Math.min(item.score, 100) / 100})` }} />
               </div>
               <p className="mt-2 text-xs text-white/58">{item.eventCount} {t(item.eventCount === 1 ? "course-specific event logged" : "course-specific events logged")}</p>
             </div>

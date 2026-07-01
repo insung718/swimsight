@@ -49,7 +49,7 @@ function MagicBentoTile({ card, complete, index }: { card: MagicBentoCard; compl
   return (
     <article
       className={cn(
-        "group relative min-h-[230px] overflow-hidden rounded-lg border border-white/22 bg-stitch-abyss/[0.86] p-5 text-white shadow-stitch outline-none backdrop-blur-2xl transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-stitch-cyan/60 hover:shadow-glow focus-visible:border-stitch-cyan sm:min-h-[280px]",
+        "group ui-lift relative min-h-[230px] overflow-hidden rounded-lg border border-white/22 bg-stitch-abyss/[0.86] p-5 text-white shadow-stitch outline-none backdrop-blur-2xl hover:border-stitch-cyan/60 hover:shadow-glow focus-visible:border-stitch-cyan sm:min-h-[280px]",
         tileSpan(index, complete)
       )}
       onPointerMove={handlePointerMove}
@@ -60,7 +60,7 @@ function MagicBentoTile({ card, complete, index }: { card: MagicBentoCard; compl
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 group-focus-visible:opacity-100"
         style={{
           background: `radial-gradient(340px circle at ${spotlight.x}% ${spotlight.y}%, rgba(0,251,255,0.23), transparent 58%)`
         }}
@@ -76,8 +76,8 @@ function MagicBentoTile({ card, complete, index }: { card: MagicBentoCard; compl
         <h3 className="mt-9 text-[1.55rem] font-semibold leading-tight sm:mt-12 sm:text-2xl">{card.title}</h3>
         <p className="mt-3 text-sm leading-6 text-white/76 sm:mt-4">{card.description}</p>
         <div className="mt-auto pt-6 sm:pt-8">
-          <div className="h-1.5 rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-stitch-cyan transition-all duration-500 group-hover:w-full group-focus-visible:w-full" style={{ width: `${58 + index * 12}%` }} />
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="ui-progress-fill h-full w-full rounded-full bg-stitch-cyan group-hover:scale-x-100 group-focus-visible:scale-x-100" style={{ transform: `scaleX(${Math.min(58 + index * 12, 100) / 100})` }} />
           </div>
         </div>
       </div>

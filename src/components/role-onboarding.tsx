@@ -103,7 +103,7 @@ export function RoleOnboarding() {
                 {t("Swimmer age")}
               </label>
               <input
-                className="mt-2 h-12 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-center font-mono text-2xl font-semibold text-stitch-abyss outline-none transition focus:border-stitch-cyan"
+                className="mt-2 h-12 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-center font-mono text-2xl font-semibold text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
                 id="swimmer-age"
                 inputMode="numeric"
                 max={100}
@@ -125,7 +125,7 @@ export function RoleOnboarding() {
               return (
                 <motion.button
                   animate={{ opacity: 1, y: 0 }}
-                  className="group min-h-[320px] overflow-hidden rounded-lg border border-white/65 bg-white/62 p-6 text-left shadow-stitch backdrop-blur-2xl transition hover:-translate-y-1 hover:border-stitch-cyan/70 hover:bg-white/78"
+                  className="group ui-lift min-h-[320px] overflow-hidden rounded-lg border border-white/65 bg-white/62 p-6 text-left shadow-stitch backdrop-blur-2xl hover:border-stitch-cyan/70 hover:bg-white/78"
                   disabled={Boolean(savingRole)}
                   initial={{ opacity: 0, y: 18 }}
                   key={card.role}

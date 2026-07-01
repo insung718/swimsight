@@ -244,7 +244,7 @@ function DepthCard({
       style={isDesktop ? { opacity, rotateY, scale, y } : undefined}
     >
       <div aria-hidden className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.76),rgba(255,255,255,0.24)_45%,rgba(34,201,232,0.15))]" />
-      <div aria-hidden className="depth-card-shine absolute inset-0 opacity-0 transition duration-500" />
+      <div aria-hidden className="depth-card-shine absolute inset-0 opacity-0 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]" />
       <div className="relative z-10">{children}</div>
     </motion.article>
   );

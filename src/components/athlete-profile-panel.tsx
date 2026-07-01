@@ -163,7 +163,7 @@ export function AthleteProfilePanel({
             <input className="h-10 rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-stitch-cyan" placeholder={t("Medal")} value={medal} onChange={(event) => setMedal(event.target.value)} />
             <input className="h-10 rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-stitch-cyan" placeholder={t("Trophy optional")} value={trophy} onChange={(event) => setTrophy(event.target.value)} />
           </div>
-          <button className="mt-3 h-10 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white" type="button" onClick={addAward}>{t("Add award")}</button>
+          <button className="ui-press mt-3 h-10 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss hover:bg-white" type="button" onClick={addAward}>{t("Add award")}</button>
           {awardStatus && <p className="mt-2 text-sm text-white/62">{awardStatus}</p>}
           <div className="mt-4 space-y-2">
             {awards.length === 0 && <div className="rounded-md border border-dashed border-white/12 p-4 text-center text-sm text-white/58">{t("No awards saved yet.")}</div>}

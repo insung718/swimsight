@@ -61,7 +61,7 @@ export function SwimSightDashboard({
     <main className="dark dashboard-shell min-h-screen text-stitch-text">
       <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <button className="flex items-center gap-3 text-left transition hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
+          <button className="ui-press flex items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
             <span><span className="block font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block text-xs text-stitch-abyss/55">{t("Performance workspace")}</span></span>
           </button>
@@ -141,8 +141,8 @@ function DashboardPanel({ children }: { children: ReactNode }) {
     <motion.div
       animate={{ opacity: 1, y: 0 }}
       className="space-y-5"
-      initial={{ opacity: 0, y: 16 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
     >
       {children}
     </motion.div>
@@ -161,7 +161,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
-    <div className="min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58 sm:p-4">
+    <div className="ui-lift min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl hover:bg-white/58 sm:p-4">
       <div className="truncate text-[0.68rem] font-semibold uppercase text-stitch-abyss/48 sm:text-xs">{t(label)}</div>
       <div className="mt-1 font-mono text-2xl font-semibold text-stitch-abyss sm:text-3xl">
         {shouldCount ? (
@@ -198,7 +198,7 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
 
   return (
     <button
-      className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+      className={`ui-press inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${
         secondary
           ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white"
           : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"
@@ -227,8 +227,8 @@ function PredictionSpotlight({
     <motion.article
       animate={{ opacity: 1, scale: 1 }}
       className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl"
-      initial={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, scale: 0.985 }}
+      transition={{ duration: 0.24, delay: 0.04, ease: [0.23, 1, 0.32, 1] }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -254,7 +254,7 @@ function PredictionSpotlight({
           <p className="text-sm leading-6 text-stitch-abyss/64">
             {hasResults ? t("Add another event to expand your forecast.") : t("Add a time and SwimSight will generate your first baseline forecast.")}
           </p>
-          <button className="mt-3 text-sm font-semibold text-aqua-700" type="button" onClick={onAddResult}>
+          <button className="ui-press mt-3 rounded-md text-sm font-semibold text-aqua-700" type="button" onClick={onAddResult}>
             {t("Add result")}
           </button>
         </div>
@@ -300,17 +300,17 @@ function SeasonSnapshot({
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <motion.button
-          className="group relative overflow-hidden rounded-lg border border-aqua-200/20 bg-aqua-300/10 p-4 text-left sm:col-span-2 xl:row-span-2"
+          className="group ui-lift relative overflow-hidden rounded-lg border border-aqua-200/20 bg-aqua-300/10 p-4 text-left sm:col-span-2 xl:row-span-2"
           type="button"
-          whileHover={{ y: -3 }}
+          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.99 }}
           onClick={onViewPredictions}
         >
-          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(78,232,255,0.28),transparent_34%)] opacity-80 transition group-hover:opacity-100" />
+          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(78,232,255,0.28),transparent_34%)] opacity-80 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100" />
           <div className="relative">
             <div className="flex items-center justify-between gap-4">
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{t("Prediction lane")}</span>
-              <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition group-hover:translate-x-0.5" />
+              <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5" />
             </div>
             <div className="mt-10 text-3xl font-semibold leading-tight text-white">
               {prediction ? `${t(prediction.event)} · ${prediction.course}` : t("Forecast locked.")}
@@ -510,5 +510,5 @@ function SpiExplainer({ analytics }: { analytics: DashboardAnalytics }) {
 function EmptyState({ title, body, action, onAction }: { title: string; body: string; action: string; onAction: () => void }) {
   const { t } = useTranslator();
 
-  return <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{t(title)}</h2><p className="mt-4 leading-7 text-white/78">{t(body)}</p><button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onAction}>{t(action)}</button></div></section>;
+  return <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center"><div className="max-w-lg"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-6 w-6" /></div><h2 className="mt-6 text-3xl font-semibold text-white">{t(title)}</h2><p className="mt-4 leading-7 text-white/78">{t(body)}</p><button className="ui-press mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss hover:bg-stitch-cyan" type="button" onClick={onAction}>{t(action)}</button></div></section>;
 }

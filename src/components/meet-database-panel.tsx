@@ -69,7 +69,7 @@ export function MeetDatabasePanel({ swims }: { swims: SwimResult[] }) {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {filtered.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-5 text-center text-sm text-white/58 md:col-span-2 xl:col-span-3">{t("No official meets found yet.")}</div>}
         {filtered.slice(0, 9).map((meet) => (
-          <article className="rounded-lg border border-white/10 bg-white/[0.07] p-4 transition duration-300 hover:-translate-y-0.5 hover:border-stitch-cyan/45 hover:bg-white/[0.10]" key={`${meet.name}-${meet.firstDate}`}>
+          <article className="ui-lift rounded-lg border border-white/10 bg-white/[0.07] p-4 hover:border-stitch-cyan/45 hover:bg-white/[0.10]" key={`${meet.name}-${meet.firstDate}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="truncate font-semibold text-white">{meet.name}</h3>

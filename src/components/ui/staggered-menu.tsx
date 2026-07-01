@@ -54,7 +54,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         aria-controls={panelId}
         aria-expanded={open}
         aria-label={open ? t("Close navigation menu") : t("Open navigation menu")}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
+        className="ui-press inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
         type="button"
         onClick={() => setOpen((current) => !current)}
       >
@@ -64,7 +64,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
       <div
         aria-hidden={!open}
         className={cn(
-          "fixed inset-0 z-[80] bg-black/35 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-[80] bg-black/35 backdrop-blur-sm transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={() => setOpen(false)}
@@ -72,7 +72,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
       <div
         aria-hidden
         className={cn(
-          "fixed top-4 z-[85] h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          "fixed top-4 z-[85] h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition-[opacity,transform,visibility] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
           panelSide,
           open ? "visible translate-x-0 scale-100 opacity-100 delay-75" : "invisible translate-x-0 scale-95 opacity-0"
         )}
@@ -82,7 +82,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
         aria-label={t("SwimSight navigation menu")}
         aria-modal="true"
         className={cn(
-          "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition duration-500 ease-out",
+          "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition-[opacity,transform,visibility] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
           panelSide,
           open ? "visible pointer-events-auto translate-x-0 scale-100 opacity-100 delay-100" : "invisible pointer-events-none translate-x-0 scale-95 opacity-0"
         )}
@@ -98,7 +98,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
           </div>
           <button
             aria-label={t("Close navigation menu")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+            className="ui-press inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
             ref={closeButtonRef}
             type="button"
             onClick={() => setOpen(false)}
@@ -112,7 +112,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             const href = item.href ?? item.link ?? "#";
             const isActive = href.startsWith("/") && (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)));
             const className = cn(
-              "group flex items-center justify-between rounded-lg border px-4 py-4 text-lg font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan",
+              "group ui-press flex items-center justify-between rounded-lg border px-4 py-4 text-lg font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan",
               isActive
                 ? "border-stitch-cyan/70 bg-stitch-cyan/18 text-stitch-cyan"
                 : "border-white/10 bg-white/12 text-white hover:border-stitch-cyan/60 hover:bg-white/18"
@@ -120,7 +120,7 @@ export function StaggeredMenu({ items, className, position = "right" }: Staggere
             const style = {
               transform: open ? "translateY(0)" : "translateY(18px)",
               opacity: open ? 1 : 0,
-              transition: `opacity 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms, transform 420ms cubic-bezier(0.22,1,0.36,1) ${index * 70 + 160}ms`
+              transition: `opacity 240ms cubic-bezier(0.22,1,0.36,1) ${index * 45 + 90}ms, transform 240ms cubic-bezier(0.22,1,0.36,1) ${index * 45 + 90}ms`
             };
             const content = (
               <>

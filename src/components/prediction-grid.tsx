@@ -121,7 +121,7 @@ function PredictionTriggerCard({
   return (
     <motion.li className="list-none" layoutId={`prediction-card-${key}-${id}`}>
       <button
-        className="group flex w-full items-center justify-between gap-4 rounded-lg border border-white/15 bg-white/10 p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-aqua-200/35 hover:bg-white/[0.13]"
+        className="group ui-lift flex w-full items-center justify-between gap-4 rounded-lg border border-white/15 bg-white/10 p-4 text-left hover:border-aqua-200/35 hover:bg-white/[0.13]"
         type="button"
         onClick={onOpen}
       >
@@ -145,7 +145,7 @@ function PredictionTriggerCard({
           <span className={cn("rounded-md bg-stitch-abyss px-2.5 py-1 text-xs font-semibold", confidenceTone)}>
             {prediction.confidence}% {t("confidence")}
           </span>
-          <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/64 transition group-hover:border-aqua-200/40 group-hover:text-white sm:inline-flex">
+          <span className="hidden rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/64 transition-[border-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:border-aqua-200/40 group-hover:text-white sm:inline-flex">
             {t("Open")}
           </span>
         </motion.div>
@@ -183,7 +183,7 @@ function PredictionExpandedCard({
         className="relative z-10 mx-auto min-h-[100dvh] w-full max-w-none overflow-hidden bg-[#03111f] shadow-[0_30px_120px_rgba(0,0,0,0.45)] sm:min-h-[calc(100dvh-2rem)] sm:rounded-lg"
         exit={{ scale: 0.96, y: 28 }}
         initial={{ scale: 0.92, y: 46 }}
-        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="sticky top-0 z-10 border-b border-white/10 bg-[radial-gradient(circle_at_18%_0%,rgba(91,242,255,0.24),transparent_38%),linear-gradient(135deg,rgba(3,17,31,0.96),rgba(3,17,31,0.86))] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl sm:p-6 lg:p-8">
@@ -210,7 +210,7 @@ function PredictionExpandedCard({
               </motion.div>
               <button
                 aria-label={t("Close")}
-                className="relative z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/14 text-white transition hover:bg-white hover:text-stitch-abyss focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+                className="ui-press relative z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/14 text-white hover:bg-white hover:text-stitch-abyss focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
                 type="button"
                 onClick={onClose}
               >

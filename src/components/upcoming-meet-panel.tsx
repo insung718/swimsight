@@ -89,7 +89,7 @@ export function UpcomingMeetPanel() {
           ))}
         </select>
         <button
-          className="inline-flex h-10 items-center justify-center rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white sm:col-span-2"
+          className="ui-press inline-flex h-10 items-center justify-center rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss hover:bg-white sm:col-span-2"
           type="button"
           onClick={addMeet}
         >

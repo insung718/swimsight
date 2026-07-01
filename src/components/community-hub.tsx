@@ -150,7 +150,7 @@ export function CommunityHub() {
             onChange={(event) => setName(event.target.value)}
           />
           <button
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white"
+            className="ui-press inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss hover:bg-white"
             type="button"
             onClick={createCommunity}
           >
@@ -166,7 +166,7 @@ export function CommunityHub() {
             onChange={(event) => setCoachClubCode(event.target.value)}
           />
           <button
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:bg-white/15"
+            className="ui-press inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:border-stitch-cyan hover:bg-white/15"
             type="button"
             onClick={joinCoachClub}
           >
@@ -182,7 +182,7 @@ export function CommunityHub() {
             onChange={(event) => setJoinCode(event.target.value)}
           />
           <button
-            className="h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:bg-white/15"
+            className="ui-press h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:border-stitch-cyan hover:bg-white/15"
             type="button"
             onClick={joinCommunity}
           >
@@ -197,7 +197,7 @@ export function CommunityHub() {
             onChange={(event) => setFriendEmail(event.target.value)}
           />
           <button
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:bg-white/15"
+            className="ui-press inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:border-stitch-cyan hover:bg-white/15"
             type="button"
             onClick={inviteFriend}
           >
@@ -267,8 +267,8 @@ export function CommunityHub() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {friendship.status === "PENDING" && <button className="h-8 rounded-md bg-stitch-cyan px-3 text-xs font-semibold text-stitch-abyss" type="button" onClick={() => updateFriendship(friendship.id, "accept")}>{t("Accept")}</button>}
-                  <button className="h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-stitch-cyan" type="button" onClick={() => updateFriendship(friendship.id, "remove")}>{t("Remove")}</button>
-                  {friendship.status !== "BLOCKED" && <button className="h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-rose-300" type="button" onClick={() => updateFriendship(friendship.id, "block")}>{t("Block")}</button>}
+                  <button className="ui-press h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white hover:border-stitch-cyan" type="button" onClick={() => updateFriendship(friendship.id, "remove")}>{t("Remove")}</button>
+                  {friendship.status !== "BLOCKED" && <button className="ui-press h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white hover:border-rose-300" type="button" onClick={() => updateFriendship(friendship.id, "block")}>{t("Block")}</button>}
                 </div>
               </article>
             );

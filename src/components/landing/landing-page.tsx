@@ -135,7 +135,7 @@ export function LandingPage() {
             <p className="mt-6 max-w-xl text-base leading-7 text-white/78 sm:mt-7 sm:text-xl">SwimSight turns every result into a live map of progress, prediction, goals, training, and team signal.</p>
             <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9">
               <UserActions hero />
-              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium transition hover:bg-white hover:text-black" href="/features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
+              <a className="ui-press inline-flex h-11 items-center gap-2 rounded-full border border-white/35 px-5 text-sm font-medium hover:bg-white hover:text-black" href="/features">Explore features <ArrowRight aria-hidden className="h-4 w-4" /></a>
             </div>
             <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
               {[
@@ -175,7 +175,7 @@ export function LandingPage() {
                 ["02", "Signal", "PBs, consistency, improvement rate, and trend direction."],
                 ["03", "Forecast", "Future windows that update as your season changes."]
               ].map(([number, title, body]) => (
-                <article className="rounded-lg border border-white/14 bg-white/[0.075] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
+                <article className="ui-lift rounded-lg border border-white/14 bg-white/[0.075] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
                   <div className="font-mono text-2xl text-cyan-200">{number}</div>
                   <h3 className="mt-8 text-xl font-semibold text-white">{title}</h3>
                   <p className="mt-3 text-sm leading-6 text-white/64">{body}</p>
@@ -214,7 +214,7 @@ export function LandingPage() {
           <div className="mt-10 grid gap-4 md:mt-14 md:grid-cols-6">
             {trustSignals.map(({ body, icon: Icon, title }, index) => (
               <Reveal className={index < 2 ? "md:col-span-3" : "md:col-span-2"} delay={index * 60} key={title}>
-                <article className="group min-h-[230px] rounded-lg border border-white/75 bg-white/70 p-6 shadow-[0_28px_90px_rgba(4,17,29,0.07)] transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:bg-white">
+                <article className="group ui-lift min-h-[230px] rounded-lg border border-white/75 bg-white/70 p-6 shadow-[0_28px_90px_rgba(4,17,29,0.07)] hover:bg-white">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-[#04111d] text-cyan-200">
                     <Icon aria-hidden className="h-5 w-5" />
                   </span>
@@ -281,11 +281,11 @@ export function LandingPage() {
               Send feedback, review the website, or follow the build on Instagram. The fastest contact point is <span className="font-semibold text-cyan-200">@swim.sight</span>.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-cyan-200" href={instagramUrl} rel="noreferrer" target="_blank">
+              <a className="ui-press inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black hover:bg-cyan-200" href={instagramUrl} rel="noreferrer" target="_blank">
                 <Instagram aria-hidden className="h-4 w-4" />
                 Follow @swim.sight
               </a>
-              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-sm font-semibold text-white transition hover:bg-white hover:text-black" href="/contact">
+              <a className="ui-press inline-flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-sm font-semibold text-white hover:bg-white hover:text-black" href="/contact">
                 Review the website <ArrowRight aria-hidden className="h-4 w-4" />
               </a>
             </div>
@@ -293,7 +293,7 @@ export function LandingPage() {
           <Reveal delay={100}>
             <div className="grid gap-3 sm:grid-cols-2">
               {contactCards.map(({ body, icon: Icon, title }) => (
-                <article className="rounded-lg border border-white/14 bg-white/[0.075] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
+                <article className="ui-lift rounded-lg border border-white/14 bg-white/[0.075] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-cyan-200 text-black">
                     <Icon aria-hidden className="h-5 w-5" />
                   </span>
@@ -307,7 +307,7 @@ export function LandingPage() {
       </section>
 
       <section id="privacy" className="bg-white py-24 sm:py-32"><Reveal className="mx-auto max-w-4xl px-5 text-center"><ShieldCheck aria-hidden className="mx-auto h-10 w-10 text-cyan-700" /><h2 className="mt-7 text-balance text-4xl font-semibold sm:text-6xl">Your performance belongs to you.</h2><p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-black/55">Account-scoped results, private communities, strict validation, and protected APIs from the first recorded time.</p><div className="mt-9 flex justify-center"><UserActions hero light /></div></Reveal></section>
-      <footer className="bg-[#f5f5f7] py-10 text-sm text-black/45"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 SwimSight</span><span className="flex flex-wrap gap-3"><a className="transition hover:text-black" href="/contact">Contact</a><a className="transition hover:text-black" href={instagramUrl} rel="noreferrer" target="_blank">@swim.sight</a></span></div></footer>
+      <footer className="bg-[#f5f5f7] py-10 text-sm text-black/45"><div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 SwimSight</span><span className="flex flex-wrap gap-3"><a className="ui-press rounded-sm hover:text-black" href="/contact">Contact</a><a className="ui-press rounded-sm hover:text-black" href={instagramUrl} rel="noreferrer" target="_blank">@swim.sight</a></span></div></footer>
     </main>
   );
 }

@@ -42,7 +42,7 @@ export default function ContactPage() {
                 Try this: what felt premium, what felt confusing, what lagged on mobile, and what feature should come next.
               </p>
             </div>
-            <a className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-cyan-200" href={instagramUrl} rel="noreferrer" target="_blank">
+            <a className="ui-press inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black hover:bg-cyan-200" href={instagramUrl} rel="noreferrer" target="_blank">
               <MessageSquareText aria-hidden className="h-4 w-4" />
               Message @swim.sight
             </a>

@@ -124,7 +124,7 @@ export function GymWorkoutPanel({
               <input className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Pull strength, core stability, mobility...")} value={focus} onChange={(event) => setFocus(event.target.value)} />
             </label>
           </div>
-          <button className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={saveWorkout}>
+          <button className="ui-press mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={saveWorkout}>
             {saving ? <KineticLoader className="h-4 text-stitch-abyss" label={t("Saving workout")} /> : <Save aria-hidden className="h-4 w-4" />}
             {saving ? t("Saving") : t("Save workout")}
           </button>

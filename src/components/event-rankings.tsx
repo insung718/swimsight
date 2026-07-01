@@ -47,10 +47,10 @@ function RankingList({
                 {ranking.score}
               </span>
             </div>
-            <div className="mt-3 h-2 rounded-full bg-white/10">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-2 rounded-full bg-stitch-cyan transition-all duration-700"
-                style={{ width: `${Math.min(ranking.score, 100)}%` }}
+                className="ui-progress-fill h-full w-full rounded-full bg-stitch-cyan"
+                style={{ transform: `scaleX(${Math.min(ranking.score, 100) / 100})` }}
               />
             </div>
           </article>

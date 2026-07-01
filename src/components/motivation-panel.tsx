@@ -53,7 +53,7 @@ export function MotivationPanel() {
 
       <div>
         {activeTip ? (
-          <article className={`min-h-[190px] rounded-lg border border-white/12 bg-gradient-to-br p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition ${toneClass}`} key={activeTip.id}>
+          <article className={`min-h-[190px] rounded-lg border border-white/12 bg-gradient-to-br p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-[background-color,border-color,box-shadow,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${toneClass}`} key={activeTip.id}>
             <div className="flex items-start justify-between gap-4">
               <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
               {activeTip.kind === "quote" ? t("Olympic quote") : t("SwimSight tip")}
@@ -68,7 +68,7 @@ export function MotivationPanel() {
               <p className="mt-5 text-sm font-semibold text-white/84">
                 {activeTip.author}
                 {activeTip.sourceUrl && activeTip.sourceName && (
-                  <a className="ml-2 text-aqua-200 underline decoration-white/30 underline-offset-4 transition hover:text-white" href={activeTip.sourceUrl} rel="noreferrer" target="_blank">
+                  <a className="ui-press ml-2 rounded-sm text-aqua-200 underline decoration-white/30 underline-offset-4 hover:text-white" href={activeTip.sourceUrl} rel="noreferrer" target="_blank">
                     {t(activeTip.sourceName)}
                   </a>
                 )}
@@ -86,7 +86,7 @@ export function MotivationPanel() {
               {tips.map((tip, index) => (
                 <button
                   aria-label={`${t("Show motivation")} ${index + 1}`}
-                  className={`h-1.5 rounded-full transition ${activeIndex === index ? "w-7 bg-aqua-300" : "w-1.5 bg-white/25 hover:bg-white/45"}`}
+                  className={`h-1.5 rounded-full transition-[width,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${activeIndex === index ? "w-7 bg-aqua-300" : "w-1.5 bg-white/25 hover:bg-white/45"}`}
                   key={tip.id}
                   type="button"
                   onClick={() => setActiveIndex(index)}

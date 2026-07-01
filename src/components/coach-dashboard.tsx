@@ -37,7 +37,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
     <main className="dark dashboard-shell min-h-screen text-stitch-text">
       <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
         <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <button className="flex items-center gap-3 text-left transition hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
+          <button className="ui-press flex items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
               <Waves aria-hidden className="h-5 w-5" />
             </span>
@@ -131,7 +131,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
 
 function DashboardPanel({ children }: { children: ReactNode }) {
   return (
-    <motion.div animate={{ opacity: 1, y: 0 }} className="space-y-5" initial={{ opacity: 0, y: 16 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.div animate={{ opacity: 1, y: 0 }} className="space-y-5" initial={{ opacity: 0, y: 8 }} transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}>
       {children}
     </motion.div>
   );
@@ -148,7 +148,7 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
   const { t } = useTranslator();
 
   return (
-    <button className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
+    <button className={`ui-press inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
       {t(label)}
       <TrendingUp aria-hidden className="h-4 w-4" />
     </button>
@@ -161,7 +161,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
-    <div className="min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:bg-white/58 sm:p-4">
+    <div className="ui-lift min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl hover:bg-white/58 sm:p-4">
       <div className="truncate text-[0.68rem] font-semibold uppercase text-stitch-abyss/48 sm:text-xs">{t(label)}</div>
       <div className="mt-1 font-mono text-2xl font-semibold text-stitch-abyss sm:text-3xl">
         {shouldCount ? (
@@ -178,7 +178,7 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
   const { t } = useTranslator();
 
   return (
-    <motion.article animate={{ opacity: 1, scale: 1 }} className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl" initial={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.article animate={{ opacity: 1, scale: 1 }} className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl" initial={{ opacity: 0, scale: 0.985 }} transition={{ duration: 0.24, delay: 0.04, ease: [0.23, 1, 0.32, 1] }}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
@@ -222,7 +222,7 @@ function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Building2 aria-hidden className="h-6 w-6" /></div>
         <h2 className="mt-6 text-3xl font-semibold text-white">{t("Your coach workspace is ready.")}</h2>
         <p className="mt-4 leading-7 text-white/78">{t("Create your first swim club, share its join code, and swimmers can connect from their Community tab.")}</p>
-        <button className="mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan" type="button" onClick={onCreate}>{t("Create a club")}</button>
+        <button className="ui-press mt-7 h-11 rounded-full bg-white px-6 text-sm font-semibold text-stitch-abyss hover:bg-stitch-cyan" type="button" onClick={onCreate}>{t("Create a club")}</button>
       </div>
     </section>
   );
@@ -287,7 +287,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
           <h2 className="text-lg font-semibold text-white">{t("Create club")}</h2>
           <input className="mt-4 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Club name")} value={name} onChange={(event) => setName(event.target.value)} />
           <textarea className="mt-3 min-h-24 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Optional description")} value={description} onChange={(event) => setDescription(event.target.value)} />
-          <button className="mt-3 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={createClub}>
+          <button className="ui-press mt-3 inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={saving} type="button" onClick={createClub}>
             {saving ? <KineticLoader className="h-4 text-stitch-abyss" label={t("Creating club")} /> : <Plus aria-hidden className="h-4 w-4" />}
             {saving ? t("Creating") : t("Create club")}
           </button>
@@ -303,7 +303,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
                   <div className="mt-1 text-sm text-white/58">{club.memberCount} {t("swimmers")} · {t("share code")} {club.joinCode}</div>
                 </div>
                 <button
-                  className="inline-flex h-9 items-center gap-2 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white transition hover:border-stitch-cyan"
+                  className="ui-press inline-flex h-9 items-center gap-2 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white hover:border-stitch-cyan"
                   type="button"
                   onClick={() => {
                     navigator.clipboard?.writeText(club.joinCode);
@@ -380,7 +380,7 @@ function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }
       </div>
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
         {ranked.slice(0, 6).map((swimmer, index) => (
-          <article className="rounded-lg border border-white/12 bg-white/[0.08] p-4 transition duration-300 hover:-translate-y-1 hover:border-stitch-cyan/45" key={swimmer.id}>
+          <article className="ui-lift rounded-lg border border-white/12 bg-white/[0.08] p-4 hover:border-stitch-cyan/45" key={swimmer.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-mono text-xs font-semibold text-aqua-100">#{index + 1}</p>

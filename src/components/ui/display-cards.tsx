@@ -17,7 +17,7 @@ function DisplayCard({ className, icon, title, description, detail, style }: Dis
   return (
     <article
       className={cn(
-        "display-card-lift relative flex h-40 w-full max-w-[22rem] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition duration-500 hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80",
+        "display-card-lift relative flex h-40 w-full max-w-[22rem] select-none flex-col justify-between rounded-lg border border-white/15 bg-[#101317]/92 px-5 py-4 text-white shadow-2xl backdrop-blur-xl transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-cyan-300/50 hover:bg-[#151a20] motion-reduce:transform-none motion-reduce:transition-none sm:w-80",
         className,
       )}
       style={style}

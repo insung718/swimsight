@@ -62,7 +62,7 @@ export function CsvImporter() {
             }}
           />
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/10 px-3 text-sm font-semibold text-white transition hover:border-stitch-cyan hover:text-stitch-cyan"
+            className="ui-press inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/10 px-3 text-sm font-semibold text-white hover:border-stitch-cyan hover:text-stitch-cyan"
             type="button"
             onClick={() => inputRef.current?.click()}
           >
@@ -70,14 +70,14 @@ export function CsvImporter() {
             {t("Upload CSV")}
           </button>
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-white px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-stitch-cyan"
+            className="ui-press inline-flex h-10 items-center gap-2 rounded-md bg-white px-3 text-sm font-semibold text-stitch-abyss hover:bg-stitch-cyan"
             type="button"
             onClick={validate}
           >
             <CheckCircle2 aria-hidden className="h-4 w-4" />
             {t("Validate")}
           </button>
-          <button className="inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={importing} type="button" onClick={importRows}>
+          <button className="ui-press inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss hover:bg-white disabled:cursor-wait disabled:opacity-70" disabled={importing} type="button" onClick={importRows}>
             {importing && <KineticLoader className="h-4 text-stitch-abyss" label={t("Importing spreadsheet")} />}
             {importing ? t("Importing") : t("Import")}
           </button>

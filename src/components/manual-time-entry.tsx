@@ -81,7 +81,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
           <p className="text-sm text-white/70">{t("Official meet times drive PBs. Training times stay separate.")}</p>
         </div>
         <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss transition hover:bg-white disabled:cursor-wait disabled:opacity-70"
+          className="ui-press inline-flex h-10 items-center justify-center gap-2 rounded-md bg-stitch-cyan px-3 text-sm font-semibold text-stitch-abyss hover:bg-white disabled:cursor-wait disabled:opacity-70"
           disabled={saving}
           type="button"
           onClick={submitTime}

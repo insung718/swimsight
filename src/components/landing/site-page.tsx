@@ -32,7 +32,7 @@ export function SitePage({ eyebrow, title, body, accent, sections }: SitePagePro
             <p className="mt-7 max-w-2xl text-lg leading-8 text-black/60 sm:text-xl">{body}</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <UserActions hero light />
-              <a className="inline-flex h-11 items-center gap-2 rounded-full border border-black/15 px-5 text-sm font-semibold transition hover:bg-black hover:text-white" href="/">
+              <a className="ui-press inline-flex h-11 items-center gap-2 rounded-full border border-black/15 px-5 text-sm font-semibold hover:bg-black hover:text-white" href="/">
                 Back home <ArrowRight aria-hidden className="h-4 w-4" />
               </a>
             </div>
@@ -46,7 +46,7 @@ export function SitePage({ eyebrow, title, body, accent, sections }: SitePagePro
             const Icon = section.icon;
             return (
               <Reveal delay={index * 80} key={section.title}>
-                <article className="min-h-[320px] rounded-lg border border-white/70 bg-white/62 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.08)] backdrop-blur-2xl">
+                <article className="ui-lift min-h-[320px] rounded-lg border border-white/70 bg-white/62 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.08)] backdrop-blur-2xl">
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-black text-cyan-300">
                     <Icon aria-hidden className="h-5 w-5" />
                   </span>

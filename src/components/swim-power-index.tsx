@@ -25,8 +25,8 @@ export function SwimPowerIndexPanel({ spi }: { spi: SwimPowerIndex }) {
           <div className="mt-1 text-sm font-semibold text-stitch-cyan">{t(spi.level)}</div>
         </div>
       </div>
-      <div className="mt-5 h-3 rounded-full bg-white/[0.12]">
-        <div className="h-3 rounded-full bg-stitch-cyan shadow-glow transition-all duration-700" style={{ width: `${spi.score}%` }} />
+      <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/[0.12]">
+        <div className="ui-progress-fill h-full w-full rounded-full bg-stitch-cyan shadow-glow" style={{ transform: `scaleX(${Math.min(spi.score, 100) / 100})` }} />
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-white/74">
         <span>{t("Developing")}</span>
