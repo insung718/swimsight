@@ -21,9 +21,11 @@ import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { StrokeSpecialtyPentagon } from "@/components/stroke-specialty-pentagon";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
+import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
+import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { formatTime } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, GymWorkout, SwimResult } from "@/types/swim";
 
@@ -42,12 +44,14 @@ export function SwimSightDashboard({
   analytics,
   gymWorkouts,
   goals,
-  swims
+  swims,
+  viewMode
 }: {
   analytics: DashboardAnalytics;
   gymWorkouts: GymWorkout[];
   goals: Goal[];
   swims: SwimResult[];
+  viewMode: DashboardViewMode;
 }) {
   const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
@@ -66,6 +70,7 @@ export function SwimSightDashboard({
             <span><span className="block font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block text-xs text-stitch-abyss/55">{t("Performance workspace")}</span></span>
           </button>
           <div className="flex items-center gap-2">
+            <DashboardViewToggle mode={viewMode} />
             <LanguageToggle />
             <UserActions />
           </div>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { created, forbidden } from "@/lib/api";
+import { created } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
@@ -8,14 +8,9 @@ import { coachClubCreateSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
-function isCoach(role: string) {
-  return role === "COACH" || role === "ADMIN";
-}
-
 export async function GET() {
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  if (!isCoach(account.context.role)) return forbidden("Coach access is required.");
 
   try {
     return NextResponse.json({ dashboard: await getCoachDashboard(account.context.userId) });
@@ -30,7 +25,6 @@ export async function POST(request: Request) {
   if (originError) return originError;
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  if (!isCoach(account.context.role)) return forbidden("Coach access is required.");
   const parsed = await parseSecureJson(request, coachClubCreateSchema);
   if (!parsed.ok) return parsed.response;
 

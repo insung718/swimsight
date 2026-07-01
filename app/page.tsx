@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { LandingPage } from "@/components/landing/landing-page";
 import { CoachDashboard } from "@/components/coach-dashboard";
 import { RoleOnboarding } from "@/components/role-onboarding";
@@ -5,6 +6,7 @@ import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
 import { getAuthContext } from "@/lib/auth-context";
 import { buildDashboardAnalytics } from "@/lib/analytics";
+import { dashboardViewModeCookie, isDashboardViewMode } from "@/lib/dashboard-view-mode";
 import { hasDatabaseConfig } from "@/lib/prisma";
 import { logServerError } from "@/lib/security/logging";
 import { getCoachDashboard } from "@/lib/services/coach-service";
@@ -36,9 +38,14 @@ export default async function Home() {
   }
 
   try {
-    if (context.role === "COACH" || context.role === "ADMIN") {
+    const cookieStore = await cookies();
+    const savedViewMode = cookieStore.get(dashboardViewModeCookie)?.value;
+    const defaultViewMode = context.role === "COACH" || context.role === "ADMIN" ? "coach" : "swimmer";
+    const viewMode = isDashboardViewMode(savedViewMode) ? savedViewMode : defaultViewMode;
+
+    if (viewMode === "coach") {
       const dashboard = await getCoachDashboard(context.userId);
-      return <CoachDashboard dashboard={dashboard} />;
+      return <CoachDashboard dashboard={dashboard} viewMode="coach" />;
     }
 
     const [goal, swims, gymWorkouts] = await Promise.all([
@@ -54,6 +61,7 @@ export default async function Home() {
         gymWorkouts={gymWorkouts}
         goals={goal ? [goal] : []}
         swims={swims}
+        viewMode="swimmer"
       />
     );
   } catch (error) {

@@ -1552,7 +1552,21 @@ Object.assign(ko, {
   "DM @swim.sight.": "@swim.sight로 메시지 보내기.",
   "Message @swim.sight": "@swim.sight로 메시지 보내기",
   "Follow @swim.sight": "@swim.sight 팔로우",
-  "DM @swim.sight with questions, bugs, team ideas, or feature requests.": "질문, 버그, 팀 아이디어, 기능 요청은 @swim.sight로 메시지를 보내 주세요."
+  "DM @swim.sight with questions, bugs, team ideas, or feature requests.": "질문, 버그, 팀 아이디어, 기능 요청은 @swim.sight로 메시지를 보내 주세요.",
+  "one day": "언젠가",
+  "lap one": "첫 랩",
+  "One Lap, One Signal": "첫 랩, 첫 신호",
+  "Swim intelligence. Lap one.": "수영 인텔리전스. 첫 랩부터.",
+  "Start the season you keep saying you will.": "늘 시작하겠다고 말하던 시즌을 지금 시작하세요.",
+  "One result becomes the first signal. Then SwimSight turns the rest into progress, goals, and a clearer next move.": "하나의 기록이 첫 신호가 됩니다. 그다음 스윔사이트가 나머지를 발전, 목표, 더 선명한 다음 단계로 바꿔 줍니다.",
+  "See SwimSight": "스윔사이트 보기",
+  "first lap": "첫 랩",
+  "empty dashboard": "빈 대시보드",
+  "Add your first time. Let the system wake up.": "첫 기록을 추가하세요. 시스템이 깨어납니다.",
+  "Switch dashboard view": "대시보드 보기 전환",
+  "Switching": "전환 중",
+  "Swimmer": "선수",
+  "Coach": "코치"
 });
 
 for (const key of Object.keys(vi)) {
@@ -1567,7 +1581,21 @@ for (const key of Object.keys(vi)) {
 
 Object.assign(vi, {
   "PB DETECTED": "ĐÃ PHÁT HIỆN KỶ LỤC CÁ NHÂN",
-  "PB signal": "Tín hiệu kỷ lục cá nhân"
+  "PB signal": "Tín hiệu kỷ lục cá nhân",
+  "one day": "một ngày nào đó",
+  "lap one": "vòng đầu tiên",
+  "One Lap, One Signal": "Vòng đầu tiên, tín hiệu đầu tiên",
+  "Swim intelligence. Lap one.": "Trí tuệ bơi lội. Từ vòng đầu tiên.",
+  "Start the season you keep saying you will.": "Bắt đầu mùa giải mà bạn vẫn luôn nói sẽ bắt đầu.",
+  "One result becomes the first signal. Then SwimSight turns the rest into progress, goals, and a clearer next move.": "Một thành tích trở thành tín hiệu đầu tiên. Sau đó SwimSight biến phần còn lại thành tiến bộ, mục tiêu và bước tiếp theo rõ ràng hơn.",
+  "See SwimSight": "Xem SwimSight",
+  "first lap": "vòng đầu tiên",
+  "empty dashboard": "bảng điều khiển trống",
+  "Add your first time. Let the system wake up.": "Thêm thời gian đầu tiên của bạn. Hệ thống sẽ bắt đầu hoạt động.",
+  "Switch dashboard view": "Chuyển chế độ bảng điều khiển",
+  "Switching": "Đang chuyển",
+  "Swimmer": "VĐV",
+  "Coach": "HLV"
 });
 
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };

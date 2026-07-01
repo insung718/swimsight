@@ -6,12 +6,14 @@ import { motion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
+import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
+import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { formatTime } from "@/lib/utils";
 import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics, Course, SwimEvent } from "@/types/swim";
 
@@ -24,7 +26,7 @@ const tabs = [
   { id: "reports", label: "Reports", icon: BarChart3 }
 ] as const;
 
-export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData }) {
+export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashboardData; viewMode: DashboardViewMode }) {
   const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<CoachTab>("overview");
   const allSwimmers = useMemo(
@@ -47,6 +49,7 @@ export function CoachDashboard({ dashboard }: { dashboard: CoachDashboardData })
             </span>
           </button>
           <div className="flex items-center gap-2">
+            <DashboardViewToggle mode={viewMode} />
             <LanguageToggle />
             <UserActions />
           </div>

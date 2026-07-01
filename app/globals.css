@@ -199,12 +199,12 @@ textarea {
 
 .lap-one-switcher {
   display: block;
-  font-size: clamp(4rem, 10vw, 10.5rem);
+  font-size: clamp(3rem, 9vw, 10.5rem);
   font-weight: 600;
   height: 1.08em;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   line-height: 1;
-  min-width: min(82vw, 720px);
+  width: min(92vw, 900px);
   position: relative;
 }
 

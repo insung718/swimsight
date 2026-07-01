@@ -71,6 +71,10 @@ export const profileRoleSchema = z.object({
   }
 });
 
+export const dashboardViewModeSchema = z.object({
+  viewMode: z.enum(["swimmer", "coach"])
+}).strict();
+
 export const coachClubCreateSchema = z.object({
   name: cleanText(2, 96),
   description: cleanText(1, 240).optional()
