@@ -79,6 +79,13 @@ const trustSignals = [
   }
 ] as const;
 
+const filmFrames = [
+  ["Start block", "The first official time becomes the baseline."],
+  ["Breakout", "Course, event, age, and training context shape the read."],
+  ["Clean water", "Progress, SPI, goals, and team comparison stay connected."],
+  ["Finish wall", "The next target appears without turning the dashboard into noise."]
+] as const;
+
 export function LandingPage() {
   const { t } = useTranslator();
 
@@ -186,6 +193,57 @@ export function LandingPage() {
         </div>
       </section>
       <SectionTransition label="from signal to analytics" />
+      <section className="signal-film relative overflow-hidden bg-[#03070e] text-white">
+        <div aria-hidden className="absolute inset-0">
+          <video
+            autoPlay
+            className="h-full w-full object-cover opacity-[0.34]"
+            loop
+            muted
+            playsInline
+            poster="/images/swimsight-pool-hero.jpg"
+            preload="metadata"
+          >
+            <source src="/videos/lap-one-swim.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.96),rgba(3,7,14,0.66)_46%,rgba(3,7,14,0.94)),radial-gradient(circle_at_78%_42%,rgba(78,232,255,0.24),transparent_34%)]" />
+        </div>
+        <div aria-hidden className="signal-film-word">RACE FILM</div>
+        <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-10 px-5 py-24 sm:py-32 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+          <Reveal>
+            <div className="signal-film-copy">
+              <p className="text-sm font-semibold text-cyan-200">{t("A season that feels filmed.")}</p>
+              <h2 className="mt-4 max-w-xl text-balance text-[3.2rem] font-semibold leading-[0.94] sm:text-7xl">
+                {t("Every entry gets a frame.")}
+              </h2>
+              <p className="mt-6 max-w-xl text-lg leading-8 text-white/70">
+                {t("The site should feel like race footage, but the product still reads like a serious athlete workspace.")}
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="signal-film-panel relative overflow-hidden rounded-lg border border-white/16 bg-white/[0.08] p-4 shadow-[0_40px_140px_rgba(0,0,0,0.42)] backdrop-blur-2xl sm:p-6">
+              <svg aria-hidden className="signal-film-path absolute inset-0 h-full w-full" viewBox="0 0 720 560">
+                <path className="signal-film-path-glow" d="M42 468 C126 310 244 390 318 244 S514 86 668 112" fill="none" />
+                <path className="signal-film-path-line" d="M42 468 C126 310 244 390 318 244 S514 86 668 112" fill="none" />
+              </svg>
+              <div className="relative z-10 grid gap-3 sm:grid-cols-2">
+                {filmFrames.map(([title, body], index) => (
+                  <article className="signal-film-card ui-lift rounded-lg border border-white/16 bg-[#07121d]/90 p-5 backdrop-blur-2xl" key={title}>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-mono text-3xl text-cyan-100">0{index + 1}</span>
+                      <span className="rounded-full border border-white/16 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/62">{t("frame")}</span>
+                    </div>
+                    <h3 className="mt-16 text-2xl font-semibold text-white">{t(title)}</h3>
+                    <p className="mt-3 text-sm leading-6 text-white/76">{t(body)}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+      <SectionTransition label="from film to analytics" />
       <StrokeProgressSection />
       <SectionTransition label="from signal to system" />
 

@@ -354,6 +354,104 @@ textarea {
   margin-top: 2px;
 }
 
+.signal-film {
+  isolation: isolate;
+}
+
+.signal-film::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 82px);
+  background-size:
+    12.5% 100%,
+    100% 100%;
+  content: "";
+  inset: 0;
+  opacity: 0.52;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.signal-film-word {
+  color: rgba(255, 255, 255, 0.055);
+  font-size: clamp(4.6rem, 17vw, 18rem);
+  font-weight: 650;
+  inset: 9% -4% auto;
+  letter-spacing: -0.045em;
+  line-height: 0.8;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  transform: scaleX(1.06);
+  z-index: 2;
+}
+
+.signal-film-copy {
+  text-shadow: 0 22px 62px rgba(0, 0, 0, 0.42);
+}
+
+.signal-film-panel {
+  transform: perspective(1300px) rotateY(-4deg) rotateX(2deg);
+  transform-origin: center;
+}
+
+.signal-film-panel::before {
+  background: radial-gradient(circle at 62% 22%, rgba(78, 232, 255, 0.34), transparent 16rem);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.signal-film-path {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.signal-film-path-glow,
+.signal-film-path-line {
+  stroke-linecap: round;
+}
+
+.signal-film-path-glow {
+  filter: blur(16px);
+  opacity: 0.62;
+  stroke: #4ee8ff;
+  stroke-width: 26;
+}
+
+.signal-film-path-line {
+  animation: hero-signal-draw 2600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  stroke: #d7fbff;
+  stroke-dasharray: 980;
+  stroke-dashoffset: 980;
+  stroke-width: 4;
+}
+
+.signal-film-card {
+  min-height: 260px;
+  position: relative;
+}
+
+.signal-film-card::after {
+  background: linear-gradient(130deg, transparent 0 36%, rgba(255, 255, 255, 0.14) 46%, transparent 58% 100%);
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 220ms var(--ease-ui-out), transform 420ms var(--ease-ui-out);
+  transform: translateX(-14%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .signal-film-card:hover::after {
+    opacity: 1;
+    transform: translateX(12%);
+  }
+}
+
 .hero-scene {
   isolation: isolate;
 }
@@ -804,6 +902,27 @@ textarea {
     opacity: 0.38;
   }
 
+  .signal-film-word {
+    inset: 6rem -12% auto;
+    opacity: 0.72;
+  }
+
+  .signal-film-panel {
+    transform: none;
+  }
+
+  .signal-film-panel::before {
+    opacity: 0.56;
+  }
+
+  .signal-film-path {
+    opacity: 0.18;
+  }
+
+  .signal-film-card {
+    min-height: 210px;
+  }
+
   .depth-card {
     min-height: auto;
   }
@@ -995,6 +1114,7 @@ textarea {
   .lap-one-word-b,
   .race-proof-line,
   .race-proof-point circle:last-child,
+  .signal-film-path-line,
   .hero-console,
   .hero-recruit-chip,
   .hero-data-card,

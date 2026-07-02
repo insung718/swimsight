@@ -1582,7 +1582,20 @@ Object.assign(ko, {
   "Private by default": "기본값은 비공개",
   "Your account controls what anyone else can see.": "다른 사람이 볼 수 있는 내용은 내 계정이 직접 관리합니다.",
   "Account-scoped data": "계정별 데이터",
-  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "모든 선수는 선명한 신호를 얻고, 코치는 맥락을 얻으며, 친구 비교는 전체 기록장을 노출하지 않고 이루어집니다."
+  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "모든 선수는 선명한 신호를 얻고, 코치는 맥락을 얻으며, 친구 비교는 전체 기록장을 노출하지 않고 이루어집니다.",
+  "A season that feels filmed.": "영상처럼 느껴지는 시즌.",
+  "Every entry gets a frame.": "모든 기록이 하나의 장면이 됩니다.",
+  "The site should feel like race footage, but the product still reads like a serious athlete workspace.": "사이트는 레이스 영상처럼 느껴지지만, 제품은 진지한 선수 워크스페이스처럼 읽혀야 합니다.",
+  "frame": "장면",
+  "Start block": "출발대",
+  "The first official time becomes the baseline.": "첫 공식 기록이 기준선이 됩니다.",
+  "Breakout": "브레이크아웃",
+  "Course, event, age, and training context shape the read.": "코스, 종목, 나이, 훈련 맥락이 분석을 만듭니다.",
+  "Clean water": "깨끗한 흐름",
+  "Progress, SPI, goals, and team comparison stay connected.": "진행, 수영 파워 지수, 목표, 팀 비교가 하나로 연결됩니다.",
+  "Finish wall": "터치패드",
+  "The next target appears without turning the dashboard into noise.": "대시보드를 복잡하게 만들지 않고 다음 목표가 드러납니다.",
+  "from film to analytics": "영상에서 분석으로"
 });
 
 for (const key of Object.keys(vi)) {
@@ -1627,7 +1640,20 @@ Object.assign(vi, {
   "Private by default": "Riêng tư mặc định",
   "Your account controls what anyone else can see.": "Tài khoản của bạn kiểm soát những gì người khác có thể xem.",
   "Account-scoped data": "Dữ liệu theo tài khoản",
-  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "Mỗi VĐV có tín hiệu rõ ràng. HLV có bối cảnh. Bạn bè có so sánh mà không lộ toàn bộ sổ ghi chép."
+  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "Mỗi VĐV có tín hiệu rõ ràng. HLV có bối cảnh. Bạn bè có so sánh mà không lộ toàn bộ sổ ghi chép.",
+  "A season that feels filmed.": "Một mùa giải có cảm giác như thước phim.",
+  "Every entry gets a frame.": "Mỗi lần nhập dữ liệu trở thành một khung hình.",
+  "The site should feel like race footage, but the product still reads like a serious athlete workspace.": "Trang web nên có cảm giác như thước phim thi đấu, nhưng sản phẩm vẫn phải rõ như một không gian làm việc nghiêm túc cho VĐV.",
+  "frame": "khung",
+  "Start block": "Bục xuất phát",
+  "The first official time becomes the baseline.": "Thành tích chính thức đầu tiên trở thành mốc nền.",
+  "Breakout": "Bứt tốc",
+  "Course, event, age, and training context shape the read.": "Bể bơi, nội dung, độ tuổi và bối cảnh tập luyện tạo nên cách đọc.",
+  "Clean water": "Làn nước sạch",
+  "Progress, SPI, goals, and team comparison stay connected.": "Tiến bộ, chỉ số sức mạnh bơi, mục tiêu và so sánh đội luôn được kết nối.",
+  "Finish wall": "Tường đích",
+  "The next target appears without turning the dashboard into noise.": "Mục tiêu tiếp theo hiện ra mà không biến bảng điều khiển thành nhiễu.",
+  "from film to analytics": "từ thước phim đến phân tích"
 });
 
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
