@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ArrowRight } from "lucide-react";
+import { Activity, ArrowRight, ShieldCheck, Trophy, Users } from "lucide-react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { UserActions } from "@/components/auth/user-actions";
@@ -55,6 +55,27 @@ export function LapOneIntro() {
           <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.88),rgba(3,7,14,0.42)_48%,rgba(3,7,14,0.72)),linear-gradient(180deg,rgba(3,7,14,0.20),rgba(3,7,14,0.82))]" />
           <div aria-hidden className="absolute inset-0 backdrop-blur-[1.5px]" />
 
+          <div className="hero-recruit-stack pointer-events-none absolute right-5 top-[18svh] z-20 hidden w-[min(26vw,360px)] gap-3 lg:grid">
+            {[
+              [Trophy, "Race proof", "Official meet results only"],
+              [Users, "Coach-ready", "Private club reports"],
+              [ShieldCheck, "Private by default", "Account-scoped data"]
+            ].map(([Icon, title, body], index) => {
+              const StackIcon = Icon as typeof Trophy;
+              return (
+                <div className="hero-recruit-chip" key={title as string} style={{ animationDelay: `${index * 120}ms` }}>
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-cyan-200 text-[#04111d]">
+                    <StackIcon aria-hidden className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <strong>{t(title as string)}</strong>
+                    <small>{t(body as string)}</small>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
           <motion.div
             aria-hidden
             className="absolute right-[-12vw] top-[8svh] max-w-[1000px] text-right text-[clamp(5.2rem,14vw,14rem)] font-semibold leading-[0.82] tracking-normal text-white/[0.16] sm:right-[-4vw]"
@@ -82,6 +103,13 @@ export function LapOneIntro() {
               <a className="ui-press mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white hover:text-black sm:hidden" href="#top">
                 {t("See SwimSight")} <ArrowRight aria-hidden className="h-4 w-4" />
               </a>
+              <div className="mt-6 grid max-w-xl grid-cols-3 gap-2 sm:hidden">
+                {["Race proof", "Age-aware", "Private"].map((label) => (
+                  <div className="rounded-lg border border-white/14 bg-white/[0.09] p-3 text-center backdrop-blur-xl" key={label}>
+                    <div className="text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-cyan-100/74">{t(label)}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="hidden w-full max-w-xl rounded-lg border border-white/18 bg-[#07121d]/72 p-2.5 shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur-2xl sm:block sm:p-4 lg:w-[min(48vw,540px)]">

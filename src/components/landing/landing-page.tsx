@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Database, FileSpreadsheet, Flag, Instagram, LineChart, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
@@ -8,6 +10,7 @@ import { SectionTransition } from "@/components/landing/section-transition";
 import { SeasonDepthCarousel } from "@/components/landing/season-depth-carousel";
 import { SiteNav } from "@/components/landing/site-nav";
 import { StrokeProgressSection } from "@/components/landing/stroke-progress-section";
+import { useTranslator } from "@/components/i18n/use-language";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import DisplayCards from "@/components/ui/display-cards";
 import { MagicBento } from "@/components/ui/magic-bento";
@@ -77,40 +80,109 @@ const trustSignals = [
 ] as const;
 
 export function LandingPage() {
+  const { t } = useTranslator();
+
   return (
     <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav immersive />
       <LapOneIntro />
 
       <KineticRibbon />
-      <section id="top" className="relative overflow-hidden bg-[#03070e] py-[4.5rem] text-white sm:py-32">
-        <div aria-hidden className="absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center opacity-16" />
-        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.98),rgba(3,7,14,0.84)_48%,rgba(3,7,14,0.96))]" />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold text-cyan-300">Athletic intelligence</p>
-            <h2 className="mt-4 max-w-xl text-balance text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl">
-              Clean signals from every race.
+      <section id="top" className="race-proof-stage relative overflow-hidden bg-[#03070e] py-[4.5rem] text-white sm:py-32">
+        <div aria-hidden className="absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center opacity-[0.18]" />
+        <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.98),rgba(3,7,14,0.82)_44%,rgba(3,7,14,0.96)),radial-gradient(circle_at_78%_34%,rgba(78,232,255,0.24),transparent_34%)]" />
+        <div aria-hidden className="athlete-wordmark pointer-events-none absolute inset-x-0 top-10 text-center text-[clamp(4.8rem,16vw,18rem)] font-semibold leading-none text-white/[0.045]">
+          SWIMSIGHT
+        </div>
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-5 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-300">{t("Recruit-grade signal")}</p>
+            <h2 className="mt-4 max-w-xl text-balance text-[2.8rem] font-semibold leading-[0.98] sm:text-7xl">
+              {t("Built for swimmers who have to prove it.")}
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8">
-              SwimSight keeps the cinematic feeling, but the product stays simple: enter a result, watch your progress, and know what to focus on next.
+              {t("Not more noise. A cleaner read on progress, standards, and what the next swim has to become.")}
             </p>
-          </div>
-          <div>
+            <div className="mt-8 grid max-w-xl grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                ["88", "SPI"],
+                ["365", "Forecast"],
+                ["AA", "Privacy"],
+                ["Age", "Standards"]
+              ].map(([value, label]) => (
+                <div className="rounded-lg border border-white/12 bg-white/[0.075] p-3 backdrop-blur-xl" key={label}>
+                  <div className="font-mono text-2xl font-semibold text-cyan-100">{value}</div>
+                  <div className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/48">{t(label)}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <div className="race-proof-orbit relative min-h-[520px] overflow-hidden rounded-lg border border-white/16 bg-white/[0.065] p-4 shadow-[0_40px_120px_rgba(0,0,0,0.34)] backdrop-blur-2xl sm:p-6">
+              <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:12.5%_100%,100%_72px]" />
+              <div aria-hidden className="absolute -right-24 top-12 h-72 w-72 rounded-full border border-cyan-200/22" />
+              <div aria-hidden className="absolute bottom-10 left-10 h-56 w-56 rounded-full border border-white/12" />
+              <svg aria-hidden className="absolute inset-0 h-full w-full" viewBox="0 0 760 520">
+                <path className="race-proof-glow" d="M32 372 C130 282 206 322 288 236 S430 102 520 184 S616 342 728 116" fill="none" />
+                <path className="race-proof-line" d="M32 372 C130 282 206 322 288 236 S430 102 520 184 S616 342 728 116" fill="none" />
+                {[32, 288, 520, 728].map((x, index) => (
+                  <g className="race-proof-point" key={x}>
+                    <circle cx={x} cy={[372, 236, 184, 116][index]} r="12" />
+                    <circle cx={x} cy={[372, 236, 184, 116][index]} r="28" />
+                  </g>
+                ))}
+              </svg>
+              <div className="relative z-10 grid h-full min-h-[480px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                {[
+                  [Trophy, "Race proof", "Official meet results stay separate from training noise."],
+                  [BarChart3, "Age-aware", "SPI and forecasts can read against age standards."],
+                  [Users, "Coach-ready", "Clubs, rosters, and reports stay clean for teams."],
+                  [ShieldCheck, "Private by default", "Your account controls what anyone else can see."]
+                ].map(([Icon, title, body], index) => {
+                  const TileIcon = Icon as typeof Trophy;
+                  return (
+                    <article className="race-proof-card ui-lift relative rounded-lg border border-white/16 bg-[#07121d]/72 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl" key={title as string}>
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-cyan-200 text-[#03070e]">
+                        <TileIcon aria-hidden className="h-5 w-5" />
+                      </span>
+                      <div className="mt-10 font-mono text-xl text-cyan-100">0{index + 1}</div>
+                      <h3 className="mt-2 text-xl font-semibold text-white">{t(title as string)}</h3>
+                      <p className="mt-3 text-sm leading-6 text-white/64">{t(body as string)}</p>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+      <section className="relative overflow-hidden bg-[#f7fbff] py-20 sm:py-28">
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(78,232,255,0.22),transparent_30%),radial-gradient(circle_at_84%_12%,rgba(4,17,29,0.10),transparent_32%)]" />
+        <div className="relative mx-auto grid max-w-6xl gap-8 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <Reveal>
+            <p className="text-sm font-semibold text-cyan-700">{t("Athletic intelligence")}</p>
+            <h2 className="mt-4 max-w-xl text-balance text-[2.75rem] font-semibold leading-[1.02] sm:text-6xl">
+              {t("Clean signals from every race.")}
+            </h2>
+            <p className="mt-5 max-w-xl text-base leading-7 text-black/62 sm:mt-6 sm:text-lg sm:leading-8">
+              {t("Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.")}
+            </p>
+          </Reveal>
+          <Reveal delay={100}>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 ["01", "Input", "Manual times, spreadsheet uploads, goals, meets, and gym work."],
                 ["02", "Signal", "PBs, consistency, improvement rate, and trend direction."],
                 ["03", "Forecast", "Future windows that update as your season changes."]
               ].map(([number, title, body]) => (
-                <article className="ui-lift rounded-lg border border-white/14 bg-white/[0.075] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.20)] backdrop-blur-2xl hover:border-cyan-300/45 hover:bg-white/[0.11]" key={title}>
-                  <div className="font-mono text-2xl text-cyan-200">{number}</div>
-                  <h3 className="mt-8 text-xl font-semibold text-white">{title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-white/64">{body}</p>
+                <article className="ui-lift rounded-lg border border-black/8 bg-white/75 p-5 shadow-[0_24px_80px_rgba(4,17,29,0.08)] backdrop-blur-2xl hover:border-cyan-300/65 hover:bg-white" key={title}>
+                  <div className="font-mono text-2xl text-cyan-700">{number}</div>
+                  <h3 className="mt-8 text-xl font-semibold text-[#04111d]">{t(title)}</h3>
+                  <p className="mt-3 text-sm leading-6 text-black/58">{t(body)}</p>
                 </article>
               ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
       <SectionTransition label="from signal to analytics" />

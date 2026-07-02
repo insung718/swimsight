@@ -1566,7 +1566,23 @@ Object.assign(ko, {
   "Switch dashboard view": "대시보드 보기 전환",
   "Switching": "전환 중",
   "Swimmer": "선수",
-  "Coach": "코치"
+  "Coach": "코치",
+  "Recruit-grade signal": "리크루팅급 신호",
+  "Built for swimmers who have to prove it.": "증명해야 하는 수영 선수를 위해 만들었습니다.",
+  "Not more noise. A cleaner read on progress, standards, and what the next swim has to become.": "더 많은 소음이 아니라, 성장과 기준, 다음 레이스가 무엇이 되어야 하는지 더 선명하게 읽게 합니다.",
+  "Standards": "기준",
+  "Race proof": "레이스 증거",
+  "Official meet results stay separate from training noise.": "공식 대회 기록은 훈련 기록의 소음과 분리됩니다.",
+  "Official meet results only": "공식 대회 기록만",
+  "Age-aware": "나이 기준 반영",
+  "SPI and forecasts can read against age standards.": "수영 파워 지수와 예측은 연령 기준을 반영할 수 있습니다.",
+  "Coach-ready": "코치에게 바로 보여줄 수 있음",
+  "Clubs, rosters, and reports stay clean for teams.": "클럽, 선수 명단, 리포트가 팀용으로 깔끔하게 유지됩니다.",
+  "Private club reports": "비공개 클럽 리포트",
+  "Private by default": "기본값은 비공개",
+  "Your account controls what anyone else can see.": "다른 사람이 볼 수 있는 내용은 내 계정이 직접 관리합니다.",
+  "Account-scoped data": "계정별 데이터",
+  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "모든 선수는 선명한 신호를 얻고, 코치는 맥락을 얻으며, 친구 비교는 전체 기록장을 노출하지 않고 이루어집니다."
 });
 
 for (const key of Object.keys(vi)) {
@@ -1595,7 +1611,23 @@ Object.assign(vi, {
   "Switch dashboard view": "Chuyển chế độ bảng điều khiển",
   "Switching": "Đang chuyển",
   "Swimmer": "VĐV",
-  "Coach": "HLV"
+  "Coach": "HLV",
+  "Recruit-grade signal": "Tín hiệu cấp tuyển chọn",
+  "Built for swimmers who have to prove it.": "Dành cho VĐV bơi cần chứng minh năng lực.",
+  "Not more noise. A cleaner read on progress, standards, and what the next swim has to become.": "Không thêm nhiễu. Chỉ là cách đọc rõ hơn về tiến bộ, tiêu chuẩn và lượt bơi tiếp theo cần trở thành gì.",
+  "Standards": "Tiêu chuẩn",
+  "Race proof": "Bằng chứng thi đấu",
+  "Official meet results stay separate from training noise.": "Thành tích giải chính thức được tách khỏi nhiễu của tập luyện.",
+  "Official meet results only": "Chỉ thành tích giải chính thức",
+  "Age-aware": "Có xét độ tuổi",
+  "SPI and forecasts can read against age standards.": "Chỉ số sức mạnh bơi và dự báo có thể đọc theo tiêu chuẩn độ tuổi.",
+  "Coach-ready": "Sẵn sàng cho HLV",
+  "Clubs, rosters, and reports stay clean for teams.": "CLB, danh sách VĐV và báo cáo luôn gọn cho đội.",
+  "Private club reports": "Báo cáo CLB riêng tư",
+  "Private by default": "Riêng tư mặc định",
+  "Your account controls what anyone else can see.": "Tài khoản của bạn kiểm soát những gì người khác có thể xem.",
+  "Account-scoped data": "Dữ liệu theo tài khoản",
+  "Every athlete gets a clean signal. Coaches get context. Friends get comparison without leaking the whole notebook.": "Mỗi VĐV có tín hiệu rõ ràng. HLV có bối cảnh. Bạn bè có so sánh mà không lộ toàn bộ sổ ghi chép."
 });
 
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };

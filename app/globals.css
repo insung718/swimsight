@@ -85,21 +85,48 @@ body {
 
   .dashboard-shell {
     background:
+      radial-gradient(circle at 14% 14%, rgba(78, 232, 255, 0.18), transparent 19rem),
       radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.92), transparent 26rem),
       radial-gradient(circle at 82% 10%, rgba(0, 219, 255, 0.28), transparent 30rem),
       radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.52), transparent 34rem),
       linear-gradient(180deg, #f8fcff 0%, #e8f8ff 32%, #d7eef8 66%, #eef8fc 100%);
+    isolation: isolate;
+    position: relative;
+  }
+
+  .dashboard-shell::before {
+    background:
+      linear-gradient(90deg, rgba(4, 17, 29, 0.035) 1px, transparent 1px),
+      repeating-linear-gradient(180deg, rgba(4, 17, 29, 0.035) 0 1px, transparent 1px 78px),
+      radial-gradient(circle at 82% 8%, rgba(4, 17, 29, 0.08), transparent 28rem);
+    background-size:
+      12.5% 100%,
+      100% 100%,
+      100% 100%;
+    content: "";
+    inset: 0;
+    opacity: 0.52;
+    pointer-events: none;
+    position: fixed;
+    z-index: 0;
+  }
+
+  .dashboard-shell > * {
+    position: relative;
+    z-index: 1;
   }
 
   .dashboard-glass {
-    @apply rounded-lg border border-white/30 bg-stitch-abyss/[0.78] shadow-stitch backdrop-blur-2xl;
+    @apply rounded-lg border border-white/35 bg-stitch-abyss/[0.78] shadow-stitch backdrop-blur-2xl;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.17),
+      inset 0 -1px 0 rgba(78, 232, 255, 0.08),
       0 26px 90px rgba(2, 13, 25, 0.16);
   }
 
   .dashboard-hero {
     background:
+      radial-gradient(circle at 18% 18%, rgba(78, 232, 255, 0.28), transparent 15rem),
       linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
       repeating-linear-gradient(
         180deg,
@@ -113,6 +140,20 @@ body {
       12.5% 100%,
       100% 56px,
       100% 100%;
+    isolation: isolate;
+    position: relative;
+  }
+
+  .dashboard-hero::after {
+    background:
+      linear-gradient(116deg, transparent 0 38%, rgba(255, 255, 255, 0.62) 48%, transparent 58% 100%),
+      radial-gradient(circle at 82% 18%, rgba(4, 17, 29, 0.10), transparent 19rem);
+    content: "";
+    inset: 0;
+    opacity: 0.44;
+    pointer-events: none;
+    position: absolute;
+    z-index: -1;
   }
 
   .premium-hover {
@@ -195,6 +236,122 @@ textarea {
 .landing-page {
   letter-spacing: 0;
   background: #03070e;
+}
+
+.race-proof-stage::before {
+  background:
+    radial-gradient(circle at 14% 30%, rgba(78, 232, 255, 0.16), transparent 22rem),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 74px);
+  background-size:
+    100% 100%,
+    12.5% 100%,
+    100% 100%;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.athlete-wordmark {
+  transform: scaleX(1.04);
+}
+
+.race-proof-orbit {
+  transform: perspective(1400px) rotateY(-5deg) rotateX(2deg);
+  transform-origin: center;
+}
+
+.race-proof-orbit > svg {
+  opacity: 0.62;
+}
+
+.race-proof-glow,
+.race-proof-line {
+  stroke-linecap: round;
+}
+
+.race-proof-glow {
+  filter: blur(12px);
+  opacity: 0.54;
+  stroke: #4ee8ff;
+  stroke-width: 24;
+}
+
+.race-proof-line {
+  animation: hero-signal-draw 2200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  stroke: #c8fbff;
+  stroke-dasharray: 980;
+  stroke-dashoffset: 980;
+  stroke-width: 5;
+}
+
+.race-proof-point circle:first-child {
+  fill: #f7ffff;
+}
+
+.race-proof-point circle:last-child {
+  animation: hero-pulse 2400ms ease-out infinite;
+  fill: transparent;
+  stroke: rgba(78, 232, 255, 0.6);
+  stroke-width: 2;
+}
+
+.race-proof-card {
+  background: rgba(7, 18, 29, 0.86);
+  min-height: 236px;
+}
+
+.race-proof-card:nth-child(1),
+.race-proof-card:nth-child(3) {
+  transform: translate3d(0, -28px, 0);
+}
+
+.race-proof-card:nth-child(2),
+.race-proof-card:nth-child(4) {
+  transform: translate3d(0, 22px, 0);
+}
+
+.hero-recruit-stack {
+  perspective: 1200px;
+}
+
+.hero-recruit-chip {
+  animation: landing-enter 720ms var(--ease-ui-out) both;
+  align-items: center;
+  background: rgba(7, 18, 29, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  transform: perspective(1200px) rotateY(-11deg) translateZ(0);
+  backdrop-filter: blur(18px);
+}
+
+.hero-recruit-chip:nth-child(2) {
+  margin-left: 42px;
+}
+
+.hero-recruit-chip:nth-child(3) {
+  margin-left: 84px;
+}
+
+.hero-recruit-chip strong {
+  color: white;
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.hero-recruit-chip small {
+  color: rgba(255, 255, 255, 0.58);
+  display: block;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 2px;
 }
 
 .hero-scene {
@@ -618,6 +775,35 @@ textarea {
     overflow-wrap: anywhere;
   }
 
+  .race-proof-orbit {
+    min-height: auto;
+    transform: none;
+  }
+
+  .race-proof-card {
+    min-height: 190px;
+  }
+
+  .race-proof-orbit > svg {
+    opacity: 0.28;
+  }
+
+  .race-proof-card:nth-child(1),
+  .race-proof-card:nth-child(2),
+  .race-proof-card:nth-child(3),
+  .race-proof-card:nth-child(4) {
+    transform: none;
+  }
+
+  .race-proof-line,
+  .race-proof-glow {
+    stroke-width: 4;
+  }
+
+  .dashboard-shell::before {
+    opacity: 0.38;
+  }
+
   .depth-card {
     min-height: auto;
   }
@@ -807,7 +993,10 @@ textarea {
   .lap-one-bg,
   .lap-one-word-a,
   .lap-one-word-b,
+  .race-proof-line,
+  .race-proof-point circle:last-child,
   .hero-console,
+  .hero-recruit-chip,
   .hero-data-card,
   .hero-signal-line,
   .hero-signal-point circle:last-child,
