@@ -1595,7 +1595,18 @@ Object.assign(ko, {
   "Progress, SPI, goals, and team comparison stay connected.": "진행, 수영 파워 지수, 목표, 팀 비교가 하나로 연결됩니다.",
   "Finish wall": "터치패드",
   "The next target appears without turning the dashboard into noise.": "대시보드를 복잡하게 만들지 않고 다음 목표가 드러납니다.",
-  "from film to analytics": "영상에서 분석으로"
+  "from film to analytics": "영상에서 분석으로",
+  "Shared standards, clean boundaries.": "공유 기준, 선명한 경계.",
+  "Send feedback, review the website, or follow the build on Instagram. The fastest contact point is": "피드백을 보내거나 웹사이트를 리뷰하거나 인스타그램에서 개발 과정을 팔로우하세요. 가장 빠른 연락 창구는",
+  "Product features": "제품 기능",
+  "Performance analytics": "퍼포먼스 분석",
+  "Privacy and security": "개인정보와 보안",
+  "Contact SwimSight": "스윔사이트 문의",
+  "Contact us and review the website.": "문의하고 웹사이트를 리뷰하세요.",
+  "Back home": "홈으로 돌아가기",
+  "Review prompt": "리뷰 안내",
+  "Send one clean review.": "깔끔한 리뷰 하나 보내기.",
+  "Try this: what felt premium, what felt confusing, what lagged on mobile, and what feature should come next.": "이렇게 보내 주세요: 어떤 부분이 고급스럽게 느껴졌는지, 무엇이 헷갈렸는지, 모바일에서 느렸던 부분, 다음에 필요한 기능."
 });
 
 for (const key of Object.keys(vi)) {
@@ -1653,7 +1664,18 @@ Object.assign(vi, {
   "Progress, SPI, goals, and team comparison stay connected.": "Tiến bộ, chỉ số sức mạnh bơi, mục tiêu và so sánh đội luôn được kết nối.",
   "Finish wall": "Tường đích",
   "The next target appears without turning the dashboard into noise.": "Mục tiêu tiếp theo hiện ra mà không biến bảng điều khiển thành nhiễu.",
-  "from film to analytics": "từ thước phim đến phân tích"
+  "from film to analytics": "từ thước phim đến phân tích",
+  "Shared standards, clean boundaries.": "Tiêu chuẩn chung, ranh giới rõ ràng.",
+  "Send feedback, review the website, or follow the build on Instagram. The fastest contact point is": "Gửi góp ý, đánh giá trang web hoặc theo dõi quá trình xây dựng trên Instagram. Kênh liên hệ nhanh nhất là",
+  "Product features": "Tính năng sản phẩm",
+  "Performance analytics": "Phân tích hiệu suất",
+  "Privacy and security": "Quyền riêng tư và bảo mật",
+  "Contact SwimSight": "Liên hệ SwimSight",
+  "Contact us and review the website.": "Liên hệ và đánh giá trang web.",
+  "Back home": "Về trang chủ",
+  "Review prompt": "Gợi ý đánh giá",
+  "Send one clean review.": "Gửi một đánh giá rõ ràng.",
+  "Try this: what felt premium, what felt confusing, what lagged on mobile, and what feature should come next.": "Hãy gửi: phần nào thấy cao cấp, phần nào gây khó hiểu, phần nào chậm trên di động và tính năng nào nên có tiếp theo."
 });
 
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };

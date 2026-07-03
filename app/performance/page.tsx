@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity, Gauge, TrendingUp } from "lucide-react";
 import { SitePage } from "@/components/landing/site-page";
 

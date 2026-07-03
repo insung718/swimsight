@@ -1,3 +1,5 @@
+"use client";
+
 import { Database, LockKeyhole, ShieldCheck } from "lucide-react";
 import { SitePage } from "@/components/landing/site-page";
 

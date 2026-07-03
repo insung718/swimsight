@@ -1,3 +1,5 @@
+"use client";
+
 import { ShieldCheck, Trophy, Users } from "lucide-react";
 import { SitePage } from "@/components/landing/site-page";
 

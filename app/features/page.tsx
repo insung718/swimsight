@@ -1,3 +1,5 @@
+"use client";
+
 import { BarChart3, CalendarDays, LineChart } from "lucide-react";
 import { SitePage } from "@/components/landing/site-page";
 

@@ -238,6 +238,49 @@ textarea {
   background: #03070e;
 }
 
+.landing-page :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.landing-page :is(p, li) {
+  text-wrap: pretty;
+}
+
+.site-page-hero::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 78px);
+  background-size:
+    12.5% 100%,
+    100% 100%;
+  content: "";
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.site-page-hero > * {
+  position: relative;
+  z-index: 2;
+}
+
+.site-page-cards {
+  isolation: isolate;
+  position: relative;
+}
+
+.site-page-cards::before {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(78, 232, 255, 0.18), transparent 28rem),
+    radial-gradient(circle at 82% 22%, rgba(4, 17, 29, 0.06), transparent 30rem);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
 .race-proof-stage::before {
   background:
     radial-gradient(circle at 14% 30%, rgba(78, 232, 255, 0.16), transparent 22rem),
@@ -432,6 +475,68 @@ textarea {
 .signal-film-card {
   min-height: 260px;
   position: relative;
+}
+
+.community-signal-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.community-signal-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 8px;
+  box-shadow: 0 24px 72px rgba(4, 17, 29, 0.08);
+  color: #04111d;
+  padding: 24px;
+  backdrop-filter: blur(22px);
+}
+
+.community-signal-card-main {
+  min-height: 320px;
+}
+
+.community-signal-card-dark {
+  background:
+    radial-gradient(circle at 82% 22%, rgba(78, 232, 255, 0.2), transparent 14rem),
+    rgba(3, 7, 14, 0.94);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: white;
+}
+
+.community-signal-card-chip {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dashboard-glass,
+  .stitch-panel,
+  .stitch-panel-soft,
+  .race-proof-card,
+  .signal-film-card,
+  .community-signal-card,
+  .site-page-cards article {
+    background-color: rgba(7, 18, 29, 0.96);
+  }
+
+  .site-page-cards article,
+  .community-signal-card:not(.community-signal-card-dark) {
+    background-color: rgba(255, 255, 255, 0.94);
+  }
+}
+
+@media (min-width: 640px) {
+  .community-signal-grid {
+    grid-template-columns: 1fr 0.76fr;
+  }
+
+  .community-signal-card-main {
+    grid-row: span 2;
+    min-height: 420px;
+  }
 }
 
 .signal-film-card::after {
@@ -1115,6 +1220,7 @@ textarea {
   .race-proof-line,
   .race-proof-point circle:last-child,
   .signal-film-path-line,
+  .signal-film-card::after,
   .hero-console,
   .hero-recruit-chip,
   .hero-data-card,
@@ -1126,6 +1232,7 @@ textarea {
   .dashboard-enter-delayed,
   .depth-card,
   .depth-track,
+  .community-signal-card,
   .flip-char,
   .pb-confetti-piece {
     animation: none;
