@@ -1,12 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarClock, CheckCircle2, Sparkles, TrendingDown, X } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { BrainCircuit, CalendarClock, CheckCircle2, Save, Settings2, Sparkles, TrendingDown, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslator } from "@/components/i18n/use-language";
 import { cn, formatTime } from "@/lib/utils";
-import type { Prediction } from "@/types/swim";
+import type { AthleteSex, Prediction, PredictionProfile } from "@/types/swim";
 
 const horizonLabels = [
   ["30 days", "days30"],
@@ -15,7 +16,7 @@ const horizonLabels = [
   ["365 days", "days365"]
 ] as const;
 
-export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
+export function PredictionGrid({ predictions, profile }: { predictions: Prediction[]; profile: PredictionProfile }) {
   const { t } = useTranslator();
   const id = useId();
   const sortedPredictions = useMemo(() => [...predictions].sort((a, b) => b.confidence - a.confidence), [predictions]);
@@ -87,6 +88,8 @@ export function PredictionGrid({ predictions }: { predictions: Prediction[] }) {
           </div>
         )}
       </div>
+
+      <PredictionProfileEditor profile={profile} t={t} />
 
       {sortedPredictions.length === 0 ? (
         <div className="rounded-lg border border-dashed border-white/14 bg-white/8 p-6 text-sm leading-6 text-white/76">
@@ -164,6 +167,7 @@ function PredictionExpandedCard({
   t: (value: string) => string;
 }) {
   const delta365 = prediction.currentTime - prediction.predictedTimes.days365;
+  const modelLabel = prediction.model.kind === "XGBOOST" ? t("Validated XGBoost") : t("Conservative ensemble");
 
   return (
     <motion.div
@@ -250,15 +254,44 @@ function PredictionExpandedCard({
             <section className="rounded-lg border border-white/12 bg-white/[0.06] p-4 sm:p-5">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {horizonLabels.map(([label, predictionKey]) => (
-                  <PredictionMini key={predictionKey} label={t(label)} value={formatTime(prediction.predictedTimes[predictionKey])} />
+                  <PredictionHorizon
+                    key={predictionKey}
+                    label={t(label)}
+                    range={prediction.likelyRanges[predictionKey]}
+                    value={formatTime(prediction.predictedTimes[predictionKey])}
+                  />
                 ))}
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <InsightBlock label={t("Model confidence")} value={`${prediction.confidence}%`} />
+                <InsightBlock label={t("Model source")} value={modelLabel} />
+                <InsightBlock label={t("Data sufficiency")} value={t(prediction.model.dataSufficiency)} />
+                <InsightBlock label={t("Race history used")} value={`${prediction.model.historyUsed}/20`} />
                 <InsightBlock label={t("Pool type")} value={prediction.course} />
                 <InsightBlock label={t("Current time")} value={formatTime(prediction.currentTime)} />
-                <InsightBlock label={t("Forecast window")} value={t("30 to 365 days")} />
+                {prediction.model.validationMae !== undefined && <InsightBlock label={t("Cross-validated MAE")} value={`${prediction.model.validationMae.toFixed(2)}${t("s")}`} />}
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-white/12 bg-white/[0.06] p-4 sm:p-5 lg:col-span-2">
+              <div className="flex items-center gap-3">
+                <BrainCircuit aria-hidden className="h-5 w-5 text-aqua-100" />
+                <div>
+                  <h4 className="text-lg font-semibold text-white">{t("What shaped this forecast")}</h4>
+                  <p className="mt-1 text-sm text-white/66">{t("These are model inputs and associations, not proof that one factor caused the result.")}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {prediction.model.factors.map((factor) => (
+                  <div className="rounded-md border border-white/10 bg-white/[0.07] p-3" key={factor.label}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-white">{t(factor.label)}</span>
+                      <span className={`h-2 w-2 rounded-full ${factor.impact === "positive" ? "bg-mint-300" : factor.impact === "caution" ? "bg-coral-300" : "bg-aqua-200"}`} />
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-white/64">{t(factor.detail)}</p>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -283,6 +316,88 @@ function PredictionExpandedCard({
   );
 }
 
+function PredictionProfileEditor({ profile, t }: { profile: PredictionProfile; t: (value: string) => string }) {
+  const router = useRouter();
+  const [age, setAge] = useState(profile.age?.toString() ?? "");
+  const [sex, setSex] = useState<AthleteSex | "">(profile.sex ?? "");
+  const [taperDays, setTaperDays] = useState(profile.taperDays?.toString() ?? "");
+  const [frequency, setFrequency] = useState(profile.swimSessionsPerWeek?.toString() ?? "");
+  const [status, setStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function saveProfile() {
+    setSaving(true);
+    setStatus("");
+    try {
+      const response = await fetch("/api/me/prediction-profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          age: age === "" ? null : Number(age),
+          sex: sex || null,
+          taperDays: taperDays === "" ? null : Number(taperDays),
+          swimSessionsPerWeek: frequency === "" ? null : Number(frequency)
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setStatus(t(payload.error ?? "Could not save prediction profile."));
+        return;
+      }
+      setStatus(t("Prediction inputs saved."));
+      router.refresh();
+    } catch {
+      setStatus(t("Could not save prediction profile."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <details className="mb-5 rounded-lg border border-white/12 bg-white/[0.07] p-4">
+      <summary className="ui-press flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-md text-left [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-3">
+          <Settings2 aria-hidden className="h-5 w-5 text-aqua-100" />
+          <span>
+            <span className="block text-sm font-semibold text-white">{t("100 Free prediction inputs")}</span>
+            <span className="mt-1 block text-xs text-white/62">{t("Age, category, taper, training frequency, and up to 20 prior official races.")}</span>
+          </span>
+        </span>
+        <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-aqua-100">{t("Edit")}</span>
+      </summary>
+      <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+        <PredictionField label={t("Age")}>
+          <input className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-white outline-none focus:border-stitch-cyan" max={100} min={6} type="number" value={age} onChange={(event) => setAge(event.target.value)} />
+        </PredictionField>
+        <PredictionField label={t("Performance category")}>
+          <select className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-white outline-none focus:border-stitch-cyan" value={sex} onChange={(event) => setSex(event.target.value as AthleteSex | "")}>
+            <option value="">{t("Not set")}</option>
+            <option value="FEMALE">{t("Female")}</option>
+            <option value="MALE">{t("Male")}</option>
+          </select>
+        </PredictionField>
+        <PredictionField label={t("Taper days")}>
+          <input className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-white outline-none focus:border-stitch-cyan" max={28} min={0} type="number" value={taperDays} onChange={(event) => setTaperDays(event.target.value)} />
+        </PredictionField>
+        <PredictionField label={t("Swim sessions / week")}>
+          <input className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-white outline-none focus:border-stitch-cyan" max={14} min={0} step={0.5} type="number" value={frequency} onChange={(event) => setFrequency(event.target.value)} />
+        </PredictionField>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button className="ui-press inline-flex h-10 items-center gap-2 rounded-md bg-stitch-cyan px-4 text-sm font-semibold text-stitch-abyss disabled:opacity-60" disabled={saving} type="button" onClick={saveProfile}>
+          <Save aria-hidden className="h-4 w-4" />
+          {saving ? t("Saving") : t("Save inputs")}
+        </button>
+        {status && <p className="text-sm text-white/68" role="status">{status}</p>}
+      </div>
+    </details>
+  );
+}
+
+function PredictionField({ children, label }: { children: ReactNode; label: string }) {
+  return <label className="grid gap-2 text-xs font-semibold text-white/64"><span>{label}</span>{children}</label>;
+}
+
 function InsightBlock({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.07] p-4">
@@ -297,6 +412,16 @@ function PredictionMini({ label, value }: { label: string; value: string }) {
     <div className="rounded-md bg-white/[0.12] p-3">
       <div className="text-xs text-white/62">{label}</div>
       <div className="mt-1 font-mono text-lg font-semibold text-white">{value}</div>
+    </div>
+  );
+}
+
+function PredictionHorizon({ label, range, value }: { label: string; range: { low: number; high: number }; value: string }) {
+  return (
+    <div className="rounded-md bg-white/[0.12] p-3">
+      <div className="text-xs text-white/62">{label}</div>
+      <div className="mt-1 font-mono text-lg font-semibold text-white">{value}</div>
+      <div className="mt-1 font-mono text-[11px] text-aqua-100/78">{formatTime(range.low)}–{formatTime(range.high)}</div>
     </div>
   );
 }

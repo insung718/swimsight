@@ -17,7 +17,7 @@ export async function GET() {
   try {
     user = await prisma.user.findUnique({
       where: { id: account.context.userId },
-      select: { id: true, name: true, email: true, imageUrl: true, age: true, role: true, onboardingCompleted: true, createdAt: true }
+      select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true, createdAt: true }
     });
   } catch (error) {
     logServerError("Could not load profile", error);
@@ -44,9 +44,12 @@ export async function PATCH(request: Request) {
       data: {
         role: nextRole,
         age: parsed.data.age ?? null,
+        sex: parsed.data.sex ?? null,
+        taperDays: parsed.data.taperDays ?? null,
+        swimSessionsPerWeek: parsed.data.swimSessionsPerWeek ?? null,
         onboardingCompleted: true
       },
-      select: { id: true, name: true, email: true, imageUrl: true, age: true, role: true, onboardingCompleted: true }
+      select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true }
     });
 
     return ok({ user });

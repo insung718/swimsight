@@ -27,7 +27,7 @@ import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { formatTime } from "@/lib/utils";
-import type { DashboardAnalytics, Goal, GymWorkout, SwimResult } from "@/types/swim";
+import type { DashboardAnalytics, Goal, GymWorkout, PredictionProfile, SwimResult } from "@/types/swim";
 
 type DashboardTab = "overview" | "results" | "analytics" | "training" | "goals" | "profile";
 
@@ -44,12 +44,14 @@ export function SwimSightDashboard({
   analytics,
   gymWorkouts,
   goals,
+  predictionProfile,
   swims,
   viewMode
 }: {
   analytics: DashboardAnalytics;
   gymWorkouts: GymWorkout[];
   goals: Goal[];
+  predictionProfile: PredictionProfile;
   swims: SwimResult[];
   viewMode: DashboardViewMode;
 }) {
@@ -121,7 +123,7 @@ export function SwimSightDashboard({
 
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
-        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
         {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 

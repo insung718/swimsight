@@ -35,6 +35,9 @@ function swimmerAnalytics(member: {
     name: string;
     imageUrl?: string | null;
     age?: number | null;
+    sex?: "FEMALE" | "MALE" | null;
+    taperDays?: number | null;
+    swimSessionsPerWeek?: number | null;
     swims: Array<{
       id: string;
       userId: string;
@@ -57,7 +60,12 @@ function swimmerAnalytics(member: {
 }): CoachSwimmerAnalytics {
   const swims = member.user.swims.map(toSwimResult);
   const goals = member.user.goals.map(toGoal);
-  const analytics = buildDashboardAnalytics(swims, goals[0], [], member.user.age);
+  const analytics = buildDashboardAnalytics(swims, goals[0], [], {
+    age: member.user.age,
+    sex: member.user.sex,
+    taperDays: member.user.taperDays,
+    swimSessionsPerWeek: member.user.swimSessionsPerWeek
+  });
   const latest = swims[swims.length - 1];
   const strongest = analytics.strongestEvents[0];
 
@@ -149,6 +157,9 @@ export async function getCoachDashboard(coachId: string): Promise<CoachDashboard
               name: true,
               imageUrl: true,
               age: true,
+              sex: true,
+              taperDays: true,
+              swimSessionsPerWeek: true,
               swims: {
                 orderBy: [{ date: "asc" }, { createdAt: "asc" }],
                 take: 2_000

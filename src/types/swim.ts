@@ -25,6 +25,14 @@ export type TrendLabel = "Improving" | "Plateauing" | "Declining";
 
 export type GymWorkoutType = "STRENGTH" | "CORE" | "MOBILITY" | "DRYLAND" | "CARDIO" | "RECOVERY";
 export type UserRole = "ATHLETE" | "COACH" | "ADMIN";
+export type AthleteSex = "FEMALE" | "MALE";
+
+export interface PredictionProfile {
+  age?: number | null;
+  sex?: AthleteSex | null;
+  taperDays?: number | null;
+  swimSessionsPerWeek?: number | null;
+}
 
 export interface SwimResult {
   id: string;
@@ -59,6 +67,20 @@ export interface Prediction {
     days365: number;
   };
   confidence: number;
+  likelyRanges: {
+    days30: { low: number; high: number };
+    days90: { low: number; high: number };
+    days180: { low: number; high: number };
+    days365: { low: number; high: number };
+  };
+  model: {
+    kind: "XGBOOST" | "CONSERVATIVE_ENSEMBLE";
+    version: string;
+    validationMae?: number;
+    historyUsed: number;
+    dataSufficiency: "Low" | "Moderate" | "High";
+    factors: { label: string; impact: "positive" | "neutral" | "caution"; detail: string }[];
+  };
   trainingImpact: {
     label: "No gym data" | "Strength supported" | "Balanced load" | "Fatigue risk";
     adjustmentMultiplier: number;

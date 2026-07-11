@@ -1,0 +1,4 @@
+athlete_id,race_date,course,time_seconds,age,sex,taper_days,swim_sessions_per_week
+anonymous-athlete-001,2026-01-12,LCM,61.42,15,MALE,7,6
+anonymous-athlete-001,2026-02-16,LCM,60.98,15,MALE,8,6
+anonymous-athlete-002,2026-01-20,LCM,65.10,14,FEMALE,6,5

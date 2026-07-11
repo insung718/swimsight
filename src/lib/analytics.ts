@@ -7,6 +7,7 @@ import type {
   GoalProjection,
   PersonalBest,
   Prediction,
+  PredictionProfile,
   SwimEvent,
   SwimPowerIndex,
   SwimResult,
@@ -15,6 +16,8 @@ import type {
 } from "@/types/swim";
 import { clamp, dateToDays, round } from "@/lib/utils";
 import { getPredictionPrior, type PredictionPrior } from "@/lib/trained-prediction-model";
+import { buildHundredFreeFeatures, hundredFreeDataSufficiency } from "@/lib/prediction-features";
+import { predictWithHundredFreeXgboost } from "@/lib/xgboost-runtime";
 
 const predictionHorizons = [30, 90, 180, 365] as const;
 
@@ -519,15 +522,118 @@ export function calculateTrainingLoadSignal(workouts: GymWorkout[]): TrainingLoa
   };
 }
 
-export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSignal = neutralTrainingSignal): Prediction {
-  const sorted = [...swims].sort(byDateAsc);
+function normalizePredictionProfile(profile?: PredictionProfile | number | null): PredictionProfile {
+  if (typeof profile === "number") return { age: profile };
+  return profile ?? {};
+}
+
+function addDays(date: string, days: number) {
+  const value = new Date(`${date}T00:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+function profileConfidenceAdjustment(profile: PredictionProfile) {
+  return (profile.age ? 2 : 0) + (profile.sex ? 2 : 0) + (profile.taperDays !== null && profile.taperDays !== undefined ? 2 : 0) + (profile.swimSessionsPerWeek !== null && profile.swimSessionsPerWeek !== undefined ? 3 : 0);
+}
+
+function profileSlopeMultiplier(profile: PredictionProfile) {
+  const frequency = profile.swimSessionsPerWeek;
+  const taper = profile.taperDays;
+  const frequencyMultiplier = frequency === null || frequency === undefined
+    ? 1
+    : frequency >= 4 && frequency <= 9
+      ? 1.03
+      : frequency < 2 || frequency > 11
+        ? 0.96
+        : 1;
+  const taperMultiplier = taper === null || taper === undefined
+    ? 1
+    : taper >= 5 && taper <= 14
+      ? 1.02
+      : taper > 21
+        ? 0.97
+        : 1;
+  return frequencyMultiplier * taperMultiplier;
+}
+
+function predictionFactors(history: SwimResult[], profile: PredictionProfile, trainingSignal: TrainingLoadSignal, slope: number): Prediction["model"]["factors"] {
+  const factors: Prediction["model"]["factors"] = [
+    {
+      label: "Race history",
+      impact: history.length >= 10 ? "positive" : history.length >= 4 ? "neutral" : "caution",
+      detail: history.length >= 10 ? "Strong race history coverage." : history.length >= 4 ? "Some race history is available." : "More official races will improve reliability."
+    },
+    {
+      label: "Recent trend",
+      impact: slope < -0.01 ? "positive" : slope > 0.01 ? "caution" : "neutral",
+      detail: slope < -0.01 ? "Recent times are trending faster" : slope > 0.01 ? "Recent times are trending slower" : "Recent times are broadly stable"
+    },
+    {
+      label: "Age and category",
+      impact: profile.age && profile.sex ? "neutral" : "caution",
+      detail: profile.age && profile.sex ? "Development context is available" : "Complete the athlete profile for better calibration"
+    },
+    {
+      label: "Taper plan",
+      impact: profile.taperDays === null || profile.taperDays === undefined ? "caution" : "neutral",
+      detail: profile.taperDays === null || profile.taperDays === undefined ? "No taper duration entered" : "Taper duration is included."
+    },
+    {
+      label: "Training frequency",
+      impact: profile.swimSessionsPerWeek === null || profile.swimSessionsPerWeek === undefined ? "caution" : "neutral",
+      detail: profile.swimSessionsPerWeek === null || profile.swimSessionsPerWeek === undefined ? "No weekly swim frequency entered" : "Weekly swim frequency is included."
+    }
+  ];
+
+  if (trainingSignal.sessionsLast28Days > 0) {
+    factors.push({
+      label: "Dryland load",
+      impact: trainingSignal.label === "Fatigue risk" ? "caution" : "neutral",
+      detail: "Recent dryland load is included."
+    });
+  }
+
+  return factors;
+}
+
+function likelyRange({
+  confidence,
+  consistencyScore,
+  course,
+  days,
+  event,
+  point,
+  residualP80
+}: {
+  confidence: number;
+  consistencyScore: number;
+  course: Course;
+  days: number;
+  event: SwimEvent;
+  point: number;
+  residualP80?: number;
+}) {
+  const inferredResidual = Math.max(0.25, point * (1 - consistencyScore / 100) * 0.028);
+  const horizonMultiplier = 0.72 + Math.sqrt(days / 90) * 0.32;
+  const confidenceMultiplier = 1 + Math.max(0, 70 - confidence) / 100;
+  const width = Math.max(0.18, (residualP80 ?? inferredResidual) * horizonMultiplier * confidenceMultiplier);
+  return {
+    low: round(Math.max(getRecordFloor(event, course), point - width), 2),
+    high: round(point + width, 2)
+  };
+}
+
+export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSignal = neutralTrainingSignal, rawProfile: PredictionProfile | number | null = {}): Prediction {
+  const profile = normalizePredictionProfile(rawProfile);
+  const sorted = [...swims].sort(byDateAsc).slice(-20);
   const latest = sorted[sorted.length - 1];
   const { slope } = eventRegression(sorted);
   const consistencyScore = calculateConsistencyScore(sorted);
   const prior = getPredictionPrior(latest.event, latest.course);
   const baseConfidence = predictionConfidence(sorted.length, consistencyScore, slope);
-  const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment + priorConfidenceAdjustment(prior)), 1);
-  const adjustedSlope = blendedPredictionSlope({
+  const confidence = round(clamp(baseConfidence + trainingSignal.confidenceAdjustment + priorConfidenceAdjustment(prior) + profileConfidenceAdjustment(profile), 0, 100), 1);
+  const baseAdjustedSlope = blendedPredictionSlope({
     confidence,
     currentTime: latest.timeSeconds,
     personalSlope: slope,
@@ -535,15 +641,49 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
     sampleSize: sorted.length,
     trainingSignal
   });
+  const adjustedSlope = baseAdjustedSlope < 0 ? baseAdjustedSlope * profileSlopeMultiplier(profile) : baseAdjustedSlope;
 
   const project = (days: number) => {
-    const predicted = latest.timeSeconds + adjustedSlope * days;
+    const targetDate = addDays(latest.date, days);
+    const features = latest.event === "100 Freestyle"
+      ? buildHundredFreeFeatures({ course: latest.course, profile, swims: sorted, targetDate })
+      : null;
+    const xgboost = features ? predictWithHundredFreeXgboost(latest.course, features.vector) : null;
+    const predicted = xgboost?.predictedTime ?? latest.timeSeconds + adjustedSlope * days;
     const fastestAllowed = latest.timeSeconds - maxForecastImprovement(latest.timeSeconds, days, confidence, prior);
     const recordFloor = getRecordFloor(latest.event, latest.course);
     const slowestAllowed = latest.timeSeconds * 1.08;
 
-    return round(clamp(predicted, Math.max(fastestAllowed, recordFloor), slowestAllowed), 2);
+    return {
+      time: round(clamp(predicted, Math.max(fastestAllowed, recordFloor), slowestAllowed), 2),
+      xgboost,
+      features
+    };
   };
+  const projections = {
+    days30: project(predictionHorizons[0]),
+    days90: project(predictionHorizons[1]),
+    days180: project(predictionHorizons[2]),
+    days365: project(predictionHorizons[3])
+  };
+  const activeXgboost = projections.days90.xgboost ?? projections.days30.xgboost ?? projections.days180.xgboost ?? projections.days365.xgboost;
+  const hundredFreeFeatures = projections.days90.features;
+  const dataSufficiency = hundredFreeFeatures
+    ? hundredFreeDataSufficiency(hundredFreeFeatures)
+    : sorted.length >= 10 && profile.age
+      ? "High"
+      : sorted.length >= 4
+        ? "Moderate"
+        : "Low";
+  const rangeFor = (key: keyof typeof projections, days: number) => likelyRange({
+    confidence,
+    consistencyScore,
+    course: latest.course,
+    days,
+    event: latest.event,
+    point: projections[key].time,
+    residualP80: projections[key].xgboost?.metrics.residualP80
+  });
 
   return {
     event: latest.event,
@@ -551,12 +691,26 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
     currentTime: latest.timeSeconds,
     predictionDate: latest.date,
     predictedTimes: {
-      days30: project(predictionHorizons[0]),
-      days90: project(predictionHorizons[1]),
-      days180: project(predictionHorizons[2]),
-      days365: project(predictionHorizons[3])
+      days30: projections.days30.time,
+      days90: projections.days90.time,
+      days180: projections.days180.time,
+      days365: projections.days365.time
     },
     confidence,
+    likelyRanges: {
+      days30: rangeFor("days30", 30),
+      days90: rangeFor("days90", 90),
+      days180: rangeFor("days180", 180),
+      days365: rangeFor("days365", 365)
+    },
+    model: {
+      kind: activeXgboost ? "XGBOOST" : "CONSERVATIVE_ENSEMBLE",
+      version: activeXgboost?.version ?? "conservative-ensemble-2026-07-10",
+      validationMae: activeXgboost?.metrics.rollingMae,
+      historyUsed: sorted.length,
+      dataSufficiency,
+      factors: predictionFactors(sorted, profile, trainingSignal, slope)
+    },
     trainingImpact: {
       label: trainingSignal.label,
       adjustmentMultiplier: trainingSignal.adjustmentMultiplier,
@@ -566,13 +720,13 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
   };
 }
 
-export function generatePredictions(swims: SwimResult[], workouts: GymWorkout[] = []) {
+export function generatePredictions(swims: SwimResult[], workouts: GymWorkout[] = [], profile: PredictionProfile | number | null = {}) {
   const predictions: Prediction[] = [];
   const trainingSignal = calculateTrainingLoadSignal(workouts);
 
   groupByEventCourse(swims).forEach((eventSwims) => {
     if (eventSwims.length >= 1) {
-      predictions.push(predictEvent(eventSwims, trainingSignal));
+      predictions.push(predictEvent(eventSwims, trainingSignal, profile));
     }
   });
 
@@ -690,7 +844,8 @@ function calculateSpecialtyProfile(rankings: EventRanking[]): StrokeSpecialty[] 
   });
 }
 
-export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = [], athleteAge?: number | null): DashboardAnalytics {
+export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workouts: GymWorkout[] = [], rawProfile: PredictionProfile | number | null = {}): DashboardAnalytics {
+  const profile = normalizePredictionProfile(rawProfile);
   const trainingSignal = calculateTrainingLoadSignal(workouts);
   const officialSwims = swims.filter(isOfficialResult);
 
@@ -722,7 +877,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
     };
   }
 
-  const rankings = rankEvents(officialSwims, athleteAge);
+  const rankings = rankEvents(officialSwims, profile.age);
   const personalBests = getPersonalBests(officialSwims);
   const mostImproved = [...rankings].sort((a, b) => b.improvementPercent - a.improvementPercent)[0];
 
@@ -740,7 +895,7 @@ export function buildDashboardAnalytics(swims: SwimResult[], goal?: Goal, workou
     rankings,
     strongestEvents: rankings.slice(0, 3),
     weakestEvents: rankings.slice(-3).reverse(),
-    predictions: generatePredictions(officialSwims, workouts),
+    predictions: generatePredictions(officialSwims, workouts, profile),
     goalProjection: goal && officialSwims.some((swim) => swim.event === goal.event) ? calculateGoalProjection(officialSwims, goal) : undefined,
     swimPowerIndex: calculateSwimPowerIndex(rankings),
     specialtyProfile: calculateSpecialtyProfile(rankings),

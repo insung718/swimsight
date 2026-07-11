@@ -5,6 +5,7 @@ export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
 export const swimResultKindSchema = z.enum(["OFFICIAL", "TRAINING"]);
 export const gymWorkoutTypeSchema = z.enum(["STRENGTH", "CORE", "MOBILITY", "DRYLAND", "CARDIO", "RECOVERY"]);
+export const athleteSexSchema = z.enum(["FEMALE", "MALE"]);
 
 const cleanText = (min: number, max: number) => z
   .string()
@@ -60,7 +61,10 @@ export const friendActionSchema = z.object({
 
 export const profileRoleSchema = z.object({
   role: z.enum(["ATHLETE", "COACH"]),
-  age: z.number().int().min(6).max(100).optional()
+  age: z.number().int().min(6).max(100).optional(),
+  sex: athleteSexSchema.optional(),
+  taperDays: z.number().int().min(0).max(28).optional(),
+  swimSessionsPerWeek: z.number().min(0).max(14).multipleOf(0.5).optional()
 }).strict().superRefine((value, context) => {
   if (value.role === "ATHLETE" && !value.age) {
     context.addIssue({
@@ -69,7 +73,21 @@ export const profileRoleSchema = z.object({
       path: ["age"]
     });
   }
+  if (value.role === "ATHLETE" && !value.sex) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Performance category is required for swimmer analytics.",
+      path: ["sex"]
+    });
+  }
 });
+
+export const predictionProfileSchema = z.object({
+  age: z.number().int().min(6).max(100).nullable(),
+  sex: athleteSexSchema.nullable(),
+  taperDays: z.number().int().min(0).max(28).nullable(),
+  swimSessionsPerWeek: z.number().min(0).max(14).multipleOf(0.5).nullable()
+}).strict();
 
 export const dashboardViewModeSchema = z.object({
   viewMode: z.enum(["swimmer", "coach"])

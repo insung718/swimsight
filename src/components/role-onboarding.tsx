@@ -8,7 +8,7 @@ import { UserActions } from "@/components/auth/user-actions";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
-import type { UserRole } from "@/types/swim";
+import type { AthleteSex, UserRole } from "@/types/swim";
 
 const roleCards = [
   {
@@ -32,6 +32,9 @@ export function RoleOnboarding() {
   const { t } = useTranslator();
   const [savingRole, setSavingRole] = useState<UserRole | null>(null);
   const [age, setAge] = useState("");
+  const [sex, setSex] = useState<AthleteSex | "">("");
+  const [taperDays, setTaperDays] = useState("");
+  const [swimSessionsPerWeek, setSwimSessionsPerWeek] = useState("");
   const [error, setError] = useState("");
 
   async function chooseRole(role: UserRole) {
@@ -40,6 +43,13 @@ export function RoleOnboarding() {
       setError(t("Enter your swimmer age to calibrate analytics."));
       return;
     }
+    if (role === "ATHLETE" && !sex) {
+      setError(t("Select the swimmer category used for performance calibration."));
+      return;
+    }
+
+    const parsedTaperDays = taperDays === "" ? undefined : Number.parseInt(taperDays, 10);
+    const parsedSessions = swimSessionsPerWeek === "" ? undefined : Number(swimSessionsPerWeek);
 
     setSavingRole(role);
     setError("");
@@ -48,7 +58,13 @@ export function RoleOnboarding() {
       const response = await fetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, age: Number.isInteger(parsedAge) ? parsedAge : undefined })
+        body: JSON.stringify({
+          role,
+          age: Number.isInteger(parsedAge) ? parsedAge : undefined,
+          sex: sex || undefined,
+          taperDays: Number.isInteger(parsedTaperDays) ? parsedTaperDays : undefined,
+          swimSessionsPerWeek: Number.isFinite(parsedSessions) ? parsedSessions : undefined
+        })
       });
       const result = await response.json();
 
@@ -98,7 +114,8 @@ export function RoleOnboarding() {
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-stitch-abyss/62">
               {t("You can build your own swimmer dashboard or manage athletes from a coach dashboard. The design stays the same; the tools change around your role.")}
             </p>
-            <div className="mx-auto mt-7 max-w-xs rounded-lg border border-white/65 bg-white/62 p-3 shadow-stitch backdrop-blur-2xl">
+            <div className="mx-auto mt-7 grid max-w-2xl gap-3 rounded-lg border border-white/65 bg-white/62 p-3 shadow-stitch backdrop-blur-2xl sm:grid-cols-2">
+              <div>
               <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="swimmer-age">
                 {t("Swimmer age")}
               </label>
@@ -114,6 +131,56 @@ export function RoleOnboarding() {
                 onChange={(event) => setAge(event.target.value)}
               />
               <p className="mt-2 text-xs text-stitch-abyss/52">{t("Used only to calibrate age-aware swim analytics.")}</p>
+              </div>
+              <div>
+                <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="swimmer-sex">
+                  {t("Performance category")}
+                </label>
+                <select
+                  className="mt-2 h-12 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
+                  id="swimmer-sex"
+                  value={sex}
+                  onChange={(event) => setSex(event.target.value as AthleteSex | "")}
+                >
+                  <option value="">{t("Select category")}</option>
+                  <option value="FEMALE">{t("Female")}</option>
+                  <option value="MALE">{t("Male")}</option>
+                </select>
+                <p className="mt-2 text-xs text-stitch-abyss/52">{t("Used only to compare against the correct performance distribution.")}</p>
+              </div>
+              <div>
+                <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="taper-days">
+                  {t("Typical taper days")}
+                </label>
+                <input
+                  className="mt-2 h-11 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 font-mono text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
+                  id="taper-days"
+                  inputMode="numeric"
+                  max={28}
+                  min={0}
+                  placeholder={t("Optional")}
+                  type="number"
+                  value={taperDays}
+                  onChange={(event) => setTaperDays(event.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="swim-frequency">
+                  {t("Swim sessions per week")}
+                </label>
+                <input
+                  className="mt-2 h-11 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 font-mono text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
+                  id="swim-frequency"
+                  inputMode="decimal"
+                  max={14}
+                  min={0}
+                  placeholder={t("Optional")}
+                  step={0.5}
+                  type="number"
+                  value={swimSessionsPerWeek}
+                  onChange={(event) => setSwimSessionsPerWeek(event.target.value)}
+                />
+              </div>
             </div>
           </motion.div>
 

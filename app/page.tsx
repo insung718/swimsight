@@ -53,13 +53,20 @@ export default async function Home() {
       getSwimsForUser(context.userId),
       getGymWorkoutsForUser(context.userId)
     ]);
-    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, context.age ?? undefined);
+    const predictionProfile = {
+      age: context.age,
+      sex: context.sex,
+      taperDays: context.taperDays,
+      swimSessionsPerWeek: context.swimSessionsPerWeek
+    };
+    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, predictionProfile);
 
     return (
       <SwimSightDashboard
         analytics={analytics}
         gymWorkouts={gymWorkouts}
         goals={goal ? [goal] : []}
+        predictionProfile={predictionProfile}
         swims={swims}
         viewMode="swimmer"
       />

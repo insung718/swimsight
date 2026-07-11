@@ -8,6 +8,9 @@ export interface AuthContext {
   clerkId: string;
   email: string;
   age?: number | null;
+  sex?: "FEMALE" | "MALE" | null;
+  taperDays?: number | null;
+  swimSessionsPerWeek?: number | null;
   role: "ATHLETE" | "COACH" | "ADMIN";
   onboardingCompleted: boolean;
 }
@@ -45,6 +48,9 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       clerkId: authResult.userId,
       email,
       age: null,
+      sex: null,
+      taperDays: null,
+      swimSessionsPerWeek: null,
       role: "ATHLETE",
       onboardingCompleted: false
     };
@@ -97,6 +103,9 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     clerkId: user.clerkId,
     email: user.email,
     age: user.age,
+    sex: user.sex,
+    taperDays: user.taperDays,
+    swimSessionsPerWeek: user.swimSessionsPerWeek,
     role: trustedRole,
     onboardingCompleted: user.onboardingCompleted
   };

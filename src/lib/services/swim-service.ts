@@ -114,11 +114,15 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
 }
 
 export async function getDashboardAnalyticsForUser(userId: string): Promise<DashboardAnalytics> {
-  const [swims, goal, workouts] = await Promise.all([
+  const [swims, goal, workouts, profile] = await Promise.all([
     getSwimsForUser(userId),
     getPrimaryGoal(userId),
-    getGymWorkoutsForUser(userId)
+    getGymWorkoutsForUser(userId),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { age: true, sex: true, taperDays: true, swimSessionsPerWeek: true }
+    })
   ]);
 
-  return buildDashboardAnalytics(swims, goal ?? undefined, workouts);
+  return buildDashboardAnalytics(swims, goal ?? undefined, workouts, profile ?? {});
 }

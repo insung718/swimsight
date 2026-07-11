@@ -6,7 +6,7 @@ import { translations, translateText } from "@/lib/i18n";
 function appTranslationKeys() {
   const root = join(process.cwd(), "src");
   const files = readdirSync(root, { recursive: true })
-    .filter((file) => typeof file === "string" && /\.(ts|tsx)$/.test(file));
+    .filter((file): file is string => typeof file === "string" && /\.(ts|tsx)$/.test(file));
   const keys = new Set<string>();
 
   for (const file of files) {

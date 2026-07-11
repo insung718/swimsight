@@ -1,0 +1,6 @@
+CREATE TYPE "AthleteSex" AS ENUM ('FEMALE', 'MALE');
+
+ALTER TABLE "User"
+ADD COLUMN "sex" "AthleteSex",
+ADD COLUMN "taperDays" INTEGER,
+ADD COLUMN "swimSessionsPerWeek" DOUBLE PRECISION;

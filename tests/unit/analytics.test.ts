@@ -9,6 +9,7 @@ import {
   predictEvent
 } from "@/lib/analytics";
 import { trainedPredictionModel } from "@/lib/trained-prediction-model";
+import { buildHundredFreeFeatures } from "@/lib/prediction-features";
 import type { GymWorkout, SwimResult } from "@/types/swim";
 import { sampleGoals, sampleSwims } from "../fixtures/sample-data";
 
@@ -154,6 +155,44 @@ describe("analytics engine", () => {
     const analytics = buildDashboardAnalytics(mixedCourse);
 
     expect(analytics.predictions.map((prediction) => prediction.course).sort()).toEqual(["LCM", "SCY"]);
+  });
+
+  it("uses only the 20 races before the prediction cutoff", () => {
+    const history: SwimResult[] = Array.from({ length: 22 }, (_, index) => ({
+      id: `race-${index}`,
+      userId: "u1",
+      date: `2025-${String(Math.floor(index / 9) + 1).padStart(2, "0")}-${String((index % 9) * 3 + 1).padStart(2, "0")}`,
+      event: "100 Freestyle",
+      course: "LCM",
+      timeSeconds: 70 - index * 0.2,
+      meetName: `Meet ${index}`,
+      resultKind: "OFFICIAL"
+    }));
+    const features = buildHundredFreeFeatures({
+      course: "LCM",
+      profile: { age: 16, sex: "MALE", taperDays: 8, swimSessionsPerWeek: 6 },
+      swims: history,
+      targetDate: "2025-04-15"
+    });
+
+    expect(features?.history).toHaveLength(20);
+    expect(features?.history[0].id).toBe("race-2");
+    expect(features?.vector.time_lag_1).toBe(history[21].timeSeconds);
+    expect(features?.vector.history_count).toBe(20);
+  });
+
+  it("returns honest uncertainty and model metadata", () => {
+    const prediction = predictEvent(
+      sampleSwims.filter((swim) => swim.event === "100 Butterfly"),
+      undefined,
+      { age: 16, sex: "MALE", taperDays: 8, swimSessionsPerWeek: 6 }
+    );
+
+    expect(prediction.model.kind).toBe("CONSERVATIVE_ENSEMBLE");
+    expect(prediction.model.historyUsed).toBeLessThanOrEqual(20);
+    expect(prediction.likelyRanges.days90.low).toBeLessThan(prediction.predictedTimes.days90);
+    expect(prediction.likelyRanges.days90.high).toBeGreaterThan(prediction.predictedTimes.days90);
+    expect(prediction.model.factors.some((factor) => factor.label === "Taper plan")).toBe(true);
   });
 
   it("does not crash when a goal exists before results for that event", () => {

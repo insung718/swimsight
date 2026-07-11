@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { isLanguageCode, languageChangeEvent, languageOptions, languageStorageKey, type LanguageCode } from "@/lib/i18n";
+import { useLanguageControls } from "@/components/i18n/use-language";
+import { languageOptions, type LanguageCode } from "@/lib/i18n";
 
 const localizedLanguageLabels: Record<LanguageCode, Record<LanguageCode, string>> = {
   en: { en: "EN", ko: "KO", vi: "VI" },
@@ -22,18 +22,7 @@ const localizedMenuLabel: Record<LanguageCode, string> = {
 };
 
 export function LanguageToggle({ compact = false }: { compact?: boolean }) {
-  const [language, setLanguage] = useState<LanguageCode>("en");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(languageStorageKey);
-    if (isLanguageCode(saved)) setLanguage(saved);
-  }, []);
-
-  function updateLanguage(nextLanguage: LanguageCode) {
-    setLanguage(nextLanguage);
-    window.localStorage.setItem(languageStorageKey, nextLanguage);
-    window.dispatchEvent(new CustomEvent(languageChangeEvent, { detail: nextLanguage }));
-  }
+  const { language, setLanguage } = useLanguageControls();
 
   return (
     <div className="flex shrink-0 items-center rounded-full border border-black/10 bg-white/76 p-0.5 shadow-[0_14px_40px_rgba(4,17,29,0.12)] backdrop-blur-xl" aria-label={localizedMenuLabel[language]} data-no-translate>
@@ -46,7 +35,7 @@ export function LanguageToggle({ compact = false }: { compact?: boolean }) {
           key={option.code}
           title={localizedLanguageNames[language][option.code]}
           type="button"
-          onClick={() => updateLanguage(option.code)}
+          onClick={() => setLanguage(option.code)}
         >
           {compact ? option.code.toUpperCase() : localizedLanguageLabels[language][option.code]}
         </button>
