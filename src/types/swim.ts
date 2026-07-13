@@ -99,6 +99,12 @@ export interface Prediction {
     days180: number;
     days365: number;
   };
+  deterministicBaselineTimes?: {
+    days30: number;
+    days90: number;
+    days180: number;
+    days365: number;
+  };
   confidence: number;
   likelyRanges: {
     days30: { low: number; high: number };
@@ -133,12 +139,27 @@ export interface Prediction {
     outOfDistribution: boolean;
     outOfDistributionReasons: string[];
     sufficiencyChecklist: string[];
+    dataQuality: {
+      version: string;
+      score: number;
+      level: "High" | "Moderate" | "Low" | "Insufficient";
+      decision: "FULL_PREDICTION" | "CONSERVATIVE_ESTIMATE" | "PROVISIONAL_ONLY" | "NO_PREDICTION";
+      eligibleRaceCount: number;
+      reasons: { code: string; severity: "INFO" | "WARNING" | "BLOCKING"; message: string }[];
+      userExplanation: string;
+    };
   };
   trainingImpact: {
     label: "No gym data" | "Strength supported" | "Balanced load" | "Fatigue risk";
     adjustmentMultiplier: number;
     weeklyLoad: number;
     sessionsLast28Days: number;
+  };
+  actionableInsights: {
+    observed: string[];
+    inferred: string[];
+    userReported: string[];
+    notMeasurable: string[];
   };
 }
 
@@ -156,6 +177,8 @@ export interface PredictionEvaluationRecord {
   modelSource: "XGBOOST" | "CONSERVATIVE_ENSEMBLE";
   dataSufficiency: "Low" | "Moderate" | "High";
   athleteAge?: number | null;
+  athleteSex?: AthleteSex | null;
+  horizonDays?: number;
   actualTime?: number | null;
   absoluteError?: number | null;
   signedError?: number | null;
@@ -190,14 +213,17 @@ export interface ModelPerformanceDashboard {
     intervalCoverage: number;
     probabilityEvaluations: number;
     probabilityBrierScore: number;
+    probabilityCalibrationError: number;
   };
   byEvent: ModelPerformanceBreakdown[];
   byAgeGroup: ModelPerformanceBreakdown[];
+  byCategory: ModelPerformanceBreakdown[];
+  byHorizon: ModelPerformanceBreakdown[];
   byConfidence: ModelPerformanceBreakdown[];
   byDataSufficiency: ModelPerformanceBreakdown[];
   byModelVersion: ModelPerformanceBreakdown[];
   baselines: {
-    label: "SwimSight" | "Last race" | "Last-three average" | "Linear trend";
+    label: "SwimSight" | "Last race" | "Last-three average" | "Linear trend" | "Conservative deterministic";
     count: number;
     mae: number;
   }[];
@@ -205,6 +231,7 @@ export interface ModelPerformanceDashboard {
     label: "PB" | "Goal" | "Qualifying";
     count: number;
     brierScore: number;
+    calibrationError: number;
     bins: {
       label: string;
       count: number;

@@ -76,6 +76,10 @@ The v1 schema also includes:
 - `Friendship` for friend requests and accepted connections
 - `UpcomingMeet` for countdowns and target events
 - `SwimSource` for distinguishing manual, CSV, and meet-import results
+- Immutable model registry decisions, quality-scored prediction attempts, and drift snapshots
+- Versioned consent events and isolated post-race feedback revisions
+
+Vercel preview and local builds never run migrations. Production builds run `prisma migrate deploy` under a PostgreSQL advisory lock and fail before application compilation if migration deployment fails. See [Migration Safety](./docs/migration-safety.md) before changing production schema.
 
 ## API
 
@@ -88,6 +92,22 @@ Returns the current authenticated account.
 ### `GET /api/swims`
 
 Returns the signed-in user's swims.
+
+### `GET|PATCH|DELETE /api/me/privacy`
+
+Reads or changes versioned consent. `DELETE` supports confirmed training-data exclusion or full account-data deletion. Model-training and public-research consent for users under 18 requires separate guardian consent.
+
+### `GET /api/me/export`
+
+Downloads a no-cache, machine-readable JSON export of the authenticated account.
+
+### `GET|POST|PATCH|DELETE /api/race-feedback`
+
+Manages account-scoped, versioned post-race context. Subjective feedback is stored separately from official result labels and is not training eligible.
+
+### `GET|POST /api/admin/model-governance`
+
+Trusted-admin-only model registry and monitoring endpoint. It can refresh evidence snapshots but cannot train or promote a model.
 
 ## Security
 
@@ -104,6 +124,7 @@ UPSTASH_REDIS_REST_TOKEN="..."
 - JSON writes enforce content type, body-size limits, same-origin checks, strict Zod schemas, allowlisted enums, normalized text, and unknown-field rejection.
 - CSV imports are capped at 500 rows and reject unsupported or duplicate headers.
 - Secrets belong only in `.env.local` and Vercel environment variables. Never prefix server secrets with `NEXT_PUBLIC_`.
+- Configure independent 32-byte `TRAINING_PSEUDONYM_SECRET` and `MODEL_GOVERNANCE_AUDIT_SECRET` values for production.
 - See [SECURITY.md](./SECURITY.md) for reporting and operational guidance.
 
 ### `POST /api/swims`
@@ -218,6 +239,7 @@ Accepts or blocks an incoming friend request.
 ```bash
 npm run test
 npm run test:e2e
+npm run model:report
 ```
 
 ## Vercel Analytics
@@ -238,7 +260,7 @@ tests/e2e/            Playwright smoke tests
 
 ## Next Steps
 
-1. Add real Clerk and production Postgres env vars in Vercel.
-2. Run Prisma migrations against the production database.
-3. Connect the Google Stitch frontend to the v1 API contracts.
-4. Add AI training recommendations and time-standard comparisons after v1 is stable.
+1. Acquire a credible, version-consented multi-athlete dataset.
+2. Complete a provider-backup restore drill and record recovery time.
+3. Run rolling-origin evaluation and register immutable champion/challenger evidence.
+4. Keep unsupported cohorts provisional instead of adding another forecasting algorithm.

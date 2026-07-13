@@ -92,6 +92,8 @@ test("protects account APIs when signed out", async ({ request }) => {
   const protectedReads = [
     "/api/me",
     "/api/me/prediction-profile",
+    "/api/me/privacy",
+    "/api/me/export",
     "/api/swims",
     "/api/analytics",
     "/api/motivation",
@@ -102,6 +104,8 @@ test("protects account APIs when signed out", async ({ request }) => {
     "/api/coach/clubs/join",
     "/api/meets",
     "/api/predictions/performance",
+    "/api/race-feedback",
+    "/api/admin/model-governance",
     "/api/communities/fake-community/compare"
   ];
 

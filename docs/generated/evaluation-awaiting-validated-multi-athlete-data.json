@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "swimsight-evaluation-v1",
+  "generatedAt": "2026-07-13T12:10:37.387Z",
+  "sourceArtifact": "src/lib/models/100-free-xgboost.json",
+  "sourceArtifactSha256": "55ca2cc9a8c080a44d9709903c9799db6ed54bd41234344419cb7314e391b181",
+  "modelVersion": "awaiting-validated-multi-athlete-data",
+  "featureSchemaVersion": "100-free-history20-v2",
+  "trainingCodeVersion": "UNTRAINED",
+  "evaluationVersion": "rolling-origin-v3",
+  "event": "100 Freestyle",
+  "artifactStatus": "UNTRAINED",
+  "registryReleaseStatus": "NOT_ATTACHED_TO_RELEASE_SNAPSHOT",
+  "evaluationStatus": "PROVISIONAL_OR_UNTRAINED",
+  "validatedClaimsAvailable": false,
+  "methodology": {
+    "temporalValidation": "Rolling-origin folds. Every feature timestamp must precede its target race date.",
+    "athleteHoldout": "GroupKFold by athlete is reported separately from chronological validation.",
+    "baselines": [
+      "current production champion",
+      "last race",
+      "last-three-race mean",
+      "five-race linear trend",
+      "conservative deterministic forecast"
+    ],
+    "calibration": "Signed residual quantiles are estimated only from out-of-time predictions.",
+    "leakageRules": [
+      "Future target rows contribute only the outcome label and target date.",
+      "Age, category, taper, and training frequency are taken from the latest prior record.",
+      "Athlete identifiers and raw records are not exported into the browser artifact."
+    ]
+  },
+  "courses": {},
+  "limitations": [
+    "No claim is validated for a course marked EXPERIMENTAL or for an UNTRAINED artifact.",
+    "Retrospective metadata corrections cannot be excluded unless source systems provide recorded-at timestamps.",
+    "Finish-time-only data cannot identify starts, turns, splits, stroke mechanics, illness, or causal training effects.",
+    "Subgroup results are withheld when their configured minimum sample size is not met."
+  ],
+  "reproducibility": {
+    "command": "python3 scripts/train-100-free-xgboost.py <consented-csv...> --output src/lib/models/100-free-xgboost.json",
+    "dependencyFile": "scripts/requirements-model.txt",
+    "randomSeed": 42
+  }
+}

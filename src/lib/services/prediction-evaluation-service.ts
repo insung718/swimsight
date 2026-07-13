@@ -12,6 +12,7 @@ import {
 } from "@/lib/prediction-evaluation";
 import { fromPrismaEvent, toPrismaEvent } from "@/lib/prisma-mappers";
 import { prisma } from "@/lib/prisma";
+import { assessPredictionDataQuality } from "@/lib/prediction-governance";
 import type { Goal, Prediction, PredictionProfile, SwimResult, UpcomingMeet } from "@/types/swim";
 
 interface SyncPredictionSnapshotsInput {
@@ -46,6 +47,46 @@ function eligibleHistory(swims: SwimResult[], prediction: Prediction, userId: st
     .slice(-20);
 }
 
+function predictionAttemptRows(swims: SwimResult[], profile: PredictionProfile, userId: string): Prisma.PredictionAttemptCreateManyInput[] {
+  const groups = new Map<string, SwimResult[]>();
+  const accountSwims = swims.filter((result) => result.userId === userId);
+  for (const swim of accountSwims) {
+    const key = `${swim.event}__${swim.course}`;
+    groups.set(key, [...(groups.get(key) ?? []), swim]);
+  }
+
+  return [...groups.values()].map((group) => {
+    const event = group[0].event;
+    const course = group[0].course;
+    const quality = assessPredictionDataQuality({ swims: accountSwims, event, course, profile });
+    const immutableInput = {
+      assessmentVersion: quality.version,
+      event,
+      course,
+      profile,
+      results: [...group].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id)).map((result) => ({
+        id: result.id,
+        date: result.date,
+        timeSeconds: result.timeSeconds,
+        resultKind: result.resultKind ?? "OFFICIAL",
+        raceType: result.raceType ?? "INDIVIDUAL"
+      })),
+      quality
+    };
+    return {
+      userId,
+      event: toPrismaEvent(event),
+      course,
+      assessmentVersion: quality.version,
+      qualityScore: quality.score,
+      qualityLevel: quality.level,
+      eligibilityDecision: quality.decision,
+      reasons: quality.reasons as unknown as Prisma.InputJsonValue,
+      inputFingerprint: fingerprint(immutableInput)
+    };
+  });
+}
+
 export async function syncPredictionSnapshots({
   goal,
   meets = [],
@@ -56,6 +97,7 @@ export async function syncPredictionSnapshots({
 }: SyncPredictionSnapshotsInput) {
   const today = new Date().toISOString().slice(0, 10);
   const rows: Prisma.PredictionSnapshotCreateManyInput[] = [];
+  const attempts = predictionAttemptRows(swims, profile, userId);
 
   for (const prediction of predictions) {
     const history = eligibleHistory(swims, prediction, userId);
@@ -104,6 +146,7 @@ export async function syncPredictionSnapshots({
         predictedTime: projection.predictedTime,
         lowerBound: projection.lowerBound,
         upperBound: projection.upperBound,
+        conservativeBaseline: projection.conservativeBaseline,
         confidence: prediction.confidence,
         featureSnapshot,
         explanation: projection.explanation,
@@ -135,12 +178,18 @@ export async function syncPredictionSnapshots({
         explanationContributions: projection.explanation.contributions as unknown as Prisma.InputJsonValue,
         calibrationMetadata: prediction.model.calibrationResidualQuantiles as unknown as Prisma.InputJsonValue | undefined,
         dataSufficiency: prediction.model.dataSufficiency,
+        dataQualityScore: prediction.model.dataQuality.score,
+        dataQualityLevel: prediction.model.dataQuality.level,
+        dataQualityReasons: prediction.model.dataQuality.reasons as unknown as Prisma.InputJsonValue,
+        eligibilityDecision: prediction.model.dataQuality.decision,
         athleteAge: profile.age ?? null,
+        athleteSex: profile.sex ?? null,
         outOfDistribution: prediction.model.outOfDistribution,
         outOfDistributionReasons: prediction.model.outOfDistributionReasons,
         lastRaceBaseline: baselines.lastRace,
         lastThreeBaseline: baselines.lastThreeAverage,
         linearTrendBaseline: baselines.linearTrend,
+        conservativeBaseline: projection.conservativeBaseline,
         goalTime: matchingGoal?.targetTime ?? null,
         qualifyingTime: matchingGoal?.qualifyingTime ?? null,
         pbProbability: probabilities.pb.probability,
@@ -152,6 +201,7 @@ export async function syncPredictionSnapshots({
     }
   }
 
+  if (attempts.length) await prisma.predictionAttempt.createMany({ data: attempts, skipDuplicates: true });
   if (!rows.length) return 0;
   const result = await prisma.predictionSnapshot.createMany({ data: rows, skipDuplicates: true });
   return result.count;
@@ -268,6 +318,8 @@ export async function getPredictionEvaluationDashboard(userId: string) {
     modelSource: modelSource(snapshot.modelSource),
     dataSufficiency: sufficiency(snapshot.dataSufficiency),
     athleteAge: snapshot.athleteAge,
+    athleteSex: snapshot.athleteSex,
+    horizonDays: snapshot.horizonDays,
     actualTime: snapshot.actualTime,
     absoluteError: snapshot.absoluteError,
     signedError: snapshot.signedError,
@@ -284,11 +336,12 @@ export async function getPredictionEvaluationDashboard(userId: string) {
     outOfDistribution: snapshot.outOfDistribution,
     lastRaceBaseline: snapshot.lastRaceBaseline,
     lastThreeBaseline: snapshot.lastThreeBaseline,
-    linearTrendBaseline: snapshot.linearTrendBaseline
+    linearTrendBaseline: snapshot.linearTrendBaseline,
+    conservativeBaseline: snapshot.conservativeBaseline
   }));
 
   const evaluatedRows = rows.filter((row) => row.evaluatedAt && row.actualTime !== null && row.actualTime !== undefined);
   const dashboard = buildModelPerformanceDashboard(evaluatedRows, pendingPredictions);
-  dashboard.history = rows.map(({ lastRaceBaseline: _last, lastThreeBaseline: _three, linearTrendBaseline: _trend, ...row }) => row);
+  dashboard.history = rows.map(({ lastRaceBaseline: _last, lastThreeBaseline: _three, linearTrendBaseline: _trend, conservativeBaseline: _conservative, ...row }) => row);
   return dashboard;
 }

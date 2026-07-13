@@ -14,6 +14,7 @@ export interface ForecastProjection {
   predictedTime: number;
   lowerBound: number;
   upperBound: number;
+  conservativeBaseline: number;
   explanation: PredictionExplanation;
 }
 
@@ -32,6 +33,7 @@ export interface EvaluatedPredictionInput extends PredictionEvaluationRecord {
   lastRaceBaseline: number;
   lastThreeBaseline: number;
   linearTrendBaseline: number;
+  conservativeBaseline?: number | null;
 }
 
 function interpolate(start: number, end: number, progress: number) {
@@ -51,14 +53,15 @@ export function projectPredictionToDate(prediction: Prediction, targetDate: stri
     disclaimer: prediction.explanations.days30.disclaimer
   };
   const points = [
-    { day: 0, time: prediction.currentTime, low: prediction.currentTime, high: prediction.currentTime, explanation: zeroExplanation },
-    { day: 30, time: prediction.predictedTimes.days30, ...prediction.likelyRanges.days30, explanation: prediction.explanations.days30 },
-    { day: 90, time: prediction.predictedTimes.days90, ...prediction.likelyRanges.days90, explanation: prediction.explanations.days90 },
-    { day: 180, time: prediction.predictedTimes.days180, ...prediction.likelyRanges.days180, explanation: prediction.explanations.days180 },
-    { day: 365, time: prediction.predictedTimes.days365, ...prediction.likelyRanges.days365, explanation: prediction.explanations.days365 }
+    { day: 0, time: prediction.currentTime, conservative: prediction.currentTime, low: prediction.currentTime, high: prediction.currentTime, explanation: zeroExplanation },
+    { day: 30, time: prediction.predictedTimes.days30, conservative: prediction.deterministicBaselineTimes?.days30 ?? prediction.predictedTimes.days30, ...prediction.likelyRanges.days30, explanation: prediction.explanations.days30 },
+    { day: 90, time: prediction.predictedTimes.days90, conservative: prediction.deterministicBaselineTimes?.days90 ?? prediction.predictedTimes.days90, ...prediction.likelyRanges.days90, explanation: prediction.explanations.days90 },
+    { day: 180, time: prediction.predictedTimes.days180, conservative: prediction.deterministicBaselineTimes?.days180 ?? prediction.predictedTimes.days180, ...prediction.likelyRanges.days180, explanation: prediction.explanations.days180 },
+    { day: 365, time: prediction.predictedTimes.days365, conservative: prediction.deterministicBaselineTimes?.days365 ?? prediction.predictedTimes.days365, ...prediction.likelyRanges.days365, explanation: prediction.explanations.days365 }
   ].map((point) => ({
     day: point.day,
     time: point.time,
+    conservative: point.conservative,
     explanation: point.explanation,
     low: "low" in point ? point.low : prediction.currentTime,
     high: "high" in point ? point.high : prediction.currentTime
@@ -74,6 +77,7 @@ export function projectPredictionToDate(prediction: Prediction, targetDate: stri
     predictedTime,
     lowerBound: round(interpolate(start.low, end.low, progress), 2),
     upperBound: round(interpolate(start.high, end.high, progress), 2),
+    conservativeBaseline: round(interpolate(start.conservative, end.conservative, progress), 2),
     explanation: interpolateExplanation(start.explanation, end.explanation, progress, predictedTime)
   };
 }
@@ -193,6 +197,9 @@ function calibrationFor(
     label,
     count: observations.length,
     brierScore: round(mean(observations.map(({ probability, outcome }) => ((probability / 100) - (outcome ? 1 : 0)) ** 2)), 4),
+    calibrationError: round(observations.length
+      ? bins.reduce((sum, bin) => sum + Math.abs((bin.meanPredicted - bin.observedRate) / 100) * bin.count, 0) / observations.length
+      : 0, 4),
     bins
   };
 }
@@ -212,9 +219,12 @@ export function buildModelPerformanceDashboard(
   const weightedBrier = probabilityCount
     ? probabilityCalibration.reduce((sum, calibration) => sum + calibration.brierScore * calibration.count, 0) / probabilityCount
     : 0;
+  const weightedCalibrationError = probabilityCount
+    ? probabilityCalibration.reduce((sum, calibration) => sum + calibration.calibrationError * calibration.count, 0) / probabilityCount
+    : 0;
   const baseline = (label: ModelPerformanceDashboard["baselines"][number]["label"], values: number[]) => ({
     label,
-    count: rows.length,
+    count: values.length,
     mae: round(mean(values), 2)
   });
 
@@ -227,10 +237,13 @@ export function buildModelPerformanceDashboard(
       rmse: round(Math.sqrt(mean(squaredErrors)), 2),
       intervalCoverage: round(mean(rows.map((row) => row.withinInterval ? 100 : 0)), 1),
       probabilityEvaluations: probabilityCount,
-      probabilityBrierScore: round(weightedBrier, 4)
+      probabilityBrierScore: round(weightedBrier, 4),
+      probabilityCalibrationError: round(weightedCalibrationError, 4)
     },
     byEvent: breakdown(rows, (row) => `${row.event} · ${row.course}`),
     byAgeGroup: breakdown(rows, (row) => ageGroup(row.athleteAge)),
+    byCategory: breakdown(rows, (row) => row.athleteSex ?? "Unknown category"),
+    byHorizon: breakdown(rows, (row) => (row.horizonDays ?? 0) <= 30 ? "0–30 days" : (row.horizonDays ?? 0) <= 90 ? "31–90 days" : (row.horizonDays ?? 0) <= 180 ? "91–180 days" : "181–365 days"),
     byConfidence: breakdown(rows, (row) => row.confidence >= 70 ? "High confidence" : row.confidence >= 45 ? "Moderate confidence" : "Low confidence"),
     byDataSufficiency: breakdown(rows, (row) => `${row.dataSufficiency} data`),
     byModelVersion: breakdown(rows, (row) => row.modelVersion),
@@ -238,7 +251,8 @@ export function buildModelPerformanceDashboard(
       baseline("SwimSight", absoluteErrors),
       baseline("Last race", rows.map((row) => Math.abs((row.actualTime ?? 0) - row.lastRaceBaseline))),
       baseline("Last-three average", rows.map((row) => Math.abs((row.actualTime ?? 0) - row.lastThreeBaseline))),
-      baseline("Linear trend", rows.map((row) => Math.abs((row.actualTime ?? 0) - row.linearTrendBaseline)))
+      baseline("Linear trend", rows.map((row) => Math.abs((row.actualTime ?? 0) - row.linearTrendBaseline))),
+      baseline("Conservative deterministic", rows.flatMap((row) => typeof row.conservativeBaseline === "number" ? [Math.abs((row.actualTime ?? 0) - row.conservativeBaseline)] : []))
     ],
     probabilityCalibration,
     history: rows.map(({ lastRaceBaseline: _last, lastThreeBaseline: _three, linearTrendBaseline: _trend, ...row }) => row)

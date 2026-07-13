@@ -2020,6 +2020,54 @@ Object.assign(vi, {
   "Goal date cannot be in the past.": "Ngày mục tiêu không được ở trong quá khứ."
 });
 
+Object.assign(ko, {
+  "Personal analytics consent": "개인 분석 동의",
+  "I agree to use my account data for private personal analytics. Model training and public research require separate consent.": "개인 비공개 분석을 위해 내 계정 데이터를 사용하는 데 동의합니다. 모델 학습과 공개 연구에는 별도의 동의가 필요합니다.",
+  "Confirm personal analytics consent to continue.": "계속하려면 개인 분석 동의를 확인하세요.",
+  "Keep your analytics private and under your control.": "내 분석 데이터를 비공개로 직접 관리하세요.",
+  "SwimSight needs your permission to turn your private race history into personal analytics. Model training and public research remain off unless you consent separately.": "스윔사이트가 비공개 경기 기록을 개인 분석으로 변환하려면 동의가 필요합니다. 모델 학습과 공개 연구는 별도로 동의하지 않는 한 비활성화됩니다.",
+  "I agree and enable analytics": "동의하고 분석 활성화",
+  "Saving consent": "동의 저장 중",
+  "You can withdraw this permission, export your data, or delete your account from privacy settings.": "개인정보 설정에서 언제든 동의를 철회하고, 데이터를 내보내거나 계정을 삭제할 수 있습니다.",
+  "Could not save consent.": "동의를 저장할 수 없습니다.",
+  "Data quality": "데이터 품질",
+  "Prediction eligibility": "예측 제공 단계",
+  "Data quality assessment": "데이터 품질 평가",
+  "FULL_PREDICTION": "전체 예측",
+  "CONSERVATIVE_ESTIMATE": "보수적 추정",
+  "PROVISIONAL_ONLY": "잠정 추정",
+  "NO_PREDICTION": "예측 보류",
+  "Recent eligible official races support a full prediction.": "최근의 적격 공식 경기 기록이 전체 예측을 뒷받침합니다.",
+  "A conservative estimate is shown because the available evidence is incomplete.": "사용 가능한 근거가 충분하지 않아 보수적인 추정치를 표시합니다.",
+  "Only a provisional estimate is shown; add recent official results and profile context to improve reliability.": "현재는 잠정 추정치만 표시됩니다. 최근 공식 기록과 프로필 정보를 추가하면 신뢰도를 높일 수 있습니다.",
+  "A prediction is withheld because the available data does not meet minimum reliability rules.": "사용 가능한 데이터가 최소 신뢰도 기준을 충족하지 않아 예측을 보류합니다.",
+  "Conservative deterministic": "보수적 결정론 기준선"
+});
+
+Object.assign(vi, {
+  "Personal analytics consent": "Đồng ý phân tích cá nhân",
+  "I agree to use my account data for private personal analytics. Model training and public research require separate consent.": "Tôi đồng ý cho SwimSight sử dụng dữ liệu tài khoản của tôi để phân tích cá nhân riêng tư. Việc huấn luyện mô hình và nghiên cứu công khai cần sự đồng ý riêng.",
+  "Confirm personal analytics consent to continue.": "Hãy xác nhận đồng ý phân tích cá nhân để tiếp tục.",
+  "Keep your analytics private and under your control.": "Giữ dữ liệu phân tích riêng tư và trong quyền kiểm soát của bạn.",
+  "SwimSight needs your permission to turn your private race history into personal analytics. Model training and public research remain off unless you consent separately.": "SwimSight cần sự cho phép của bạn để chuyển lịch sử thi đấu riêng tư thành phân tích cá nhân. Huấn luyện mô hình và nghiên cứu công khai vẫn tắt trừ khi bạn đồng ý riêng.",
+  "I agree and enable analytics": "Tôi đồng ý và bật phân tích",
+  "Saving consent": "Đang lưu sự đồng ý",
+  "You can withdraw this permission, export your data, or delete your account from privacy settings.": "Bạn có thể rút lại quyền này, xuất dữ liệu hoặc xóa tài khoản trong phần cài đặt quyền riêng tư.",
+  "Could not save consent.": "Không thể lưu sự đồng ý.",
+  "Data quality": "Chất lượng dữ liệu",
+  "Prediction eligibility": "Mức đủ điều kiện dự đoán",
+  "Data quality assessment": "Đánh giá chất lượng dữ liệu",
+  "FULL_PREDICTION": "Dự đoán đầy đủ",
+  "CONSERVATIVE_ESTIMATE": "Ước tính thận trọng",
+  "PROVISIONAL_ONLY": "Ước tính tạm thời",
+  "NO_PREDICTION": "Tạm chưa dự đoán",
+  "Recent eligible official races support a full prediction.": "Các thành tích chính thức đủ điều kiện gần đây hỗ trợ một dự đoán đầy đủ.",
+  "A conservative estimate is shown because the available evidence is incomplete.": "Hệ thống hiển thị ước tính thận trọng vì bằng chứng hiện có chưa đầy đủ.",
+  "Only a provisional estimate is shown; add recent official results and profile context to improve reliability.": "Hiện chỉ có ước tính tạm thời; hãy thêm thành tích chính thức gần đây và thông tin hồ sơ để tăng độ tin cậy.",
+  "A prediction is withheld because the available data does not meet minimum reliability rules.": "Dự đoán được tạm giữ vì dữ liệu hiện có chưa đạt quy tắc độ tin cậy tối thiểu.",
+  "Conservative deterministic": "Mốc dự báo xác định thận trọng"
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {

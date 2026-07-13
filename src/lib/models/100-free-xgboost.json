@@ -3,6 +3,9 @@
   "version": "awaiting-validated-multi-athlete-data",
   "event": "100 Freestyle",
   "status": "UNTRAINED",
+  "featureSchemaVersion": "100-free-history20-v2",
+  "trainingCodeVersion": "UNTRAINED",
+  "evaluationVersion": "rolling-origin-v3",
   "featureNames": [],
   "models": {}
 }

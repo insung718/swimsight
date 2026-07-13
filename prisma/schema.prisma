@@ -8,59 +8,79 @@ datasource db {
 }
 
 model User {
-  id                  String   @id @default(cuid())
-  clerkId             String   @unique
-  email               String   @unique
-  name                String
-  imageUrl            String?
-  age                 Int?
-  sex                 AthleteSex?
-  taperDays           Int?
-  swimSessionsPerWeek Float?
-  role                UserRole @default(ATHLETE)
-  onboardingCompleted Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                              String      @id @default(cuid())
+  clerkId                         String      @unique
+  email                           String      @unique
+  name                            String
+  imageUrl                        String?
+  age                             Int?
+  sex                             AthleteSex?
+  taperDays                       Int?
+  swimSessionsPerWeek             Float?
+  role                            UserRole    @default(ATHLETE)
+  onboardingCompleted             Boolean     @default(false)
+  personalAnalyticsConsentVersion String?
+  personalAnalyticsConsentedAt    DateTime?
+  personalAnalyticsWithdrawnAt    DateTime?
+  trainingConsentVersion          String?
+  trainingConsentedAt             DateTime?
+  trainingConsentWithdrawnAt      DateTime?
+  researchConsentVersion          String?
+  researchConsentedAt             DateTime?
+  researchConsentWithdrawnAt      DateTime?
+  guardianConsentVersion          String?
+  guardianConsentedAt             DateTime?
+  guardianConsentWithdrawnAt      DateTime?
+  trainingDataExcludedAt          DateTime?
+  deletionRequestedAt             DateTime?
+  createdAt                       DateTime    @default(now())
+  updatedAt                       DateTime    @updatedAt
 
   swims                  SwimResult[]
   goals                  Goal[]
   predictions            Prediction[]
-  ownedTeams             Team[]                @relation("TeamOwner")
+  ownedTeams             Team[]                 @relation("TeamOwner")
   memberships            TeamMembership[]
-  ownedCommunities       Community[]           @relation("CommunityOwner")
+  ownedCommunities       Community[]            @relation("CommunityOwner")
   communityMemberships   CommunityMembership[]
-  sentFriendRequests     Friendship[]          @relation("FriendRequester")
-  receivedFriendRequests Friendship[]          @relation("FriendAddressee")
+  sentFriendRequests     Friendship[]           @relation("FriendRequester")
+  receivedFriendRequests Friendship[]           @relation("FriendAddressee")
   upcomingMeets          UpcomingMeet[]
   gymWorkouts            GymWorkout[]
   predictionSnapshots    PredictionSnapshot[]
+  predictionAttempts     PredictionAttempt[]
+  consentEvents          ConsentEvent[]
+  raceFeedback           RaceFeedback[]
+  raceFeedbackRevisions  RaceFeedbackRevision[]
 }
 
 model SwimResult {
-  id          String     @id @default(cuid())
+  id          String         @id @default(cuid())
   userId      String
   date        DateTime
   event       SwimEvent
   course      Course
   timeSeconds Float
   meetName    String
-  source      SwimSource @default(MANUAL)
+  source      SwimSource     @default(MANUAL)
   resultKind  SwimResultKind @default(OFFICIAL)
-  raceType    SwimRaceType @default(INDIVIDUAL)
-  dedupeKey   String?    @unique
+  raceType    SwimRaceType   @default(INDIVIDUAL)
+  dedupeKey   String?        @unique
   notes       String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  provenance  Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   evaluatedPredictions PredictionSnapshot[] @relation("PredictionActualResult")
+  feedback             RaceFeedback?
 
   @@index([userId, event, date])
   @@index([userId, resultKind, date])
 }
 
 model PredictionSnapshot {
-  id                       String   @id @default(cuid())
+  id                       String      @id @default(cuid())
   userId                   String
   event                    SwimEvent
   course                   Course
@@ -70,7 +90,7 @@ model PredictionSnapshot {
   lowerBound               Float
   upperBound               Float
   confidence               Float
-  predictionTimestamp      DateTime @default(now())
+  predictionTimestamp      DateTime    @default(now())
   targetRaceDate           DateTime
   modelVersion             String
   modelSource              String
@@ -86,12 +106,18 @@ model PredictionSnapshot {
   explanationContributions Json?
   calibrationMetadata      Json?
   dataSufficiency          String
+  dataQualityScore         Int?
+  dataQualityLevel         String?
+  dataQualityReasons       Json?
+  eligibilityDecision      String?
   athleteAge               Int?
-  outOfDistribution        Boolean @default(false)
+  athleteSex               AthleteSex?
+  outOfDistribution        Boolean     @default(false)
   outOfDistributionReasons Json
   lastRaceBaseline         Float
   lastThreeBaseline        Float
   linearTrendBaseline      Float
+  conservativeBaseline     Float?
   goalTime                 Float?
   qualifyingTime           Float?
   pbProbability            Float?
@@ -109,8 +135,8 @@ model PredictionSnapshot {
   achievedGoal             Boolean?
   achievedQualification    Boolean?
   evaluatedAt              DateTime?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
 
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   actualResult SwimResult? @relation("PredictionActualResult", fields: [actualResultId], references: [id], onDelete: SetNull)
@@ -122,16 +148,152 @@ model PredictionSnapshot {
   @@index([actualResultId])
 }
 
-model Goal {
-  id         String    @id @default(cuid())
+model PredictionAttempt {
+  id                  String    @id @default(cuid())
+  userId              String
+  event               SwimEvent
+  course              Course
+  attemptedAt         DateTime  @default(now())
+  assessmentVersion   String
+  qualityScore        Int
+  qualityLevel        String
+  eligibilityDecision String
+  reasons             Json
+  inputFingerprint    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, inputFingerprint])
+  @@index([userId, event, course, attemptedAt])
+  @@index([eligibilityDecision, attemptedAt])
+}
+
+model ModelRegistryEntry {
+  id                   String             @id @default(cuid())
+  modelVersion         String
+  event                SwimEvent
+  course               Course
+  status               ModelReleaseStatus @default(CHALLENGER)
+  artifactHash         String
+  datasetVersion       String
+  featureSchemaVersion String
+  trainingCodeVersion  String
+  evaluationVersion    String
+  metrics              Json
+  subgroupMetrics      Json
+  sampleSize           Int
+  createdAt            DateTime           @default(now())
+
+  decisions ModelReleaseDecision[]
+
+  @@unique([modelVersion, event, course, evaluationVersion])
+  @@index([event, course, status])
+  @@index([createdAt])
+}
+
+model ModelReleaseDecision {
+  id              String              @id @default(cuid())
+  registryId      String
+  action          ModelDecisionAction
+  reason          String
+  metricsSnapshot Json
+  actorPseudonym  String?
+  createdAt       DateTime            @default(now())
+
+  registry ModelRegistryEntry @relation(fields: [registryId], references: [id], onDelete: Restrict)
+
+  @@index([registryId, createdAt])
+}
+
+model ModelMonitoringSnapshot {
+  id                   String    @id @default(cuid())
+  modelVersion         String
+  event                SwimEvent
+  course               Course
+  horizonBand          String
+  ageBand              String
+  category             String
+  sampleSize           Int
+  baselineSize         Int
+  status               String
+  featureDrift         Json
+  predictionDrift      Float?
+  residualDrift        Float?
+  coverageDrift        Float?
+  calibrationDrift     Float?
+  unsupportedRateDrift Float?
+  recommendation       String
+  evidence             Json
+  createdAt            DateTime  @default(now())
+
+  @@index([modelVersion, event, course, createdAt])
+  @@index([status, createdAt])
+}
+
+model ConsentEvent {
+  id            String         @id @default(cuid())
+  userId        String
+  purpose       ConsentPurpose
+  action        ConsentAction
+  policyVersion String
+  metadata      Json?
+  occurredAt    DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, occurredAt])
+}
+
+model RaceFeedback {
+  id                       String      @id @default(cuid())
+  userId                   String
+  swimResultId             String      @unique
+  taperStatus              TaperStatus @default(UNKNOWN)
+  illness                  Boolean     @default(false)
+  injury                   Boolean     @default(false)
+  effort                   RaceEffort  @default(UNKNOWN)
+  courseInformationCorrect Boolean?
+  unusualCircumstances     String?
+  predictionUseful         Boolean?
+  source                   String      @default("SELF_REPORTED")
+  currentVersion           Int         @default(1)
+  deletedAt                DateTime?
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swimResult SwimResult             @relation(fields: [swimResultId], references: [id], onDelete: Cascade)
+  revisions  RaceFeedbackRevision[]
+
+  @@index([userId, createdAt])
+}
+
+model RaceFeedbackRevision {
+  id         String             @id @default(cuid())
+  feedbackId String
   userId     String
-  event      SwimEvent
-  course     Course    @default(LCM)
-  targetTime Float
+  version    Int
+  changeType FeedbackChangeType
+  snapshot   Json
+  createdAt  DateTime           @default(now())
+
+  feedback RaceFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, version])
+  @@index([userId, createdAt])
+}
+
+model Goal {
+  id             String    @id @default(cuid())
+  userId         String
+  event          SwimEvent
+  course         Course    @default(LCM)
+  targetTime     Float
   qualifyingTime Float?
-  targetDate DateTime
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  targetDate     DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -339,4 +501,51 @@ enum GymWorkoutType {
   DRYLAND
   CARDIO
   RECOVERY
+}
+
+enum ModelReleaseStatus {
+  CHALLENGER
+  CHAMPION
+  REJECTED
+  RETIRED
+}
+
+enum ModelDecisionAction {
+  REGISTERED
+  EVALUATED
+  PROMOTED
+  REJECTED
+  OVERRIDDEN
+  RETIRED
+}
+
+enum ConsentPurpose {
+  PERSONAL_ANALYTICS
+  MODEL_TRAINING
+  PUBLIC_RESEARCH
+  GUARDIAN
+}
+
+enum ConsentAction {
+  GRANTED
+  WITHDRAWN
+}
+
+enum TaperStatus {
+  UNKNOWN
+  TAPERED
+  UNTAPERED
+}
+
+enum RaceEffort {
+  UNKNOWN
+  MAXIMUM
+  SUBMAXIMAL
+  TRAINING_PACE
+}
+
+enum FeedbackChangeType {
+  CREATED
+  UPDATED
+  DELETED
 }

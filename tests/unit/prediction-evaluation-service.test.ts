@@ -4,8 +4,12 @@ import { evaluatePredictionSnapshotsForResult, syncPredictionSnapshots } from "@
 import type { Goal, SwimResult } from "@/types/swim";
 
 const createManyMock = vi.hoisted(() => vi.fn());
+const attemptCreateManyMock = vi.hoisted(() => vi.fn());
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/prisma", () => ({ prisma: { predictionSnapshot: { createMany: createManyMock } } }));
+vi.mock("@/lib/prisma", () => ({ prisma: {
+  predictionSnapshot: { createMany: createManyMock },
+  predictionAttempt: { createMany: attemptCreateManyMock }
+} }));
 
 function relativeDate(days: number) {
   const date = new Date();
@@ -57,6 +61,7 @@ describe("prediction result matching", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     createManyMock.mockResolvedValue({ count: 4 });
+    attemptCreateManyMock.mockResolvedValue({ count: 1 });
   });
 
   it("persists account-scoped explanation and probability snapshots without foreign race leakage", async () => {
@@ -76,7 +81,11 @@ describe("prediction result matching", () => {
     expect(rows.every((row) => row.userId === "athlete-1")).toBe(true);
     expect(rows.every((row) => typeof row.pbProbability === "number" && typeof row.explanationMethod === "string")).toBe(true);
     expect(rows.every((row) => row.goalProbability !== null && row.qualifyingProbability !== null)).toBe(true);
+    expect(rows.every((row) => typeof row.conservativeBaseline === "number")).toBe(true);
     expect(rows.some((row) => JSON.stringify(row.featureSnapshot).includes("40"))).toBe(false);
+    expect(rows.every((row) => typeof row.dataQualityScore === "number" && typeof row.eligibilityDecision === "string")).toBe(true);
+    const attempts = attemptCreateManyMock.mock.calls[0][0].data as Array<Record<string, unknown>>;
+    expect(attempts.some((attempt) => attempt.userId === "athlete-2")).toBe(false);
   });
 
   it("ignores relay splits before any athlete data is queried", async () => {

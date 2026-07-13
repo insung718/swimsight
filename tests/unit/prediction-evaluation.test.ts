@@ -5,7 +5,7 @@ import {
   projectPredictionToDate,
   type EvaluatedPredictionInput
 } from "@/lib/prediction-evaluation";
-import { validateXgboostArtifact } from "@/lib/xgboost-runtime";
+import { releaseMatchesArtifact, validateXgboostArtifact } from "@/lib/xgboost-runtime";
 import type { Prediction } from "@/types/swim";
 
 const prediction: Prediction = {
@@ -43,9 +43,19 @@ const prediction: Prediction = {
     eligibilityRules: [],
     outOfDistribution: false,
     outOfDistributionReasons: [],
-    sufficiencyChecklist: []
+    sufficiencyChecklist: [],
+    dataQuality: {
+      version: "prediction-quality-v3.0.0",
+      score: 70,
+      level: "Moderate",
+      decision: "CONSERVATIVE_ESTIMATE",
+      eligibleRaceCount: 4,
+      reasons: [],
+      userExplanation: "A conservative estimate is shown."
+    }
   },
-  trainingImpact: { label: "No gym data", adjustmentMultiplier: 1, weeklyLoad: 0, sessionsLast28Days: 0 }
+  trainingImpact: { label: "No gym data", adjustmentMultiplier: 1, weeklyLoad: 0, sessionsLast28Days: 0 },
+  actionableInsights: { observed: [], inferred: [], userReported: [], notMeasurable: [] }
 };
 
 function evaluated(overrides: Partial<EvaluatedPredictionInput> = {}): EvaluatedPredictionInput {
@@ -127,7 +137,8 @@ describe("prediction evaluation", () => {
       rmse: 1,
       intervalCoverage: 100,
       probabilityEvaluations: 0,
-      probabilityBrierScore: 0
+      probabilityBrierScore: 0,
+      probabilityCalibrationError: 0
     });
     expect(dashboard.byModelVersion.map((row) => row.label).sort()).toEqual(["golden-v0", "golden-v1"]);
     expect(dashboard.baselines.find((row) => row.label === "SwimSight")?.mae).toBe(1);
@@ -153,6 +164,10 @@ describe("prediction evaluation", () => {
       event: "100 Freestyle",
       status: "VALIDATED",
       trainedAt: "2026-07-12T00:00:00.000Z",
+      featureSchemaVersion: "100-free-history20-v2",
+      trainingCodeVersion: "git-test",
+      evaluationVersion: "rolling-origin-v3",
+      trainingDataFingerprint: "a".repeat(64),
       featureNames: ["latest_time"],
       models: {}
     })).toBe(false);
@@ -167,6 +182,14 @@ describe("prediction evaluation", () => {
     })).toBe(false);
   });
 
+  it("requires the approved champion version and immutable artifact hash to match", () => {
+    const identity = { modelVersion: "model-v2", artifactHash: "abc123" };
+    expect(releaseMatchesArtifact(undefined, identity)).toBe(false);
+    expect(releaseMatchesArtifact({ modelVersion: "model-v2", artifactHash: "wrong" }, identity)).toBe(false);
+    expect(releaseMatchesArtifact({ modelVersion: "model-v1", artifactHash: "abc123" }, identity)).toBe(false);
+    expect(releaseMatchesArtifact(identity, identity)).toBe(true);
+  });
+
   it("accepts a complete version-two model artifact with cover statistics", () => {
     expect(validateXgboostArtifact({
       schemaVersion: 2,
@@ -174,6 +197,10 @@ describe("prediction evaluation", () => {
       event: "100 Freestyle",
       status: "VALIDATED",
       trainedAt: "2026-07-12T00:00:00.000Z",
+      featureSchemaVersion: "100-free-history20-v2",
+      trainingCodeVersion: "git-test",
+      evaluationVersion: "rolling-origin-v3",
+      trainingDataFingerprint: "a".repeat(64),
       featureNames: ["latest_time"],
       models: {
         LCM: {

@@ -1,4 +1,10 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { NextConfig } from "next";
+
+const predictionArtifact = JSON.parse(readFileSync(join(process.cwd(), "src/lib/models/100-free-xgboost.json"), "utf8"));
+const predictionArtifactHash = createHash("sha256").update(JSON.stringify(predictionArtifact)).digest("hex");
 
 const scriptSources = [
   "'self'",
@@ -28,6 +34,9 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   typedRoutes: true,
   allowedDevOrigins: ["127.0.0.1"],
+  env: {
+    SWIMSIGHT_100_FREE_ARTIFACT_SHA256: predictionArtifactHash
+  },
   images: {
     qualities: [75, 88]
   },

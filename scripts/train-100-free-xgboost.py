@@ -14,7 +14,9 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import subprocess
 from typing import Any
 
 try:
@@ -118,6 +120,7 @@ def build_feature_row(history: pd.DataFrame, target: pd.Series) -> dict[str, Any
     reverse = history.iloc[::-1].reset_index(drop=True)
     target_date = target["race_date"]
     latest_date = history["race_date"].iloc[-1]
+    latest_known = history.iloc[-1]
     row: dict[str, Any] = {}
 
     for index in range(HISTORY_SIZE):
@@ -129,11 +132,13 @@ def build_feature_row(history: pd.DataFrame, target: pd.Series) -> dict[str, Any
         "forecast_days": max(1, int((target_date - latest_date).days)),
         "latest_time": float(history["time_seconds"].iloc[-1]),
         "days_since_last_race": max(1, int((target_date - latest_date).days)),
-        "age": float(target["age"]),
-        "sex_female": 1.0 if target["sex"] == "FEMALE" else 0.0,
-        "sex_male": 1.0 if target["sex"] == "MALE" else 0.0,
-        "taper_days": float(target["taper_days"]),
-        "swim_sessions_per_week": float(target["swim_sessions_per_week"]),
+        # Context must be known at prediction time. The future target row only
+        # contributes the outcome label and target date.
+        "age": float(latest_known["age"]),
+        "sex_female": 1.0 if latest_known["sex"] == "FEMALE" else 0.0,
+        "sex_male": 1.0 if latest_known["sex"] == "MALE" else 0.0,
+        "taper_days": float(latest_known["taper_days"]),
+        "swim_sessions_per_week": float(latest_known["swim_sessions_per_week"]),
     })
     for size in (3, 5, 10, 20):
         features = window_features(history, size)
@@ -147,6 +152,7 @@ def build_feature_row(history: pd.DataFrame, target: pd.Series) -> dict[str, Any
         "target_date": target_date,
         "athlete_id": target["athlete_id"],
         "course": target["course"],
+        "feature_as_of": latest_date,
     })
     return row
 
@@ -200,32 +206,102 @@ def rolling_date_folds(frame: pd.DataFrame, requested_folds: int) -> list[tuple[
     return folds
 
 
+def age_band(age: float) -> str:
+    if age <= 10:
+        return "10_AND_UNDER"
+    if age <= 12:
+        return "11_12"
+    if age <= 14:
+        return "13_14"
+    if age <= 16:
+        return "15_16"
+    if age <= 18:
+        return "17_18"
+    return "19_AND_OVER"
+
+
+def horizon_band(days: float) -> str:
+    if days <= 30:
+        return "0_30_DAYS"
+    if days <= 90:
+        return "31_90_DAYS"
+    if days <= 180:
+        return "91_180_DAYS"
+    return "181_365_DAYS"
+
+
+def metric_summary(actual: np.ndarray, predicted: np.ndarray) -> dict[str, Any]:
+    errors = actual - predicted
+    absolute = np.abs(errors)
+    return {
+        "sampleSize": int(len(actual)),
+        "mae": round(float(np.mean(absolute)), 6),
+        "medianAbsoluteError": round(float(np.median(absolute)), 6),
+        "rmse": round(float(np.sqrt(np.mean(np.square(errors)))), 6),
+    }
+
+
+def breakdown_metrics(evaluated: pd.DataFrame, column: str) -> dict[str, Any]:
+    output: dict[str, Any] = {}
+    for label, group in evaluated.groupby(column, dropna=False):
+        output[str(label)] = metric_summary(
+            group["target_time"].to_numpy(dtype=float),
+            group["prediction"].to_numpy(dtype=float),
+        )
+    return output
+
+
 def evaluate_rolling(frame: pd.DataFrame, seed: int, folds: int) -> dict[str, Any]:
     y = frame["target_time"].to_numpy(dtype=float)
     predictions = np.full(len(frame), np.nan)
     baseline_values = {name: np.full(len(frame), np.nan) for name in baseline_predictions(frame)}
     fold_list = rolling_date_folds(frame, folds)
-    for train_indices, validation_indices in fold_list:
+    fold_summaries: list[dict[str, Any]] = []
+    for fold_number, (train_indices, validation_indices) in enumerate(fold_list, start=1):
         train = frame.iloc[train_indices]
         validation = frame.iloc[validation_indices]
+        if not (train["target_date"].max() < validation["target_date"].min()):
+            raise RuntimeError("Temporal leakage detected: training cutoff overlaps validation dates")
+        if not (validation["feature_as_of"] < validation["target_date"]).all():
+            raise RuntimeError("Temporal leakage detected: feature timestamp is not before target")
         model = make_model(seed, float(train["target_time"].mean()))
         model.fit(train[FEATURE_NAMES], train["target_time"])
         predictions[validation_indices] = model.predict(validation[FEATURE_NAMES])
         for name, values in baseline_predictions(validation).items():
             baseline_values[name][validation_indices] = values
+        fold_summaries.append({
+            "fold": fold_number,
+            "trainingEnd": train["target_date"].max().date().isoformat(),
+            "validationStart": validation["target_date"].min().date().isoformat(),
+            "validationEnd": validation["target_date"].max().date().isoformat(),
+            "trainingRows": int(len(train)),
+            "validationRows": int(len(validation)),
+        })
 
     valid = ~np.isnan(predictions)
     if not valid.any():
-        return {"mae": math.inf, "residuals": np.array([]), "signed_residuals": np.array([]), "baselines": {}, "fold_count": 0}
+        return {"mae": math.inf, "residuals": np.array([]), "signed_residuals": np.array([]), "baselines": {}, "fold_count": 0, "folds": [], "breakdowns": {}}
     signed_residuals = y[valid] - predictions[valid]
     residuals = np.abs(signed_residuals)
     baselines = {name: float(mean_absolute_error(y[valid], values[valid])) for name, values in baseline_values.items()}
+    evaluated = frame.loc[valid, ["target_time", "forecast_days", "age", "sex_female", "course"]].copy()
+    evaluated["prediction"] = predictions[valid]
+    evaluated["horizonBand"] = evaluated["forecast_days"].map(horizon_band)
+    evaluated["ageBand"] = evaluated["age"].map(age_band)
+    evaluated["category"] = np.where(evaluated["sex_female"] == 1, "FEMALE", "MALE")
     return {
         "mae": float(mean_absolute_error(y[valid], predictions[valid])),
         "residuals": residuals,
         "signed_residuals": signed_residuals,
         "baselines": baselines,
         "fold_count": len(fold_list),
+        "folds": fold_summaries,
+        "breakdowns": {
+            "forecastHorizon": breakdown_metrics(evaluated, "horizonBand"),
+            "ageBand": breakdown_metrics(evaluated, "ageBand"),
+            "category": breakdown_metrics(evaluated, "category"),
+            "course": breakdown_metrics(evaluated, "course"),
+        },
     }
 
 
@@ -296,6 +372,27 @@ def finite_or_zero(value: float) -> float:
     return round(value, 6) if math.isfinite(value) else 0.0
 
 
+def training_code_version() -> str:
+    configured = os.environ.get("SWIMSIGHT_TRAINING_CODE_VERSION", "").strip()
+    if configured:
+        return configured
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, check=False, text=True
+    )
+    if result.returncode != 0:
+        return f"UNRECORDED-{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:12]}"
+    revision = result.stdout.strip()
+    dirty = subprocess.run(
+        ["git", "status", "--porcelain", "--", str(Path(__file__))],
+        capture_output=True, check=False, text=True
+    )
+    return (
+        f"{revision}-dirty-{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:12]}"
+        if dirty.stdout.strip()
+        else revision
+    )
+
+
 def main() -> None:
     args = parse_args()
     examples = build_examples(load_data(args.inputs), args.min_history)
@@ -334,17 +431,34 @@ def main() -> None:
                 "residualQuantiles": residual_quantiles,
                 "trainingRows": len(frame), "athleteCount": athlete_count,
                 "foldCount": rolling["fold_count"],
+                "temporalBacktest": {
+                    "method": "rolling-origin",
+                    "featureAvailabilityRule": "all features precede the target race date",
+                    "folds": rolling["folds"],
+                    "breakdowns": rolling["breakdowns"],
+                },
             },
         }
 
     statuses = [model["status"] for model in models.values()]
-    artifact_status = "UNTRAINED" if not statuses else "VALIDATED" if all(status == "VALIDATED" for status in statuses) else "PARTIALLY_VALIDATED"
+    artifact_status = (
+        "UNTRAINED"
+        if not statuses
+        else "VALIDATED"
+        if all(status == "VALIDATED" for status in statuses)
+        else "PARTIALLY_VALIDATED"
+        if any(status == "VALIDATED" for status in statuses)
+        else "EXPERIMENTAL"
+    )
     trained_at = pd.Timestamp.utcnow()
     artifact = {
         "schemaVersion": 2,
         "version": f"100-free-xgb-{trained_at.strftime('%Y%m%d-%H%M%S')}",
         "trainedAt": trained_at.isoformat(),
         "event": "100 Freestyle", "status": artifact_status,
+        "featureSchemaVersion": "100-free-history20-v2",
+        "trainingCodeVersion": training_code_version(),
+        "evaluationVersion": "rolling-origin-v3",
         "featureNames": FEATURE_NAMES,
         "trainingDataFingerprint": fingerprint(args.inputs), "models": models,
     }

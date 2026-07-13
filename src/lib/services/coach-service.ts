@@ -1,9 +1,10 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { buildDashboardAnalytics } from "@/lib/analytics";
+import { buildDashboardAnalytics, type PredictionReleaseContext } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
+import { getApprovedHundredFreeChampionReleases } from "@/lib/services/model-governance-service";
 import type { CoachClubSummary, CoachDashboardData, CoachSwimmerAnalytics, Goal } from "@/types/swim";
 
 const joinCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -63,7 +64,7 @@ function swimmerAnalytics(member: {
       targetDate: Date;
     }>;
   };
-}): CoachSwimmerAnalytics {
+}, releaseContext: PredictionReleaseContext): CoachSwimmerAnalytics {
   const swims = member.user.swims.map(toSwimResult);
   const goals = member.user.goals.map(toGoal);
   const analytics = buildDashboardAnalytics(swims, goals[0], [], {
@@ -71,7 +72,7 @@ function swimmerAnalytics(member: {
     sex: member.user.sex,
     taperDays: member.user.taperDays,
     swimSessionsPerWeek: member.user.swimSessionsPerWeek
-  });
+  }, releaseContext);
   const latest = swims[swims.length - 1];
   const strongest = analytics.strongestEvents[0];
 
@@ -138,7 +139,7 @@ function clubSummary(team: {
 }
 
 export async function getCoachDashboard(coachId: string): Promise<CoachDashboardData> {
-  const teams = await prisma.team.findMany({
+  const [teams, hundredFreeChampionReleases] = await Promise.all([prisma.team.findMany({
     where: {
       OR: [
         { ownerId: coachId },
@@ -181,7 +182,8 @@ export async function getCoachDashboard(coachId: string): Promise<CoachDashboard
     },
     orderBy: { createdAt: "asc" },
     take: 50
-  });
+  }), getApprovedHundredFreeChampionReleases()]);
+  const releaseContext = { hundredFreeChampionReleases };
 
   const clubs = teams.map((team) => ({
     id: team.id,
@@ -189,7 +191,7 @@ export async function getCoachDashboard(coachId: string): Promise<CoachDashboard
     description: team.description,
     joinCode: team.joinCode,
     memberCount: team.memberships.length,
-    swimmers: team.memberships.map(swimmerAnalytics)
+    swimmers: team.memberships.map((membership) => swimmerAnalytics(membership, releaseContext))
   }));
 
   return {

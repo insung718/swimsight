@@ -13,6 +13,7 @@ export interface AuthContext {
   swimSessionsPerWeek?: number | null;
   role: "ATHLETE" | "COACH" | "ADMIN";
   onboardingCompleted: boolean;
+  personalAnalyticsConsentActive: boolean;
 }
 
 function isVerifiedEmail(emailAddress: NonNullable<Awaited<ReturnType<typeof currentUser>>>["emailAddresses"][number]) {
@@ -52,7 +53,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       taperDays: null,
       swimSessionsPerWeek: null,
       role: "ATHLETE",
-      onboardingCompleted: false
+      onboardingCompleted: false,
+      personalAnalyticsConsentActive: false
     };
   }
 
@@ -107,7 +109,12 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     taperDays: user.taperDays,
     swimSessionsPerWeek: user.swimSessionsPerWeek,
     role: trustedRole,
-    onboardingCompleted: user.onboardingCompleted
+    onboardingCompleted: user.onboardingCompleted,
+    personalAnalyticsConsentActive: Boolean(
+      user.personalAnalyticsConsentedAt
+      && user.personalAnalyticsConsentVersion === "analytics-v1"
+      && (!user.personalAnalyticsWithdrawnAt || user.personalAnalyticsConsentedAt > user.personalAnalyticsWithdrawnAt)
+    )
   };
 }
 

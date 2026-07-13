@@ -125,14 +125,20 @@ describe("analytics engine", () => {
     expect(prediction?.trainingImpact.adjustmentMultiplier).toBeGreaterThan(1);
   });
 
-  it("creates a low-confidence baseline prediction from the first event result", () => {
+  it("withholds a prediction when the only event result is stale", () => {
     const analytics = buildDashboardAnalytics([sampleSwims[0]]);
 
+    expect(analytics.predictions).toHaveLength(0);
+  });
+
+  it("creates a provisional estimate from one recent official result", () => {
+    const recent = { ...sampleSwims[0], date: new Date().toISOString().slice(0, 10) };
+    const analytics = buildDashboardAnalytics([recent]);
+
     expect(analytics.predictions).toHaveLength(1);
-    expect(analytics.predictions[0].event).toBe(sampleSwims[0].event);
-    expect(analytics.predictions[0].confidence).toBe(43);
-    expect(analytics.predictions[0].predictedTimes.days365).toBeLessThan(sampleSwims[0].timeSeconds);
-    expect(sampleSwims[0].timeSeconds - analytics.predictions[0].predictedTimes.days365).toBeLessThan(0.25);
+    expect(analytics.predictions[0].event).toBe(recent.event);
+    expect(analytics.predictions[0].model.dataQuality.decision).toBe("PROVISIONAL_ONLY");
+    expect(analytics.predictions[0].confidence).toBeLessThan(50);
   });
 
   it("caps aggressive forecasts so predictions stay realistic", () => {

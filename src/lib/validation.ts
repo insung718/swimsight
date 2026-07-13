@@ -75,6 +75,7 @@ export const friendActionSchema = z.object({
 
 export const profileRoleSchema = z.object({
   role: z.enum(["ATHLETE", "COACH"]),
+  personalAnalyticsConsent: z.literal(true),
   age: z.number().int().min(6).max(100).optional(),
   sex: athleteSexSchema.optional(),
   taperDays: z.number().int().min(0).max(28).optional(),
@@ -105,6 +106,52 @@ export const predictionProfileSchema = z.object({
 
 export const dashboardViewModeSchema = z.object({
   viewMode: z.enum(["swimmer", "coach"])
+}).strict();
+
+export const consentMutationSchema = z.object({
+  purpose: z.enum(["PERSONAL_ANALYTICS", "MODEL_TRAINING", "PUBLIC_RESEARCH", "GUARDIAN"]),
+  action: z.enum(["GRANTED", "WITHDRAWN"]),
+  policyVersion: z.string().trim().regex(/^[a-z0-9][a-z0-9._-]{2,39}$/i)
+}).strict();
+
+export const privacyDeletionSchema = z.object({
+  scope: z.enum(["TRAINING_DATA", "ACCOUNT"]),
+  confirmation: z.literal("DELETE")
+}).strict();
+
+const raceFeedbackFields = z.object({
+  taperStatus: z.enum(["UNKNOWN", "TAPERED", "UNTAPERED"]),
+  illness: z.boolean(),
+  injury: z.boolean(),
+  effort: z.enum(["UNKNOWN", "MAXIMUM", "SUBMAXIMAL", "TRAINING_PACE"]),
+  courseInformationCorrect: z.boolean().nullable(),
+  unusualCircumstances: cleanText(1, 500).nullable(),
+  predictionUseful: z.boolean().nullable()
+}).strict();
+
+export const raceFeedbackCreateSchema = raceFeedbackFields.extend({
+  swimResultId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+}).strict();
+
+export const raceFeedbackUpdateSchema = raceFeedbackFields.extend({
+  feedbackId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  expectedVersion: z.number().int().positive().max(10_000)
+}).strict();
+
+export const raceFeedbackDeleteSchema = z.object({
+  feedbackId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  expectedVersion: z.number().int().positive().max(10_000)
+}).strict();
+
+export const modelMonitoringRefreshSchema = z.object({
+  action: z.literal("REFRESH_MONITORING"),
+  modelVersion: z.string().trim().min(3).max(120).regex(/^[a-zA-Z0-9._-]+$/),
+  event: swimEventSchema,
+  course: courseSchema,
+  ageBand: z.enum(["ALL", "10_AND_UNDER", "11_12", "13_14", "15_16", "17_18", "19_AND_OVER", "UNKNOWN"]).default("ALL"),
+  category: z.enum(["ALL", "FEMALE", "MALE"]).default("ALL"),
+  horizonBand: z.enum(["ALL", "0_30_DAYS", "31_90_DAYS", "91_180_DAYS", "181_365_DAYS"]).default("ALL"),
+  minSample: z.number().int().min(20).max(1_000).default(30)
 }).strict();
 
 export const coachClubCreateSchema = z.object({

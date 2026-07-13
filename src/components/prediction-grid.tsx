@@ -274,6 +274,8 @@ function PredictionExpandedCard({
                 <InsightBlock label={t("Model confidence")} value={`${prediction.confidence}%`} />
                 <InsightBlock label={t("Model source")} value={modelLabel} />
                 <InsightBlock label={t("Data sufficiency")} value={t(prediction.model.dataSufficiency)} />
+                <InsightBlock label={t("Data quality")} value={`${prediction.model.dataQuality.score}/100 · ${t(prediction.model.dataQuality.level)}`} />
+                <InsightBlock label={t("Prediction eligibility")} value={t(prediction.model.dataQuality.decision)} />
                 <InsightBlock label={t("Race history used")} value={`${prediction.model.historyUsed}/20`} />
                 <InsightBlock label={t("Pool type")} value={prediction.course} />
                 <InsightBlock label={t("Current time")} value={formatTime(prediction.currentTime)} />
@@ -281,6 +283,11 @@ function PredictionExpandedCard({
                 {prediction.model.trainingDatasetSize !== undefined && <InsightBlock label={t("Training rows")} value={prediction.model.trainingDatasetSize.toLocaleString()} />}
                 {prediction.model.trainingDate && <InsightBlock label={t("Model training date")} value={prediction.model.trainingDate.slice(0, 10)} />}
               </div>
+            </section>
+
+            <section className="rounded-lg border border-aqua-200/16 bg-aqua-200/[0.07] p-4 sm:p-5 lg:col-span-2">
+              <h4 className="text-base font-semibold text-white">{t("Data quality assessment")}</h4>
+              <p className="mt-2 text-sm leading-6 text-white/70">{t(prediction.model.dataQuality.userExplanation)}</p>
             </section>
 
             {(prediction.model.outOfDistribution || prediction.model.sufficiencyChecklist.length > 0) && (

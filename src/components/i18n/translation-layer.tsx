@@ -6,6 +6,12 @@ import { isLanguageCode, languageChangeEvent, languageStorageKey, shouldTranslat
 const englishPhrases = Array.from(new Set(Object.values(translations).flatMap((dictionary) => Object.keys(dictionary))))
   .filter((phrase) => phrase.trim().length > 1)
   .sort((a, b) => b.length - a.length);
+const localizedToEnglish = Object.fromEntries(Object.entries(translations).map(([language, dictionary]) => [
+  language,
+  Object.entries(dictionary)
+    .filter(([, localized]) => localized.trim().length > 1)
+    .sort((a, b) => b[1].length - a[1].length)
+]));
 const originalTextNodes = new WeakMap<Node, string>();
 const originalAttributes = new WeakMap<Element, Record<string, string>>();
 
@@ -45,6 +51,18 @@ function translateValue(value: string, language: LanguageCode) {
   return value.replace(trimmed, translated);
 }
 
+function recoverEnglishSource(value: string, language: LanguageCode) {
+  if (language === "en") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  let recovered = trimmed;
+  for (const [english, localized] of localizedToEnglish[language]) {
+    if (recovered === localized) return value.replace(trimmed, english);
+    if (recovered.includes(localized)) recovered = recovered.split(localized).join(english);
+  }
+  return value.replace(trimmed, recovered);
+}
+
 function shouldSkipElement(element: Element | null) {
   if (!element) return true;
   if (element.closest("[data-no-translate]")) return true;
@@ -59,7 +77,7 @@ function translateDocument(language: LanguageCode) {
 
   while (node) {
     if (!shouldSkipElement(node.parentElement)) {
-      if (!originalTextNodes.has(node)) originalTextNodes.set(node, node.textContent ?? "");
+      if (!originalTextNodes.has(node)) originalTextNodes.set(node, recoverEnglishSource(node.textContent ?? "", language));
       const translated = translateValue(originalTextNodes.get(node) ?? "", language);
       if (translated !== node.textContent) node.textContent = translated;
     }
@@ -72,10 +90,11 @@ function translateDocument(language: LanguageCode) {
       if (!value) continue;
       const originals = originalAttributes.get(element) ?? {};
       if (!originals[attr]) {
-        originals[attr] = value;
+        originals[attr] = recoverEnglishSource(value, language);
         originalAttributes.set(element, originals);
       }
-      element.setAttribute(attr, translateValue(originals[attr], language));
+      const translated = translateValue(originals[attr], language);
+      if (element.getAttribute(attr) !== translated) element.setAttribute(attr, translated);
     }
   }
 }
@@ -84,13 +103,21 @@ export function TranslationLayer() {
   useEffect(() => {
     let language = currentLanguage();
     let translating = false;
+    let rerunRequested = false;
 
     const apply = () => {
-      if (translating) return;
+      if (translating) {
+        rerunRequested = true;
+        return;
+      }
       translating = true;
       window.requestAnimationFrame(() => {
         translateDocument(language);
         translating = false;
+        if (rerunRequested) {
+          rerunRequested = false;
+          apply();
+        }
       });
     };
 

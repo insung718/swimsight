@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { badRequest, conflict, created } from "@/lib/api";
 import { validateSwimCsv } from "@/lib/csv";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
@@ -26,13 +27,20 @@ export async function POST(request: Request) {
   }
 
   try {
+    const sourceFileHash = createHash("sha256").update(parsed.data.csv).digest("hex");
     const swims = await createManySwims(
-      result.validRows.map((row) => ({
+      result.validRows.map((row, index) => ({
         userId: account.context.userId,
         ...row,
         notes: row.notes ?? undefined,
         source: "CSV",
-        resultKind: row.resultKind ?? parsed.data.resultKind
+        resultKind: row.resultKind ?? parsed.data.resultKind,
+        provenance: {
+          method: "CSV",
+          sourceFileHash,
+          sourceRowNumber: index + 2,
+          parserVersion: "csv-v1"
+        }
       }))
     );
 

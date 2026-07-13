@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "model:train": "python3 scripts/train-100-free-xgboost.py",
+    "model:report": "node scripts/generate-model-report.mjs",
     "model:train:priors": "python3 scripts/train-prediction-model.py",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

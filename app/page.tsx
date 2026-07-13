@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { LandingPage } from "@/components/landing/landing-page";
 import { CoachDashboard } from "@/components/coach-dashboard";
 import { RoleOnboarding } from "@/components/role-onboarding";
+import { PersonalAnalyticsConsent } from "@/components/personal-analytics-consent";
 import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
 import { getAuthContext } from "@/lib/auth-context";
@@ -12,6 +13,7 @@ import { logServerError } from "@/lib/security/logging";
 import { getCoachDashboard } from "@/lib/services/coach-service";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
 import { listUpcomingMeets } from "@/lib/services/meet-service";
+import { getApprovedHundredFreeChampionReleases } from "@/lib/services/model-governance-service";
 import { getPredictionEvaluationDashboard, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
 import { getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
 
@@ -39,6 +41,10 @@ export default async function Home() {
     return <RoleOnboarding />;
   }
 
+  if (!context.personalAnalyticsConsentActive) {
+    return <PersonalAnalyticsConsent />;
+  }
+
   try {
     const cookieStore = await cookies();
     const savedViewMode = cookieStore.get(dashboardViewModeCookie)?.value;
@@ -50,11 +56,12 @@ export default async function Home() {
       return <CoachDashboard dashboard={dashboard} viewMode="coach" />;
     }
 
-    const [goal, swims, gymWorkouts, meets] = await Promise.all([
+    const [goal, swims, gymWorkouts, meets, hundredFreeChampionReleases] = await Promise.all([
       getPrimaryGoal(context.userId),
       getSwimsForUser(context.userId),
       getGymWorkoutsForUser(context.userId),
-      listUpcomingMeets(context.userId)
+      listUpcomingMeets(context.userId),
+      getApprovedHundredFreeChampionReleases()
     ]);
     const predictionProfile = {
       age: context.age,
@@ -62,7 +69,7 @@ export default async function Home() {
       taperDays: context.taperDays,
       swimSessionsPerWeek: context.swimSessionsPerWeek
     };
-    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, predictionProfile);
+    const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, predictionProfile, { hundredFreeChampionReleases });
     await syncPredictionSnapshots({
       userId: context.userId,
       predictions: analytics.predictions,

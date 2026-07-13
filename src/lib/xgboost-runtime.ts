@@ -25,10 +25,19 @@ interface XgboostArtifact {
   schemaVersion: number;
   version: string;
   event: "100 Freestyle";
-  status: "UNTRAINED" | "PARTIALLY_VALIDATED" | "VALIDATED";
+  status: "UNTRAINED" | "EXPERIMENTAL" | "PARTIALLY_VALIDATED" | "VALIDATED";
   trainedAt?: string;
+  featureSchemaVersion: string;
+  trainingCodeVersion: string;
+  evaluationVersion: string;
+  trainingDataFingerprint?: string;
   featureNames: string[];
   models: Partial<Record<Course, ExportedCourseModel>>;
+}
+
+export interface ApprovedLearnedModelRelease {
+  modelVersion: string;
+  artifactHash: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -49,14 +58,21 @@ function isTreeNode(value: unknown, featureNames: Set<string>): value is Exporte
 export function validateXgboostArtifact(value: unknown): value is XgboostArtifact {
   if (!isRecord(value) || value.schemaVersion !== 2 || value.event !== "100 Freestyle") return false;
   if (typeof value.version !== "string" || value.version.trim().length === 0) return false;
-  if (!["UNTRAINED", "PARTIALLY_VALIDATED", "VALIDATED"].includes(String(value.status))) return false;
+  if (!["UNTRAINED", "EXPERIMENTAL", "PARTIALLY_VALIDATED", "VALIDATED"].includes(String(value.status))) return false;
   if (value.trainedAt !== undefined && (typeof value.trainedAt !== "string" || Number.isNaN(Date.parse(value.trainedAt)))) return false;
+  if (![value.featureSchemaVersion, value.trainingCodeVersion, value.evaluationVersion].every((version) => typeof version === "string" && version.trim().length > 0)) return false;
   if (!Array.isArray(value.featureNames) || !value.featureNames.every((name) => typeof name === "string" && name.length > 0)) return false;
   if (new Set(value.featureNames).size !== value.featureNames.length) return false;
   if (!isRecord(value.models)) return false;
   const modelEntries = Object.entries(value.models);
   if (modelEntries.some(([course]) => !["LCM", "SCM", "SCY"].includes(course))) return false;
-  if (value.status !== "UNTRAINED" && (!value.trainedAt || value.featureNames.length === 0 || modelEntries.length === 0)) return false;
+  if (value.status !== "UNTRAINED" && (
+    !value.trainedAt
+    || value.featureNames.length === 0
+    || modelEntries.length === 0
+    || typeof value.trainingDataFingerprint !== "string"
+    || !/^[a-f0-9]{64}$/i.test(value.trainingDataFingerprint)
+  )) return false;
   const featureNames = new Set(value.featureNames);
 
   return modelEntries.every(([, model]) => {
@@ -79,7 +95,25 @@ export function validateXgboostArtifact(value: unknown): value is XgboostArtifac
 
 const artifact: XgboostArtifact = validateXgboostArtifact(rawArtifact)
   ? rawArtifact
-  : { schemaVersion: 2, version: "invalid-artifact", event: "100 Freestyle", status: "UNTRAINED", featureNames: [], models: {} };
+  : {
+      schemaVersion: 2,
+      version: "invalid-artifact",
+      event: "100 Freestyle",
+      status: "UNTRAINED",
+      featureSchemaVersion: "invalid",
+      trainingCodeVersion: "invalid",
+      evaluationVersion: "invalid",
+      featureNames: [],
+      models: {}
+    };
+const loadedArtifactHash = process.env.SWIMSIGHT_100_FREE_ARTIFACT_SHA256 ?? "";
+
+export function releaseMatchesArtifact(
+  release: ApprovedLearnedModelRelease | undefined,
+  identity: ApprovedLearnedModelRelease = { modelVersion: artifact.version, artifactHash: loadedArtifactHash }
+) {
+  return Boolean(release && release.modelVersion === identity.modelVersion && release.artifactHash === identity.artifactHash);
+}
 
 function evaluateTree(node: ExportedTreeNode, features: HundredFreeFeatureVector): number {
   if (typeof node.leaf === "number") return node.leaf;
@@ -100,9 +134,13 @@ function featureContractMatches() {
     artifact.featureNames.every((feature, index) => feature === hundredFreeFeatureNames[index]);
 }
 
-export function predictWithHundredFreeXgboost(course: Course, features: HundredFreeFeatureVector) {
+export function predictWithHundredFreeXgboost(
+  course: Course,
+  features: HundredFreeFeatureVector,
+  approvedRelease?: ApprovedLearnedModelRelease
+) {
   const model = artifact.models[course];
-  if (!model || model.status !== "VALIDATED" || !featureContractMatches()) return null;
+  if (!model || model.status !== "VALIDATED" || !featureContractMatches() || !releaseMatchesArtifact(approvedRelease)) return null;
 
   const predictedTime = model.trees.reduce((sum, tree) => sum + evaluateTree(tree, features), model.baseScore);
   if (!Number.isFinite(predictedTime) || predictedTime <= 0) return null;
@@ -122,6 +160,7 @@ export function hundredFreeModelStatus(course: Course) {
     artifactVersion: artifact.version,
     artifactStatus: artifact.status,
     courseStatus: model?.status ?? "UNTRAINED",
+    artifactHash: loadedArtifactHash,
     featureContractMatches: featureContractMatches()
   };
 }

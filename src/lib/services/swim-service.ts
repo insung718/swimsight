@@ -6,6 +6,7 @@ import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
 import { listUpcomingMeets } from "@/lib/services/meet-service";
+import { getApprovedHundredFreeChampionReleases } from "@/lib/services/model-governance-service";
 import { evaluatePredictionSnapshotsForResult, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
 import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
@@ -20,6 +21,7 @@ interface CreateSwimInput {
   source?: "MANUAL" | "CSV" | "MEET_IMPORT";
   resultKind?: SwimResultKind;
   raceType?: SwimRaceType;
+  provenance?: Prisma.InputJsonValue;
 }
 
 export class DuplicateSwimError extends Error {
@@ -52,6 +54,7 @@ function swimCreateData(input: CreateSwimInput) {
     timeSeconds: input.timeSeconds,
     meetName: input.meetName,
     notes: input.notes,
+    provenance: input.provenance ?? { method: input.source ?? "MANUAL", parserVersion: "direct-v1" },
     source: input.source ?? "MANUAL" as const,
     resultKind: input.resultKind ?? "OFFICIAL" as const,
     raceType: input.raceType ?? "INDIVIDUAL" as const,
@@ -168,7 +171,7 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
 }
 
 export async function getDashboardAnalyticsForUser(userId: string): Promise<DashboardAnalytics> {
-  const [swims, goal, workouts, profile, meets] = await Promise.all([
+  const [swims, goal, workouts, profile, meets, hundredFreeChampionReleases] = await Promise.all([
     getSwimsForUser(userId),
     getPrimaryGoal(userId),
     getGymWorkoutsForUser(userId),
@@ -176,10 +179,11 @@ export async function getDashboardAnalyticsForUser(userId: string): Promise<Dash
       where: { id: userId },
       select: { age: true, sex: true, taperDays: true, swimSessionsPerWeek: true }
     }),
-    listUpcomingMeets(userId)
+    listUpcomingMeets(userId),
+    getApprovedHundredFreeChampionReleases()
   ]);
 
-  const analytics = buildDashboardAnalytics(swims, goal ?? undefined, workouts, profile ?? {});
+  const analytics = buildDashboardAnalytics(swims, goal ?? undefined, workouts, profile ?? {}, { hundredFreeChampionReleases });
   await syncPredictionSnapshots({ userId, predictions: analytics.predictions, swims, profile: profile ?? {}, goal: goal ?? undefined, meets });
   return analytics;
 }

@@ -35,6 +35,7 @@ export function RoleOnboarding() {
   const [sex, setSex] = useState<AthleteSex | "">("");
   const [taperDays, setTaperDays] = useState("");
   const [swimSessionsPerWeek, setSwimSessionsPerWeek] = useState("");
+  const [personalAnalyticsConsent, setPersonalAnalyticsConsent] = useState(false);
   const [error, setError] = useState("");
 
   async function chooseRole(role: UserRole) {
@@ -45,6 +46,10 @@ export function RoleOnboarding() {
     }
     if (role === "ATHLETE" && !sex) {
       setError(t("Select the swimmer category used for performance calibration."));
+      return;
+    }
+    if (!personalAnalyticsConsent) {
+      setError(t("Confirm personal analytics consent to continue."));
       return;
     }
 
@@ -63,7 +68,8 @@ export function RoleOnboarding() {
           age: Number.isInteger(parsedAge) ? parsedAge : undefined,
           sex: sex || undefined,
           taperDays: Number.isInteger(parsedTaperDays) ? parsedTaperDays : undefined,
-          swimSessionsPerWeek: Number.isFinite(parsedSessions) ? parsedSessions : undefined
+          swimSessionsPerWeek: Number.isFinite(parsedSessions) ? parsedSessions : undefined,
+          personalAnalyticsConsent
         })
       });
       const result = await response.json();
@@ -182,6 +188,20 @@ export function RoleOnboarding() {
                 />
               </div>
             </div>
+            <label className="mx-auto mt-3 flex max-w-2xl cursor-pointer items-start gap-3 rounded-lg border border-white/65 bg-white/62 p-4 text-left shadow-stitch backdrop-blur-2xl">
+              <input
+                checked={personalAnalyticsConsent}
+                className="mt-1 h-4 w-4 accent-stitch-abyss"
+                type="checkbox"
+                onChange={(event) => setPersonalAnalyticsConsent(event.target.checked)}
+              />
+              <span>
+                <span className="block text-sm font-semibold text-stitch-abyss">{t("Personal analytics consent")}</span>
+                <span className="mt-1 block text-xs leading-5 text-stitch-abyss/62">
+                  {t("I agree to use my account data for private personal analytics. Model training and public research require separate consent.")}
+                </span>
+              </span>
+            </label>
           </motion.div>
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">

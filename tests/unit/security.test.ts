@@ -32,10 +32,10 @@ describe("API security", () => {
   it("requires bounded age and category for swimmer profile calibration", () => {
     expect(profileRoleSchema.safeParse({ role: "ATHLETE" }).success).toBe(false);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16 }).success).toBe(false);
-    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, sex: "FEMALE" }).success).toBe(true);
+    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, sex: "FEMALE", personalAnalyticsConsent: true }).success).toBe(true);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 5 }).success).toBe(false);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, sex: "MALE", isAdmin: true }).success).toBe(false);
-    expect(profileRoleSchema.safeParse({ role: "COACH" }).success).toBe(true);
+    expect(profileRoleSchema.safeParse({ role: "COACH", personalAnalyticsConsent: true }).success).toBe(true);
   });
 
   it("normalizes join codes and accepts legacy safe symbols", () => {
