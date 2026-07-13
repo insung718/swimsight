@@ -8,7 +8,7 @@ import { useTranslator } from "@/components/i18n/use-language";
 import { supportedEvents } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
-import type { Course, SwimEvent, SwimResult, SwimResultKind } from "@/types/swim";
+import type { Course, SwimEvent, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
 const courses: Course[] = ["LCM", "SCM", "SCY"];
 
@@ -19,6 +19,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
   const [event, setEvent] = useState<SwimEvent | "">("");
   const [course, setCourse] = useState<Course>("LCM");
   const [resultKind, setResultKind] = useState<SwimResultKind>("OFFICIAL");
+  const [raceType, setRaceType] = useState<SwimRaceType>("INDIVIDUAL");
   const [time, setTime] = useState("");
   const [meetName, setMeetName] = useState("");
   const [status, setStatus] = useState("");
@@ -40,12 +41,13 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       course,
       timeSeconds,
       meetName,
-      resultKind
+      resultKind,
+      raceType
     };
     const previousBest = swims
-      .filter((swim) => swim.event === event && swim.course === course && (swim.resultKind ?? "OFFICIAL") === "OFFICIAL")
+      .filter((swim) => swim.event === event && swim.course === course && (swim.resultKind ?? "OFFICIAL") === "OFFICIAL" && (swim.raceType ?? "INDIVIDUAL") === "INDIVIDUAL")
       .reduce<number | undefined>((best, swim) => (best === undefined || swim.timeSeconds < best ? swim.timeSeconds : best), undefined);
-    const isPersonalBest = resultKind === "OFFICIAL" && (previousBest === undefined || timeSeconds < previousBest);
+    const isPersonalBest = resultKind === "OFFICIAL" && raceType === "INDIVIDUAL" && (previousBest === undefined || timeSeconds < previousBest);
 
     try {
       const response = await fetch("/api/swims", {
@@ -107,15 +109,29 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
         ))}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <label className="text-sm font-medium text-white/80">
           {t("Date")}
           <input
             className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
             type="date"
+            max={new Date().toISOString().slice(0, 10)}
             value={date}
             onChange={(changeEvent) => setDate(changeEvent.target.value)}
           />
+        </label>
+        <label className="text-sm font-medium text-white/80">
+          {t("Race context")}
+          <select
+            className="mt-1 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
+            value={raceType}
+            onChange={(changeEvent) => setRaceType(changeEvent.target.value as SwimRaceType)}
+          >
+            <option value="INDIVIDUAL">{t("Individual race")}</option>
+            <option value="RELAY_SPLIT">{t("Relay split")}</option>
+            <option value="TIME_TRIAL">{t("Time trial")}</option>
+            <option value="CONVERTED">{t("Converted time")}</option>
+          </select>
         </label>
         <label className="text-sm font-medium text-white/80">
           {t("Event")}

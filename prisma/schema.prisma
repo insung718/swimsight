@@ -33,6 +33,7 @@ model User {
   receivedFriendRequests Friendship[]          @relation("FriendAddressee")
   upcomingMeets          UpcomingMeet[]
   gymWorkouts            GymWorkout[]
+  predictionSnapshots    PredictionSnapshot[]
 }
 
 model SwimResult {
@@ -45,14 +46,70 @@ model SwimResult {
   meetName    String
   source      SwimSource @default(MANUAL)
   resultKind  SwimResultKind @default(OFFICIAL)
+  raceType    SwimRaceType @default(INDIVIDUAL)
+  dedupeKey   String?    @unique
   notes       String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluatedPredictions PredictionSnapshot[] @relation("PredictionActualResult")
 
   @@index([userId, event, date])
   @@index([userId, resultKind, date])
+}
+
+model PredictionSnapshot {
+  id                       String   @id @default(cuid())
+  userId                   String
+  event                    SwimEvent
+  course                   Course
+  targetType               String
+  horizonDays              Int
+  predictedTime            Float
+  lowerBound               Float
+  upperBound               Float
+  confidence               Float
+  predictionTimestamp      DateTime @default(now())
+  targetRaceDate           DateTime
+  modelVersion             String
+  modelSource              String
+  validationMae            Float?
+  trainingDate             DateTime?
+  trainingDatasetSize      Int?
+  featureSnapshot          Json
+  featuresUsed             Json
+  eligibilityRules         Json
+  topFactors               Json
+  dataSufficiency          String
+  athleteAge               Int?
+  outOfDistribution        Boolean @default(false)
+  outOfDistributionReasons Json
+  lastRaceBaseline         Float
+  lastThreeBaseline        Float
+  linearTrendBaseline      Float
+  goalTime                 Float?
+  inputFingerprint         String
+  actualResultId           String?
+  actualTime               Float?
+  absoluteError            Float?
+  signedError              Float?
+  percentageError          Float?
+  withinInterval           Boolean?
+  achievedPb               Boolean?
+  achievedGoal             Boolean?
+  evaluatedAt              DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actualResult SwimResult? @relation("PredictionActualResult", fields: [actualResultId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, inputFingerprint])
+  @@index([userId, evaluatedAt, targetRaceDate])
+  @@index([userId, event, course, targetRaceDate])
+  @@index([modelVersion, evaluatedAt])
+  @@index([actualResultId])
 }
 
 model Goal {
@@ -233,6 +290,13 @@ enum SwimSource {
 enum SwimResultKind {
   OFFICIAL
   TRAINING
+}
+
+enum SwimRaceType {
+  INDIVIDUAL
+  RELAY_SPLIT
+  TIME_TRIAL
+  CONVERTED
 }
 
 enum SwimEvent {

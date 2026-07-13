@@ -4,6 +4,7 @@ import { supportedEvents } from "@/lib/events";
 export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
 export const swimResultKindSchema = z.enum(["OFFICIAL", "TRAINING"]);
+export const swimRaceTypeSchema = z.enum(["INDIVIDUAL", "RELAY_SPLIT", "TIME_TRIAL", "CONVERTED"]);
 export const gymWorkoutTypeSchema = z.enum(["STRENGTH", "CORE", "MOBILITY", "DRYLAND", "CARDIO", "RECOVERY"]);
 export const athleteSexSchema = z.enum(["FEMALE", "MALE"]);
 
@@ -25,13 +26,19 @@ const dateSchema = z
     return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
   }, "Date must be valid.");
 
+const resultDateSchema = dateSchema.refine(
+  (value) => value <= new Date().toISOString().slice(0, 10),
+  "Result date cannot be in the future."
+);
+
 export const manualSwimSchema = z.object({
-  date: dateSchema,
+  date: resultDateSchema,
   event: swimEventSchema,
   course: courseSchema.default("LCM"),
   timeSeconds: z.number().finite().positive().max(7_200),
   meetName: cleanText(1, 120),
   resultKind: swimResultKindSchema.default("OFFICIAL"),
+  raceType: swimRaceTypeSchema.default("INDIVIDUAL"),
   notes: cleanText(1, 500).optional()
 }).strict();
 

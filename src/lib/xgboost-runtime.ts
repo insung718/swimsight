@@ -33,11 +33,52 @@ interface XgboostArtifact {
   version: string;
   event: "100 Freestyle";
   status: "UNTRAINED" | "PARTIALLY_VALIDATED" | "VALIDATED";
+  trainedAt?: string;
   featureNames: string[];
   models: Partial<Record<Course, ExportedCourseModel>>;
 }
 
-const artifact = rawArtifact as unknown as XgboostArtifact;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isTreeNode(value: unknown, featureNames: Set<string>): value is ExportedTreeNode {
+  if (!isRecord(value) || typeof value.nodeid !== "number") return false;
+  if (typeof value.leaf === "number") return Number.isFinite(value.leaf);
+  if (typeof value.split !== "string" || !featureNames.has(value.split) || typeof value.splitCondition !== "number" || !Number.isFinite(value.splitCondition)) return false;
+  if (typeof value.yes !== "number" || typeof value.no !== "number" || typeof value.missing !== "number") return false;
+  if (!Number.isInteger(value.yes) || !Number.isInteger(value.no) || !Number.isInteger(value.missing)) return false;
+  if (!Array.isArray(value.children) || value.children.length === 0 || !value.children.every((child) => isTreeNode(child, featureNames))) return false;
+  const childIds = new Set(value.children.map((child) => child.nodeid));
+  return childIds.has(value.yes) && childIds.has(value.no) && childIds.has(value.missing);
+}
+
+export function validateXgboostArtifact(value: unknown): value is XgboostArtifact {
+  if (!isRecord(value) || value.schemaVersion !== 1 || value.event !== "100 Freestyle") return false;
+  if (typeof value.version !== "string" || value.version.trim().length === 0) return false;
+  if (!["UNTRAINED", "PARTIALLY_VALIDATED", "VALIDATED"].includes(String(value.status))) return false;
+  if (value.trainedAt !== undefined && (typeof value.trainedAt !== "string" || Number.isNaN(Date.parse(value.trainedAt)))) return false;
+  if (!Array.isArray(value.featureNames) || !value.featureNames.every((name) => typeof name === "string" && name.length > 0)) return false;
+  if (new Set(value.featureNames).size !== value.featureNames.length) return false;
+  if (!isRecord(value.models)) return false;
+  const modelEntries = Object.entries(value.models);
+  if (modelEntries.some(([course]) => !["LCM", "SCM", "SCY"].includes(course))) return false;
+  if (value.status !== "UNTRAINED" && (!value.trainedAt || value.featureNames.length === 0 || modelEntries.length === 0)) return false;
+  const featureNames = new Set(value.featureNames);
+
+  return modelEntries.every(([, model]) => {
+    if (!isRecord(model) || !["VALIDATED", "EXPERIMENTAL"].includes(String(model.status))) return false;
+    if (typeof model.baseScore !== "number" || !Number.isFinite(model.baseScore) || !Array.isArray(model.trees) || model.trees.length === 0 || !model.trees.every((tree) => isTreeNode(tree, featureNames))) return false;
+    if (!isRecord(model.metrics)) return false;
+    const metrics = model.metrics;
+    return ["rollingMae", "newAthleteMae", "bestBaselineMae", "residualP80", "trainingRows", "athleteCount", "foldCount"]
+      .every((key) => typeof metrics[key] === "number" && Number.isFinite(metrics[key] as number) && (metrics[key] as number) >= 0);
+  });
+}
+
+const artifact: XgboostArtifact = validateXgboostArtifact(rawArtifact)
+  ? rawArtifact
+  : { schemaVersion: 1, version: "invalid-artifact", event: "100 Freestyle", status: "UNTRAINED", featureNames: [], models: {} };
 
 function evaluateTree(node: ExportedTreeNode, features: HundredFreeFeatureVector): number {
   if (typeof node.leaf === "number") return node.leaf;
@@ -68,6 +109,7 @@ export function predictWithHundredFreeXgboost(course: Course, features: HundredF
   return {
     predictedTime,
     version: artifact.version,
+    trainingDate: artifact.trainedAt,
     metrics: model.metrics
   };
 }

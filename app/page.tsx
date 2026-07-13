@@ -11,6 +11,8 @@ import { hasDatabaseConfig } from "@/lib/prisma";
 import { logServerError } from "@/lib/security/logging";
 import { getCoachDashboard } from "@/lib/services/coach-service";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
+import { listUpcomingMeets } from "@/lib/services/meet-service";
+import { getPredictionEvaluationDashboard, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
 import { getPrimaryGoal, getSwimsForUser } from "@/lib/services/swim-service";
 
 export const dynamic = "force-dynamic";
@@ -48,10 +50,11 @@ export default async function Home() {
       return <CoachDashboard dashboard={dashboard} viewMode="coach" />;
     }
 
-    const [goal, swims, gymWorkouts] = await Promise.all([
+    const [goal, swims, gymWorkouts, meets] = await Promise.all([
       getPrimaryGoal(context.userId),
       getSwimsForUser(context.userId),
-      getGymWorkoutsForUser(context.userId)
+      getGymWorkoutsForUser(context.userId),
+      listUpcomingMeets(context.userId)
     ]);
     const predictionProfile = {
       age: context.age,
@@ -60,6 +63,15 @@ export default async function Home() {
       swimSessionsPerWeek: context.swimSessionsPerWeek
     };
     const analytics = buildDashboardAnalytics(swims, goal ?? undefined, gymWorkouts, predictionProfile);
+    await syncPredictionSnapshots({
+      userId: context.userId,
+      predictions: analytics.predictions,
+      swims,
+      profile: predictionProfile,
+      goal: goal ?? undefined,
+      meets
+    });
+    const modelPerformance = await getPredictionEvaluationDashboard(context.userId);
 
     return (
       <SwimSightDashboard
@@ -67,6 +79,7 @@ export default async function Home() {
         gymWorkouts={gymWorkouts}
         goals={goal ? [goal] : []}
         predictionProfile={predictionProfile}
+        modelPerformance={modelPerformance}
         swims={swims}
         viewMode="swimmer"
       />

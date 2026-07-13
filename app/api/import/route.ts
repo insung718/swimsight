@@ -1,9 +1,9 @@
-import { badRequest, created } from "@/lib/api";
+import { badRequest, conflict, created } from "@/lib/api";
 import { validateSwimCsv } from "@/lib/csv";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
-import { createManySwims } from "@/lib/services/swim-service";
+import { createManySwims, DuplicateSwimError } from "@/lib/services/swim-service";
 import { csvImportSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 
     return created({ ...result, swims });
   } catch (error) {
+    if (error instanceof DuplicateSwimError) return conflict(error.message);
     logServerError("Could not import swims", error);
     return databaseUnavailable();
   }

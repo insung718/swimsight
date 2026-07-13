@@ -271,8 +271,21 @@ function PredictionExpandedCard({
                 <InsightBlock label={t("Pool type")} value={prediction.course} />
                 <InsightBlock label={t("Current time")} value={formatTime(prediction.currentTime)} />
                 {prediction.model.validationMae !== undefined && <InsightBlock label={t("Cross-validated MAE")} value={`${prediction.model.validationMae.toFixed(2)}${t("s")}`} />}
+                {prediction.model.trainingDatasetSize !== undefined && <InsightBlock label={t("Training rows")} value={prediction.model.trainingDatasetSize.toLocaleString()} />}
+                {prediction.model.trainingDate && <InsightBlock label={t("Model training date")} value={prediction.model.trainingDate.slice(0, 10)} />}
               </div>
             </section>
+
+            {(prediction.model.outOfDistribution || prediction.model.sufficiencyChecklist.length > 0) && (
+              <section className="rounded-lg border border-coral-200/16 bg-coral-200/[0.07] p-4 sm:p-5 lg:col-span-2">
+                <h4 className="text-base font-semibold text-white">{t(prediction.model.outOfDistribution ? "Forecast limitations" : "Improve prediction quality")}</h4>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {[...prediction.model.outOfDistributionReasons, ...prediction.model.sufficiencyChecklist].map((item) => (
+                    <div className="rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-sm text-white/72" key={item}>{t(item)}</div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="rounded-lg border border-white/12 bg-white/[0.06] p-4 sm:p-5 lg:col-span-2">
               <div className="flex items-center gap-3">
@@ -308,6 +321,13 @@ function PredictionExpandedCard({
                   {t("Ready")}
                 </span>
               </div>
+              <details className="mt-4 border-t border-white/10 pt-4">
+                <summary className="cursor-pointer text-sm font-semibold text-aqua-100">{t("Model eligibility and features")}</summary>
+                <div className="mt-3 grid gap-4 text-sm text-white/66 sm:grid-cols-2">
+                  <div><div className="font-semibold text-white">{t("Eligibility rules")}</div><ul className="mt-2 space-y-1">{prediction.model.eligibilityRules.map((rule) => <li key={rule}>• {t(rule)}</li>)}</ul></div>
+                  <div><div className="font-semibold text-white">{t("Features used")}</div><p className="mt-2 leading-6">{prediction.model.featuresUsed.map((feature) => t(feature)).join(", ")}</p></div>
+                </div>
+              </details>
             </section>
           </div>
         </motion.div>

@@ -1,4 +1,4 @@
-import type { Course, GymWorkout, GymWorkoutType, SwimEvent, SwimResult, UpcomingMeet } from "@/types/swim";
+import type { Course, GymWorkout, GymWorkoutType, SwimEvent, SwimResult, SwimRaceType, UpcomingMeet } from "@/types/swim";
 
 const eventToPrisma = {
   "50 Freestyle": "FIFTY_FREESTYLE",
@@ -47,6 +47,7 @@ export function toSwimResult(record: {
   meetName: string;
   source?: string;
   resultKind?: string;
+  raceType?: string;
   notes?: string | null;
 }): SwimResult {
   return {
@@ -59,6 +60,7 @@ export function toSwimResult(record: {
     meetName: record.meetName,
     source: record.source as SwimResult["source"],
     resultKind: (record.resultKind ?? "OFFICIAL") as SwimResult["resultKind"],
+    raceType: (record.raceType ?? "INDIVIDUAL") as SwimRaceType,
     notes: record.notes
   };
 }

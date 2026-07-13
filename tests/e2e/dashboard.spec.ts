@@ -73,6 +73,19 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   const firstDepthCard = page.locator(".depth-card").first();
   await firstDepthCard.scrollIntoViewIfNeeded();
   await expect(firstDepthCard).toBeVisible();
+
+  for (const { button, language } of [
+    { button: "KO", language: "KO" },
+    { button: "베트남어", language: "VI" }
+  ]) {
+    await page.getByRole("button", { name: button }).click();
+    for (const scrollY of [0, 1500, 3900, 7000]) {
+      await page.evaluate((y) => window.scrollTo(0, y), scrollY);
+      await page.waitForTimeout(80);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${language} horizontal overflow at scrollY=${scrollY}`).toBeLessThanOrEqual(1);
+    }
+  }
 });
 
 test("protects account APIs when signed out", async ({ request }) => {
@@ -88,6 +101,7 @@ test("protects account APIs when signed out", async ({ request }) => {
     "/api/coach/clubs",
     "/api/coach/clubs/join",
     "/api/meets",
+    "/api/predictions/performance",
     "/api/communities/fake-community/compare"
   ];
 

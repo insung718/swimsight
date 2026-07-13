@@ -45,8 +45,9 @@ function byDateAsc(a: SwimResult, b: SwimResult) {
   return new Date(a.date).getTime() - new Date(b.date).getTime();
 }
 
-export function isOfficialResult(swim: Pick<SwimResult, "resultKind">) {
-  return (swim.resultKind ?? "OFFICIAL") === "OFFICIAL";
+export function isOfficialResult(swim: Pick<SwimResult, "resultKind" | "raceType">) {
+  return (swim.resultKind ?? "OFFICIAL") === "OFFICIAL" &&
+    (swim.raceType ?? "INDIVIDUAL") === "INDIVIDUAL";
 }
 
 function eventCourseKey(swim: Pick<SwimResult, "event" | "course">): EventCourseKey {
@@ -604,7 +605,10 @@ function likelyRange({
   days,
   event,
   point,
-  residualP80
+  residualP80,
+  dataSufficiency,
+  daysSinceLastRace,
+  outOfDistribution
 }: {
   confidence: number;
   consistencyScore: number;
@@ -613,18 +617,51 @@ function likelyRange({
   event: SwimEvent;
   point: number;
   residualP80?: number;
+  dataSufficiency: Prediction["model"]["dataSufficiency"];
+  daysSinceLastRace: number;
+  outOfDistribution: boolean;
 }) {
   const inferredResidual = Math.max(0.25, point * (1 - consistencyScore / 100) * 0.028);
   const horizonMultiplier = 0.72 + Math.sqrt(days / 90) * 0.32;
   const confidenceMultiplier = 1 + Math.max(0, 70 - confidence) / 100;
-  const width = Math.max(0.18, (residualP80 ?? inferredResidual) * horizonMultiplier * confidenceMultiplier);
+  const sufficiencyMultiplier = dataSufficiency === "High" ? 0.88 : dataSufficiency === "Moderate" ? 1.12 : 1.45;
+  const stalenessMultiplier = 1 + clamp((daysSinceLastRace - 60) / 365, 0, 0.7);
+  const distributionMultiplier = outOfDistribution ? 1.2 : 1;
+  const width = Math.max(0.18, (residualP80 ?? inferredResidual) * horizonMultiplier * confidenceMultiplier * sufficiencyMultiplier * stalenessMultiplier * distributionMultiplier);
   return {
     low: round(Math.max(getRecordFloor(event, course), point - width), 2),
     high: round(point + width, 2)
   };
 }
 
+function distributionWarnings(history: SwimResult[], profile: PredictionProfile) {
+  const latest = history[history.length - 1];
+  const daysSinceLastRace = Math.max(0, dateToDays(new Date().toISOString().slice(0, 10)) - dateToDays(latest.date));
+  const warnings: string[] = [];
+  if (history.length < 3) warnings.push("Fewer than three eligible races");
+  if (daysSinceLastRace > 365) warnings.push("Latest eligible race is more than one year old");
+  if (!profile.age || !profile.sex) warnings.push("Age or performance category is missing");
+  if (profile.age && (profile.age < 10 || profile.age > 18)) warnings.push("Age is outside the current youth training distribution");
+  if (profile.taperDays !== null && profile.taperDays !== undefined && profile.taperDays > 21) warnings.push("Taper duration is outside the common training range");
+  if (profile.swimSessionsPerWeek !== null && profile.swimSessionsPerWeek !== undefined && profile.swimSessionsPerWeek > 10) warnings.push("Training frequency is outside the common training range");
+  return { daysSinceLastRace, warnings };
+}
+
+function sufficiencyChecklist(history: SwimResult[], profile: PredictionProfile, daysSinceLastRace: number) {
+  const checklist: string[] = [];
+  if (history.length < 10) checklist.push("Add more recent official races in this event and course");
+  if (!profile.age) checklist.push("Add athlete age");
+  if (!profile.sex) checklist.push("Add performance category");
+  if (profile.taperDays === null || profile.taperDays === undefined) checklist.push("Confirm taper duration");
+  if (profile.swimSessionsPerWeek === null || profile.swimSessionsPerWeek === undefined) checklist.push("Add weekly swim frequency");
+  if (daysSinceLastRace > 90) checklist.push("Record a recent official race");
+  return checklist;
+}
+
 export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSignal = neutralTrainingSignal, rawProfile: PredictionProfile | number | null = {}): Prediction {
+  if (new Set(swims.map((swim) => swim.userId)).size > 1) {
+    throw new Error("Prediction history must belong to one athlete.");
+  }
   const profile = normalizePredictionProfile(rawProfile);
   const sorted = [...swims].sort(byDateAsc).slice(-20);
   const latest = sorted[sorted.length - 1];
@@ -675,6 +712,8 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
       : sorted.length >= 4
         ? "Moderate"
         : "Low";
+  const distribution = distributionWarnings(sorted, profile);
+  const checklist = sufficiencyChecklist(sorted, profile, distribution.daysSinceLastRace);
   const rangeFor = (key: keyof typeof projections, days: number) => likelyRange({
     confidence,
     consistencyScore,
@@ -682,7 +721,10 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
     days,
     event: latest.event,
     point: projections[key].time,
-    residualP80: projections[key].xgboost?.metrics.residualP80
+    residualP80: projections[key].xgboost?.metrics.residualP80,
+    dataSufficiency,
+    daysSinceLastRace: distribution.daysSinceLastRace,
+    outOfDistribution: distribution.warnings.length > 0
   });
 
   return {
@@ -707,9 +749,30 @@ export function predictEvent(swims: SwimResult[], trainingSignal: TrainingLoadSi
       kind: activeXgboost ? "XGBOOST" : "CONSERVATIVE_ENSEMBLE",
       version: activeXgboost?.version ?? "conservative-ensemble-2026-07-10",
       validationMae: activeXgboost?.metrics.rollingMae,
+      trainingDate: activeXgboost?.trainingDate,
+      trainingDatasetSize: activeXgboost?.metrics.trainingRows,
       historyUsed: sorted.length,
       dataSufficiency,
-      factors: predictionFactors(sorted, profile, trainingSignal, slope)
+      factors: predictionFactors(sorted, profile, trainingSignal, slope),
+      featuresUsed: [
+        "Up to 20 prior race times",
+        "Race recency",
+        "Recent best and average",
+        "Consistency and trend",
+        "Age and performance category",
+        "Taper duration",
+        "Weekly swim frequency",
+        "Recent dryland load"
+      ],
+      eligibilityRules: [
+        "Official individual results only",
+        "Same event and course only",
+        "At least one prior eligible race",
+        ...(activeXgboost ? ["Validated model artifact and exact feature contract"] : ["Conservative ensemble used until a validated model beats all baselines"])
+      ],
+      outOfDistribution: distribution.warnings.length > 0,
+      outOfDistributionReasons: distribution.warnings,
+      sufficiencyChecklist: checklist
     },
     trainingImpact: {
       label: trainingSignal.label,

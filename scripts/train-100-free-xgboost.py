@@ -328,9 +328,11 @@ def main() -> None:
 
     statuses = [model["status"] for model in models.values()]
     artifact_status = "UNTRAINED" if not statuses else "VALIDATED" if all(status == "VALIDATED" for status in statuses) else "PARTIALLY_VALIDATED"
+    trained_at = pd.Timestamp.utcnow()
     artifact = {
         "schemaVersion": 1,
-        "version": f"100-free-xgb-{pd.Timestamp.utcnow().strftime('%Y%m%d-%H%M%S')}",
+        "version": f"100-free-xgb-{trained_at.strftime('%Y%m%d-%H%M%S')}",
+        "trainedAt": trained_at.isoformat(),
         "event": "100 Freestyle", "status": artifact_status,
         "featureNames": FEATURE_NAMES,
         "trainingDataFingerprint": fingerprint(args.inputs), "models": models,

@@ -89,6 +89,7 @@ export function buildHundredFreeFeatures({
   swims: SwimResult[];
   targetDate: string;
 }): HundredFreeFeatures | null {
+  if (new Set(swims.map((swim) => swim.userId)).size > 1) return null;
   const targetDay = dateToDays(targetDate);
   const history = swims
     .filter((swim) => swim.event === "100 Freestyle" && swim.course === course && dateToDays(swim.date) < targetDay)

@@ -1,6 +1,6 @@
 import { normalizeEvent } from "@/lib/events";
 import { parseTimeInput } from "@/lib/utils";
-import type { Course, SwimResult, SwimResultKind } from "@/types/swim";
+import type { Course, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
 export interface CsvImportResult {
   validRows: Omit<SwimResult, "id" | "userId">[];
@@ -12,6 +12,7 @@ export interface CsvImportResult {
 
 const allowedCourses = new Set<Course>(["SCM", "LCM", "SCY"]);
 const allowedResultKinds = new Set<SwimResultKind>(["OFFICIAL", "TRAINING"]);
+const allowedRaceTypes = new Set<SwimRaceType>(["INDIVIDUAL", "RELAY_SPLIT", "TIME_TRIAL", "CONVERTED"]);
 
 function splitCsvLine(line: string) {
   const cells: string[] = [];
@@ -44,6 +45,7 @@ export function validateSwimCsv(csv: string): CsvImportResult {
     .map((line) => line.trim())
     .filter(Boolean);
   const result: CsvImportResult = { validRows: [], errors: [] };
+  const rowFingerprints = new Set<string>();
 
   if (lines.length > 501) {
     return { validRows: [], errors: [{ row: 1, message: "CSV imports are limited to 500 results." }] };
@@ -57,7 +59,7 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   }
 
   const headers = splitCsvLine(lines[0]).map((header) => header.toLowerCase());
-  const allowedHeaders = new Set(["date", "event", "time", "course", "meet", "type", "resultkind", "result_kind"]);
+  const allowedHeaders = new Set(["date", "event", "time", "course", "meet", "type", "resultkind", "result_kind", "context", "racetype", "race_type"]);
   const unexpectedHeader = headers.find((header) => !allowedHeaders.has(header));
   if (unexpectedHeader || new Set(headers).size !== headers.length) {
     return { validRows: [], errors: [{ row: 1, message: "CSV contains duplicate or unsupported headers." }] };
@@ -68,6 +70,7 @@ export function validateSwimCsv(csv: string): CsvImportResult {
   const courseIndex = headers.indexOf("course");
   const meetIndex = headers.indexOf("meet");
   const resultKindIndex = headers.findIndex((header) => header === "type" || header === "resultkind" || header === "result_kind");
+  const raceTypeIndex = headers.findIndex((header) => header === "context" || header === "racetype" || header === "race_type");
 
   if (dateIndex === -1 || eventIndex === -1 || timeIndex === -1) {
     return {
@@ -90,9 +93,16 @@ export function validateSwimCsv(csv: string): CsvImportResult {
     const meetName = cells[meetIndex] || "Imported meet";
     const kindValue = (cells[resultKindIndex] || "OFFICIAL").trim().toUpperCase();
     const resultKind = (kindValue === "MEET" ? "OFFICIAL" : kindValue === "OFFICIAL MEET" ? "OFFICIAL" : kindValue === "PRACTICE" || kindValue === "UNOFFICIAL" ? "TRAINING" : kindValue) as SwimResultKind;
+    const raceTypeValue = (cells[raceTypeIndex] || "INDIVIDUAL").trim().toUpperCase().replace(/[ -]+/g, "_");
+    const raceType = (raceTypeValue === "RELAY" ? "RELAY_SPLIT" : raceTypeValue) as SwimRaceType;
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T00:00:00.000Z`).getTime())) {
       result.errors.push({ row: rowNumber, message: "Date must be a valid ISO date." });
+      return;
+    }
+
+    if (date > new Date().toISOString().slice(0, 10)) {
+      result.errors.push({ row: rowNumber, message: "Result date cannot be in the future." });
       return;
     }
 
@@ -116,13 +126,26 @@ export function validateSwimCsv(csv: string): CsvImportResult {
       return;
     }
 
+    if (!allowedRaceTypes.has(raceType)) {
+      result.errors.push({ row: rowNumber, message: "Context must be INDIVIDUAL, RELAY_SPLIT, TIME_TRIAL, or CONVERTED." });
+      return;
+    }
+
+    const rowFingerprint = [date, event, timeSeconds.toFixed(3), course, meetName.normalize("NFKC").toLowerCase(), resultKind, raceType].join("|");
+    if (rowFingerprints.has(rowFingerprint)) {
+      result.errors.push({ row: rowNumber, message: "Duplicate result in spreadsheet." });
+      return;
+    }
+    rowFingerprints.add(rowFingerprint);
+
     result.validRows.push({
       date,
       event,
       timeSeconds,
       course,
       meetName,
-      resultKind
+      resultKind,
+      raceType
     });
   });
 

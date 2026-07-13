@@ -1,9 +1,13 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { fromPrismaEvent, toPrismaCourse, toPrismaEvent, toSwimResult } from "@/lib/prisma-mappers";
 import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
-import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimResult, SwimResultKind } from "@/types/swim";
+import { listUpcomingMeets } from "@/lib/services/meet-service";
+import { evaluatePredictionSnapshotsForResult, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
+import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
 interface CreateSwimInput {
   userId: string;
@@ -15,6 +19,44 @@ interface CreateSwimInput {
   notes?: string;
   source?: "MANUAL" | "CSV" | "MEET_IMPORT";
   resultKind?: SwimResultKind;
+  raceType?: SwimRaceType;
+}
+
+export class DuplicateSwimError extends Error {
+  constructor() {
+    super("This result has already been recorded.");
+    this.name = "DuplicateSwimError";
+  }
+}
+
+function swimDedupeKey(input: CreateSwimInput) {
+  const canonical = [
+    input.userId,
+    input.date,
+    input.event,
+    input.course,
+    input.timeSeconds.toFixed(3),
+    input.meetName.normalize("NFKC").trim().toLocaleLowerCase("en"),
+    input.resultKind ?? "OFFICIAL",
+    input.raceType ?? "INDIVIDUAL"
+  ].join("|");
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+function swimCreateData(input: CreateSwimInput) {
+  return {
+    userId: input.userId,
+    date: new Date(`${input.date}T00:00:00.000Z`),
+    event: toPrismaEvent(input.event),
+    course: toPrismaCourse(input.course),
+    timeSeconds: input.timeSeconds,
+    meetName: input.meetName,
+    notes: input.notes,
+    source: input.source ?? "MANUAL" as const,
+    resultKind: input.resultKind ?? "OFFICIAL" as const,
+    raceType: input.raceType ?? "INDIVIDUAL" as const,
+    dedupeKey: swimDedupeKey(input)
+  };
 }
 
 interface CreateGoalInput {
@@ -39,38 +81,42 @@ export async function getSwimsForUser(userId: string): Promise<SwimResult[]> {
 }
 
 export async function createSwim(input: CreateSwimInput) {
-  const swim = await prisma.swimResult.create({
-    data: {
-      userId: input.userId,
-      date: new Date(input.date),
-      event: toPrismaEvent(input.event),
-      course: toPrismaCourse(input.course),
-      timeSeconds: input.timeSeconds,
-      meetName: input.meetName,
-      notes: input.notes,
-      source: input.source ?? "MANUAL",
-      resultKind: input.resultKind ?? "OFFICIAL"
-    }
-  });
+  let swim;
+  try {
+    swim = await prisma.$transaction(async (transaction) => {
+      const created = await transaction.swimResult.create({ data: swimCreateData(input) });
+      await evaluatePredictionSnapshotsForResult(transaction, created);
+      return created;
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new DuplicateSwimError();
+    throw error;
+  }
 
   return toSwimResult(swim);
 }
 
 export async function createManySwims(rows: CreateSwimInput[]) {
-  const swims = await prisma.$transaction(rows.map((input) => prisma.swimResult.create({
-    data: {
-      userId: input.userId,
-      date: new Date(input.date),
-      event: toPrismaEvent(input.event),
-      course: toPrismaCourse(input.course),
-      timeSeconds: input.timeSeconds,
-      meetName: input.meetName,
-      notes: input.notes,
-      source: input.source ?? "CSV",
-      resultKind: input.resultKind ?? "OFFICIAL"
-    }
-  })));
-  return swims.map(toSwimResult);
+  const data = rows.map((input) => swimCreateData({ ...input, source: input.source ?? "CSV" }));
+  if (new Set(data.map((row) => row.dedupeKey)).size !== data.length) throw new DuplicateSwimError();
+
+  try {
+    const swims = await prisma.$transaction(async (transaction) => {
+      const existing = await transaction.swimResult.findFirst({
+        where: { dedupeKey: { in: data.map((row) => row.dedupeKey) } },
+        select: { id: true }
+      });
+      if (existing) throw new DuplicateSwimError();
+      const created = await transaction.swimResult.createManyAndReturn({ data });
+      for (const swim of created) await evaluatePredictionSnapshotsForResult(transaction, swim);
+      return created;
+    });
+    return swims.map(toSwimResult);
+  } catch (error) {
+    if (error instanceof DuplicateSwimError) throw error;
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new DuplicateSwimError();
+    throw error;
+  }
 }
 
 export async function getPrimaryGoal(userId: string): Promise<Goal | null> {
@@ -114,15 +160,18 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
 }
 
 export async function getDashboardAnalyticsForUser(userId: string): Promise<DashboardAnalytics> {
-  const [swims, goal, workouts, profile] = await Promise.all([
+  const [swims, goal, workouts, profile, meets] = await Promise.all([
     getSwimsForUser(userId),
     getPrimaryGoal(userId),
     getGymWorkoutsForUser(userId),
     prisma.user.findUnique({
       where: { id: userId },
       select: { age: true, sex: true, taperDays: true, swimSessionsPerWeek: true }
-    })
+    }),
+    listUpcomingMeets(userId)
   ]);
 
-  return buildDashboardAnalytics(swims, goal ?? undefined, workouts, profile ?? {});
+  const analytics = buildDashboardAnalytics(swims, goal ?? undefined, workouts, profile ?? {});
+  await syncPredictionSnapshots({ userId, predictions: analytics.predictions, swims, profile: profile ?? {}, goal: goal ?? undefined, meets });
+  return analytics;
 }

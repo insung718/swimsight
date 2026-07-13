@@ -20,6 +20,7 @@ export type SwimEvent =
 
 export type Course = "SCM" | "LCM" | "SCY";
 export type SwimResultKind = "OFFICIAL" | "TRAINING";
+export type SwimRaceType = "INDIVIDUAL" | "RELAY_SPLIT" | "TIME_TRIAL" | "CONVERTED";
 
 export type TrendLabel = "Improving" | "Plateauing" | "Declining";
 
@@ -44,6 +45,7 @@ export interface SwimResult {
   meetName: string;
   source?: "MANUAL" | "CSV" | "MEET_IMPORT";
   resultKind?: SwimResultKind;
+  raceType?: SwimRaceType;
   notes?: string | null;
 }
 
@@ -77,9 +79,16 @@ export interface Prediction {
     kind: "XGBOOST" | "CONSERVATIVE_ENSEMBLE";
     version: string;
     validationMae?: number;
+    trainingDate?: string;
+    trainingDatasetSize?: number;
     historyUsed: number;
     dataSufficiency: "Low" | "Moderate" | "High";
     factors: { label: string; impact: "positive" | "neutral" | "caution"; detail: string }[];
+    featuresUsed: string[];
+    eligibilityRules: string[];
+    outOfDistribution: boolean;
+    outOfDistributionReasons: string[];
+    sufficiencyChecklist: string[];
   };
   trainingImpact: {
     label: "No gym data" | "Strength supported" | "Balanced load" | "Fatigue risk";
@@ -87,6 +96,61 @@ export interface Prediction {
     weeklyLoad: number;
     sessionsLast28Days: number;
   };
+}
+
+export interface PredictionEvaluationRecord {
+  id: string;
+  event: SwimEvent;
+  course: Course;
+  targetRaceDate: string;
+  predictionTimestamp: string;
+  predictedTime: number;
+  lowerBound: number;
+  upperBound: number;
+  confidence: number;
+  modelVersion: string;
+  modelSource: "XGBOOST" | "CONSERVATIVE_ENSEMBLE";
+  dataSufficiency: "Low" | "Moderate" | "High";
+  athleteAge?: number | null;
+  actualTime?: number | null;
+  absoluteError?: number | null;
+  signedError?: number | null;
+  percentageError?: number | null;
+  withinInterval?: boolean | null;
+  achievedPb?: boolean | null;
+  achievedGoal?: boolean | null;
+  evaluatedAt?: string | null;
+  outOfDistribution: boolean;
+}
+
+export interface ModelPerformanceBreakdown {
+  label: string;
+  count: number;
+  mae: number;
+  medianAbsoluteError: number;
+  intervalCoverage: number;
+}
+
+export interface ModelPerformanceDashboard {
+  summary: {
+    evaluatedPredictions: number;
+    pendingPredictions: number;
+    mae: number;
+    medianAbsoluteError: number;
+    rmse: number;
+    intervalCoverage: number;
+  };
+  byEvent: ModelPerformanceBreakdown[];
+  byAgeGroup: ModelPerformanceBreakdown[];
+  byConfidence: ModelPerformanceBreakdown[];
+  byDataSufficiency: ModelPerformanceBreakdown[];
+  byModelVersion: ModelPerformanceBreakdown[];
+  baselines: {
+    label: "SwimSight" | "Last race" | "Last-three average" | "Linear trend";
+    count: number;
+    mae: number;
+  }[];
+  history: PredictionEvaluationRecord[];
 }
 
 export interface GymWorkout {

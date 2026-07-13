@@ -13,6 +13,7 @@ import { GymWorkoutPanel } from "@/components/gym-workout-panel";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { ManualTimeEntry } from "@/components/manual-time-entry";
 import { MeetDatabasePanel } from "@/components/meet-database-panel";
+import { ModelPerformancePanel } from "@/components/model-performance-panel";
 import { MotivationPanel } from "@/components/motivation-panel";
 import { PersonalBestTable } from "@/components/personal-best-table";
 import { PredictionGrid } from "@/components/prediction-grid";
@@ -26,15 +27,17 @@ import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
+import { isOfficialResult } from "@/lib/analytics";
 import { formatTime } from "@/lib/utils";
-import type { DashboardAnalytics, Goal, GymWorkout, PredictionProfile, SwimResult } from "@/types/swim";
+import type { DashboardAnalytics, Goal, GymWorkout, ModelPerformanceDashboard, PredictionProfile, SwimResult } from "@/types/swim";
 
-type DashboardTab = "overview" | "results" | "analytics" | "training" | "goals" | "profile";
+type DashboardTab = "overview" | "results" | "analytics" | "model" | "training" | "goals" | "profile";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "results", label: "Results", icon: ListPlus },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "model", label: "Model", icon: Gauge },
   { id: "training", label: "Training", icon: Dumbbell },
   { id: "goals", label: "Goals & Meets", icon: Target },
   { id: "profile", label: "Profile", icon: UserRound }
@@ -44,6 +47,7 @@ export function SwimSightDashboard({
   analytics,
   gymWorkouts,
   goals,
+  modelPerformance,
   predictionProfile,
   swims,
   viewMode
@@ -51,6 +55,7 @@ export function SwimSightDashboard({
   analytics: DashboardAnalytics;
   gymWorkouts: GymWorkout[];
   goals: Goal[];
+  modelPerformance: ModelPerformanceDashboard;
   predictionProfile: PredictionProfile;
   swims: SwimResult[];
   viewMode: DashboardViewMode;
@@ -58,7 +63,7 @@ export function SwimSightDashboard({
   const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const overview = analytics.overview;
-  const officialSwims = swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "OFFICIAL");
+  const officialSwims = swims.filter(isOfficialResult);
   const trainingSwims = swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "TRAINING");
   const hasResults = officialSwims.length > 0;
   const primaryPrediction = [...analytics.predictions].sort((a, b) => b.confidence - a.confidence)[0];
@@ -124,6 +129,8 @@ export function SwimSightDashboard({
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
         {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+
+        {activeTab === "model" && <DashboardPanel><SectionHeading eyebrow="Prediction proof" title="Model performance" /><ModelPerformancePanel performance={modelPerformance} /></DashboardPanel>}
 
         {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 

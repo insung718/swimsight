@@ -66,6 +66,25 @@ describe("analytics engine", () => {
     expect(analytics.predictions[0].currentTime).toBe(26.4);
   });
 
+  it("keeps relay splits and converted times out of official analytics", () => {
+    const results: SwimResult[] = [
+      { id: "official", userId: "u1", date: "2026-01-01", event: "100 Freestyle", course: "LCM", timeSeconds: 61, meetName: "Meet", resultKind: "OFFICIAL", raceType: "INDIVIDUAL" },
+      { id: "relay", userId: "u1", date: "2026-02-01", event: "100 Freestyle", course: "LCM", timeSeconds: 58, meetName: "Relay", resultKind: "OFFICIAL", raceType: "RELAY_SPLIT" },
+      { id: "converted", userId: "u1", date: "2026-03-01", event: "100 Freestyle", course: "LCM", timeSeconds: 57, meetName: "Converted", resultKind: "OFFICIAL", raceType: "CONVERTED" }
+    ];
+    const analytics = buildDashboardAnalytics(results);
+
+    expect(analytics.personalBests[0].currentPb).toBe(61);
+    expect(analytics.predictions[0].currentTime).toBe(61);
+  });
+
+  it("fails closed when prediction history mixes athlete accounts", () => {
+    expect(() => predictEvent([
+      { id: "a", userId: "athlete-a", date: "2026-01-01", event: "100 Freestyle", course: "LCM", timeSeconds: 61, meetName: "A" },
+      { id: "b", userId: "athlete-b", date: "2026-02-01", event: "100 Freestyle", course: "LCM", timeSeconds: 60, meetName: "B" }
+    ])).toThrow("Prediction history must belong to one athlete.");
+  });
+
   it("keeps a new account genuinely empty", () => {
     const analytics = buildDashboardAnalytics([]);
 

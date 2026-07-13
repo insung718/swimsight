@@ -84,3 +84,5 @@ The command exports `src/lib/models/100-free-xgboost.json`. The Python trainer v
 ## Product behavior
 
 The dashboard shows the point forecast, likely range, model source, data sufficiency, history used, validation MAE when available, and the inputs associated with the forecast. Factors are described as associations, not causes.
+
+Every future forecast is also preserved as an immutable evaluation snapshot. See [Prediction evaluation](./prediction-evaluation.md) for matching rules, account isolation, baseline comparisons, and known limitations.
