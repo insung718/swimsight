@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { evaluatePredictionSnapshotsForResult } from "@/lib/services/prediction-evaluation-service";
+import { buildDashboardAnalytics } from "@/lib/analytics";
+import { evaluatePredictionSnapshotsForResult, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
+import type { Goal, SwimResult } from "@/types/swim";
 
+const createManyMock = vi.hoisted(() => vi.fn());
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+vi.mock("@/lib/prisma", () => ({ prisma: { predictionSnapshot: { createMany: createManyMock } } }));
+
+function relativeDate(days: number) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 const result = {
   id: "result-1",
@@ -45,7 +54,30 @@ function transaction(snapshotRows = snapshots) {
 }
 
 describe("prediction result matching", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    createManyMock.mockResolvedValue({ count: 4 });
+  });
+
+  it("persists account-scoped explanation and probability snapshots without foreign race leakage", async () => {
+    const accountSwims: SwimResult[] = [
+      { id: "a-1", userId: "athlete-1", date: relativeDate(-60), event: "100 Freestyle", course: "LCM", timeSeconds: 61, meetName: "Meet A" },
+      { id: "a-2", userId: "athlete-1", date: relativeDate(-10), event: "100 Freestyle", course: "LCM", timeSeconds: 60, meetName: "Meet B" }
+    ];
+    const foreignSwim: SwimResult = { id: "b-1", userId: "athlete-2", date: relativeDate(-30), event: "100 Freestyle", course: "LCM", timeSeconds: 40, meetName: "Foreign" };
+    const goal: Goal = { id: "goal-1", userId: "athlete-1", event: "100 Freestyle", course: "LCM", targetTime: 59, qualifyingTime: 58.5, targetDate: relativeDate(180) };
+    const profile = { age: 16, sex: "MALE" as const, taperDays: 8, swimSessionsPerWeek: 6 };
+    const predictions = buildDashboardAnalytics(accountSwims, goal, [], profile).predictions;
+
+    await syncPredictionSnapshots({ userId: "athlete-1", predictions, swims: [...accountSwims, foreignSwim], profile, goal });
+
+    const rows = createManyMock.mock.calls[0][0].data as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(4);
+    expect(rows.every((row) => row.userId === "athlete-1")).toBe(true);
+    expect(rows.every((row) => typeof row.pbProbability === "number" && typeof row.explanationMethod === "string")).toBe(true);
+    expect(rows.every((row) => row.goalProbability !== null && row.qualifyingProbability !== null)).toBe(true);
+    expect(rows.some((row) => JSON.stringify(row.featureSnapshot).includes("40"))).toBe(false);
+  });
 
   it("ignores relay splits before any athlete data is queried", async () => {
     const tx = transaction();

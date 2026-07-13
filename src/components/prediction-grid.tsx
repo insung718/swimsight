@@ -168,6 +168,13 @@ function PredictionExpandedCard({
 }) {
   const delta365 = prediction.currentTime - prediction.predictedTimes.days365;
   const modelLabel = prediction.model.kind === "XGBOOST" ? t("Validated XGBoost") : t("Conservative ensemble");
+  const explanation = prediction.explanations.days90;
+  const probabilitySet = prediction.probabilities.days90;
+  const probabilities = [
+    { label: "PB probability", estimate: probabilitySet.pb },
+    { label: "Goal probability", estimate: probabilitySet.goal },
+    { label: "Qualifying probability", estimate: probabilitySet.qualifying }
+  ].filter((item) => item.estimate !== undefined);
 
   return (
     <motion.div
@@ -288,24 +295,41 @@ function PredictionExpandedCard({
             )}
 
             <section className="rounded-lg border border-white/12 bg-white/[0.06] p-4 sm:p-5 lg:col-span-2">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-center gap-3">
                 <BrainCircuit aria-hidden className="h-5 w-5 text-aqua-100" />
                 <div>
-                  <h4 className="text-lg font-semibold text-white">{t("What shaped this forecast")}</h4>
+                  <h4 className="text-lg font-semibold text-white">{t("Why this prediction")}</h4>
                   <p className="mt-1 text-sm text-white/66">{t("These are model inputs and associations, not proof that one factor caused the result.")}</p>
                 </div>
+                </div>
+                <span className="inline-flex w-fit rounded-full border border-aqua-200/20 bg-aqua-200/[0.08] px-3 py-1 text-xs font-semibold text-aqua-100">{t(explanation.method)}</span>
               </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {prediction.model.factors.map((factor) => (
-                  <div className="rounded-md border border-white/10 bg-white/[0.07] p-3" key={factor.label}>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+                <div className="grid gap-2 sm:grid-cols-2">
+                {explanation.contributions.slice(0, 6).map((contribution) => (
+                  <div className="rounded-md border border-white/10 bg-white/[0.07] p-3" key={contribution.label}>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-white">{t(factor.label)}</span>
-                      <span className={`h-2 w-2 rounded-full ${factor.impact === "positive" ? "bg-mint-300" : factor.impact === "caution" ? "bg-coral-300" : "bg-aqua-200"}`} />
+                      <span className="text-sm font-semibold text-white">{t(contribution.label)}</span>
+                      <span className={`font-mono text-sm font-semibold ${contribution.direction === "faster" ? "text-mint-200" : contribution.direction === "slower" ? "text-coral-100" : "text-white/60"}`}>
+                        {contribution.secondsImpact > 0 ? "+" : ""}{contribution.secondsImpact.toFixed(2)}{t("s")}
+                      </span>
                     </div>
-                    <p className="mt-2 text-xs leading-5 text-white/64">{t(factor.detail)}</p>
+                    <p className="mt-2 text-xs leading-5 text-white/64">{t(contribution.detail)}</p>
                   </div>
                 ))}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+                  {probabilities.map(({ estimate, label }) => estimate && (
+                    <div className="rounded-md border border-aqua-200/15 bg-aqua-200/[0.07] p-3" key={label}>
+                      <div className="text-xs font-semibold text-white/60">{t(label)}</div>
+                      <div className="mt-1 font-mono text-2xl font-semibold text-white">{estimate.probability.toFixed(1)}%</div>
+                      <div className="mt-1 text-[11px] text-aqua-100">{t(estimate.calibration)}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
+              <p className="mt-3 text-xs leading-5 text-white/48">{t(explanation.disclaimer)}</p>
             </section>
 
             <section className="rounded-lg border border-white/12 bg-[radial-gradient(circle_at_78%_22%,rgba(78,232,255,0.17),transparent_36%),rgba(255,255,255,0.055)] p-4 sm:p-5 lg:col-span-2">

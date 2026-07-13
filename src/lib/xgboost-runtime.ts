@@ -1,17 +1,9 @@
 import rawArtifact from "@/lib/models/100-free-xgboost.json";
 import { hundredFreeFeatureNames, type HundredFreeFeatureVector } from "@/lib/prediction-features";
+import { explainTreeModel, type ShapTreeNode } from "@/lib/tree-shap";
 import type { Course } from "@/types/swim";
 
-interface ExportedTreeNode {
-  nodeid: number;
-  leaf?: number;
-  split?: string;
-  splitCondition?: number;
-  yes?: number;
-  no?: number;
-  missing?: number;
-  children?: ExportedTreeNode[];
-}
+type ExportedTreeNode = ShapTreeNode;
 
 interface ExportedCourseModel {
   status: "VALIDATED" | "EXPERIMENTAL";
@@ -22,6 +14,7 @@ interface ExportedCourseModel {
     newAthleteMae: number;
     bestBaselineMae: number;
     residualP80: number;
+    residualQuantiles: { probability: number; residual: number }[];
     trainingRows: number;
     athleteCount: number;
     foldCount: number;
@@ -43,7 +36,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isTreeNode(value: unknown, featureNames: Set<string>): value is ExportedTreeNode {
-  if (!isRecord(value) || typeof value.nodeid !== "number") return false;
+  if (!isRecord(value) || typeof value.nodeid !== "number" || typeof value.cover !== "number" || !Number.isFinite(value.cover) || value.cover < 0) return false;
   if (typeof value.leaf === "number") return Number.isFinite(value.leaf);
   if (typeof value.split !== "string" || !featureNames.has(value.split) || typeof value.splitCondition !== "number" || !Number.isFinite(value.splitCondition)) return false;
   if (typeof value.yes !== "number" || typeof value.no !== "number" || typeof value.missing !== "number") return false;
@@ -54,7 +47,7 @@ function isTreeNode(value: unknown, featureNames: Set<string>): value is Exporte
 }
 
 export function validateXgboostArtifact(value: unknown): value is XgboostArtifact {
-  if (!isRecord(value) || value.schemaVersion !== 1 || value.event !== "100 Freestyle") return false;
+  if (!isRecord(value) || value.schemaVersion !== 2 || value.event !== "100 Freestyle") return false;
   if (typeof value.version !== "string" || value.version.trim().length === 0) return false;
   if (!["UNTRAINED", "PARTIALLY_VALIDATED", "VALIDATED"].includes(String(value.status))) return false;
   if (value.trainedAt !== undefined && (typeof value.trainedAt !== "string" || Number.isNaN(Date.parse(value.trainedAt)))) return false;
@@ -71,14 +64,22 @@ export function validateXgboostArtifact(value: unknown): value is XgboostArtifac
     if (typeof model.baseScore !== "number" || !Number.isFinite(model.baseScore) || !Array.isArray(model.trees) || model.trees.length === 0 || !model.trees.every((tree) => isTreeNode(tree, featureNames))) return false;
     if (!isRecord(model.metrics)) return false;
     const metrics = model.metrics;
-    return ["rollingMae", "newAthleteMae", "bestBaselineMae", "residualP80", "trainingRows", "athleteCount", "foldCount"]
+    const numericMetricsValid = ["rollingMae", "newAthleteMae", "bestBaselineMae", "residualP80", "trainingRows", "athleteCount", "foldCount"]
       .every((key) => typeof metrics[key] === "number" && Number.isFinite(metrics[key] as number) && (metrics[key] as number) >= 0);
+    if (!numericMetricsValid || !Array.isArray(metrics.residualQuantiles) || metrics.residualQuantiles.length < 2) return false;
+    return metrics.residualQuantiles.every((quantile, index, values) => isRecord(quantile) &&
+      typeof quantile.probability === "number" && quantile.probability > 0 && quantile.probability < 1 &&
+      typeof quantile.residual === "number" && Number.isFinite(quantile.residual) &&
+      (index === 0 || (
+        (values[index - 1] as { probability: number; residual: number }).probability < quantile.probability &&
+        (values[index - 1] as { probability: number; residual: number }).residual <= quantile.residual
+      )));
   });
 }
 
 const artifact: XgboostArtifact = validateXgboostArtifact(rawArtifact)
   ? rawArtifact
-  : { schemaVersion: 1, version: "invalid-artifact", event: "100 Freestyle", status: "UNTRAINED", featureNames: [], models: {} };
+  : { schemaVersion: 2, version: "invalid-artifact", event: "100 Freestyle", status: "UNTRAINED", featureNames: [], models: {} };
 
 function evaluateTree(node: ExportedTreeNode, features: HundredFreeFeatureVector): number {
   if (typeof node.leaf === "number") return node.leaf;
@@ -110,7 +111,8 @@ export function predictWithHundredFreeXgboost(course: Course, features: HundredF
     predictedTime,
     version: artifact.version,
     trainingDate: artifact.trainedAt,
-    metrics: model.metrics
+    metrics: model.metrics,
+    explanation: explainTreeModel(model, artifact.featureNames, features)
   };
 }
 

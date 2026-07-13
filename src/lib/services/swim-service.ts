@@ -62,7 +62,9 @@ function swimCreateData(input: CreateSwimInput) {
 interface CreateGoalInput {
   userId: string;
   event: SwimEvent;
+  course: Course;
   targetTime: number;
+  qualifyingTime?: number | null;
   targetDate: string;
 }
 
@@ -135,7 +137,9 @@ export async function getPrimaryGoal(userId: string): Promise<Goal | null> {
     id: goal.id,
     userId: goal.userId,
     event: fromPrismaEvent(goal.event),
+    course: goal.course,
     targetTime: goal.targetTime,
+    qualifyingTime: goal.qualifyingTime,
     targetDate: goal.targetDate.toISOString().slice(0, 10)
   };
 }
@@ -145,7 +149,9 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
     data: {
       userId: input.userId,
       event: toPrismaEvent(input.event),
+      course: input.course,
       targetTime: input.targetTime,
+      qualifyingTime: input.qualifyingTime,
       targetDate: new Date(input.targetDate)
     }
   });
@@ -154,7 +160,9 @@ export async function createGoal(input: CreateGoalInput): Promise<Goal> {
     id: goal.id,
     userId: goal.userId,
     event: input.event,
+    course: goal.course,
     targetTime: goal.targetTime,
+    qualifyingTime: goal.qualifyingTime,
     targetDate: goal.targetDate.toISOString().slice(0, 10)
   };
 }

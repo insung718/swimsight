@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, CheckCircle2, Clock3, Scale, ShieldCheck, Target } from "lucide-react";
+import { Activity, BarChart3, CheckCircle2, Clock3, Scale, ShieldCheck, Target } from "lucide-react";
 import { useTranslator } from "@/components/i18n/use-language";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { ModelPerformanceBreakdown, ModelPerformanceDashboard } from "@/types/swim";
@@ -30,12 +30,13 @@ export function ModelPerformancePanel({ performance }: { performance: ModelPerfo
           </span>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-6">
           <Metric label={t("Evaluated")} value={summary.evaluatedPredictions.toString()} />
           <Metric label={t("MAE")} value={`${summary.mae.toFixed(2)}${t("s")}`} />
           <Metric label={t("Median error")} value={`${summary.medianAbsoluteError.toFixed(2)}${t("s")}`} />
           <Metric label={t("RMSE")} value={`${summary.rmse.toFixed(2)}${t("s")}`} />
           <Metric label={t("Interval coverage")} value={`${summary.intervalCoverage.toFixed(1)}%`} />
+          <Metric label={t("Probability Brier score")} value={summary.probabilityEvaluations ? summary.probabilityBrierScore.toFixed(3) : "—"} />
         </div>
       </section>
 
@@ -83,6 +84,37 @@ export function ModelPerformancePanel({ performance }: { performance: ModelPerfo
             <Breakdown title={t("Error by data sufficiency")} rows={performance.byDataSufficiency} t={t} />
             <Breakdown title={t("Error by age group")} rows={performance.byAgeGroup} t={t} />
           </section>
+
+          {summary.probabilityEvaluations > 0 && (
+            <section className="dashboard-glass p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <BarChart3 aria-hidden className="mt-0.5 h-5 w-5 text-aqua-100" />
+                <div>
+                  <h3 className="text-base font-semibold text-white">{t("Probability calibration")}</h3>
+                  <p className="mt-1 text-sm text-white/64">{t("Predicted chances are compared with what actually happened. Lower Brier scores are better.")}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                {performance.probabilityCalibration.filter((calibration) => calibration.count > 0).map((calibration) => (
+                  <div className="rounded-lg border border-white/10 bg-white/[0.06] p-4" key={calibration.label}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-sm font-semibold text-white">{t(calibration.label)}</div>
+                      <div className="font-mono text-xs text-aqua-100">{t("Brier")} {calibration.brierScore.toFixed(3)}</div>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {calibration.bins.filter((bin) => bin.count > 0).map((bin) => (
+                        <div className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-2 text-xs" key={bin.label}>
+                          <span className="text-white/52">{bin.label}</span>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-aqua-200" style={{ width: `${bin.observedRate}%` }} /></div>
+                          <span className="font-mono text-white/72">{bin.meanPredicted.toFixed(0)}% / {bin.observedRate.toFixed(0)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
         </>
       )}

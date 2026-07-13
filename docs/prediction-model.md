@@ -67,6 +67,7 @@ The trainer reports:
 - Last-three-race average baseline MAE
 - Five-race linear-trend baseline MAE
 - 80th percentile absolute residual for the likely range
+- Signed residual quantiles for probability calibration
 
 A course model becomes production-active only when it has at least 100 examples, at least 15 athletes, at least three valid rolling folds, and beats the best baseline by at least 2%. These thresholds can be made stricter as the dataset grows.
 
@@ -81,8 +82,12 @@ npm run model:train -- data/100-free-training.csv
 
 The command exports `src/lib/models/100-free-xgboost.json`. The Python trainer verifies that the exported tree representation produces the same predictions as native XGBoost before writing it.
 
+Artifact schema version 2 includes cover statistics for every tree node. The TypeScript runtime uses those statistics to calculate exact, additive TreeSHAP contributions without loading Python or exposing training rows in production. A validated artifact must also include time-aware cross-validation residual quantiles. Missing or malformed explanation and calibration metadata causes the learned model to fail closed.
+
 ## Product behavior
 
-The dashboard shows the point forecast, likely range, model source, data sufficiency, history used, validation MAE when available, and the inputs associated with the forecast. Factors are described as associations, not causes.
+The dashboard shows the point forecast, likely range, model source, data sufficiency, history used, validation MAE when available, and the inputs associated with the forecast. Validated XGBoost predictions show grouped TreeSHAP contributions. Conservative predictions show an additive decomposition of the deterministic formula. Both are described as model associations, not causes.
+
+PB, goal, and optional qualifying-time probabilities use the empirical signed residual distribution when a validated artifact is active. Other models derive provisional probabilities from their uncertainty range and label them accordingly.
 
 Every future forecast is also preserved as an immutable evaluation snapshot. See [Prediction evaluation](./prediction-evaluation.md) for matching rules, account isolation, baseline comparisons, and known limitations.

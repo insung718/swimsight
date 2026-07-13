@@ -16,14 +16,18 @@ function toGoal(record: {
   id: string;
   userId: string;
   event: string;
+  course: "LCM" | "SCM" | "SCY";
   targetTime: number;
+  qualifyingTime?: number | null;
   targetDate: Date;
 }): Goal {
   return {
     id: record.id,
     userId: record.userId,
     event: fromPrismaEvent(record.event),
+    course: record.course,
     targetTime: record.targetTime,
+    qualifyingTime: record.qualifyingTime,
     targetDate: record.targetDate.toISOString().slice(0, 10)
   };
 }
@@ -53,7 +57,9 @@ function swimmerAnalytics(member: {
       id: string;
       userId: string;
       event: string;
+      course: "LCM" | "SCM" | "SCY";
       targetTime: number;
+      qualifyingTime?: number | null;
       targetDate: Date;
     }>;
   };

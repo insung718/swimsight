@@ -216,12 +216,14 @@ def evaluate_rolling(frame: pd.DataFrame, seed: int, folds: int) -> dict[str, An
 
     valid = ~np.isnan(predictions)
     if not valid.any():
-        return {"mae": math.inf, "residuals": np.array([]), "baselines": {}, "fold_count": 0}
-    residuals = np.abs(y[valid] - predictions[valid])
+        return {"mae": math.inf, "residuals": np.array([]), "signed_residuals": np.array([]), "baselines": {}, "fold_count": 0}
+    signed_residuals = y[valid] - predictions[valid]
+    residuals = np.abs(signed_residuals)
     baselines = {name: float(mean_absolute_error(y[valid], values[valid])) for name, values in baseline_values.items()}
     return {
         "mae": float(mean_absolute_error(y[valid], predictions[valid])),
         "residuals": residuals,
+        "signed_residuals": signed_residuals,
         "baselines": baselines,
         "fold_count": len(fold_list),
     }
@@ -244,9 +246,13 @@ def evaluate_new_athletes(frame: pd.DataFrame, seed: int) -> float:
 
 def normalize_tree(node: dict[str, Any]) -> dict[str, Any]:
     if "leaf" in node:
-        return {"nodeid": int(node["nodeid"]), "leaf": float(node["leaf"])}
+        return {
+            "nodeid": int(node["nodeid"]), "cover": float(node["cover"]),
+            "leaf": float(node["leaf"]),
+        }
     return {
-        "nodeid": int(node["nodeid"]), "split": str(node["split"]),
+        "nodeid": int(node["nodeid"]), "cover": float(node["cover"]),
+        "split": str(node["split"]),
         "splitCondition": float(node["split_condition"]), "yes": int(node["yes"]),
         "no": int(node["no"]), "missing": int(node["missing"]),
         "children": [normalize_tree(child) for child in node.get("children", [])],
@@ -269,7 +275,7 @@ def evaluate_exported_tree(node: dict[str, Any], row: pd.Series) -> float:
 
 
 def export_model(model: XGBRegressor, frame: pd.DataFrame, base_score: float) -> list[dict[str, Any]]:
-    trees = [normalize_tree(json.loads(tree)) for tree in model.get_booster().get_dump(dump_format="json")]
+    trees = [normalize_tree(json.loads(tree)) for tree in model.get_booster().get_dump(dump_format="json", with_stats=True)]
     sample = frame[FEATURE_NAMES].head(20)
     native = model.predict(sample)
     exported = np.array([base_score + sum(evaluate_exported_tree(tree, row) for tree in trees) for _, row in sample.iterrows()])
@@ -312,6 +318,10 @@ def main() -> None:
         final_model = make_model(args.seed, base_score)
         final_model.fit(frame[FEATURE_NAMES], frame["target_time"])
         residual_p80 = float(np.quantile(rolling["residuals"], 0.8)) if len(rolling["residuals"]) else 0.0
+        residual_quantiles = [
+            {"probability": probability, "residual": round(float(np.quantile(rolling["signed_residuals"], probability)), 6)}
+            for probability in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95)
+        ] if len(rolling["signed_residuals"]) else []
         models[course] = {
             "status": "VALIDATED" if validated else "EXPERIMENTAL",
             "baseScore": round(base_score, 8),
@@ -321,6 +331,7 @@ def main() -> None:
                 "newAthleteMae": finite_or_zero(new_athlete_mae),
                 "bestBaselineMae": finite_or_zero(best_baseline),
                 "residualP80": round(residual_p80, 6),
+                "residualQuantiles": residual_quantiles,
                 "trainingRows": len(frame), "athleteCount": athlete_count,
                 "foldCount": rolling["fold_count"],
             },
@@ -330,7 +341,7 @@ def main() -> None:
     artifact_status = "UNTRAINED" if not statuses else "VALIDATED" if all(status == "VALIDATED" for status in statuses) else "PARTIALLY_VALIDATED"
     trained_at = pd.Timestamp.utcnow()
     artifact = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "version": f"100-free-xgb-{trained_at.strftime('%Y%m%d-%H%M%S')}",
         "trainedAt": trained_at.isoformat(),
         "event": "100 Freestyle", "status": artifact_status,

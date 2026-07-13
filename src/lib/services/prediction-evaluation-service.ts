@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import type { Prisma, SwimResult as PrismaSwimResult } from "@prisma/client";
 import { calculateConsistencyScore, isOfficialResult } from "@/lib/analytics";
+import { buildProbabilitySet } from "@/lib/prediction-intelligence";
 import {
   buildModelPerformanceDashboard,
   calculateForecastBaselines,
@@ -70,6 +71,16 @@ export async function syncPredictionSnapshots({
       const projection = projectPredictionToDate(prediction, targetDate);
       const baselines = calculateForecastBaselines(history, targetDate);
       if (!projection || !baselines) continue;
+      const matchingGoal = goal?.event === prediction.event && goal.course === prediction.course ? goal : undefined;
+      const probabilities = buildProbabilitySet({
+        point: projection.predictedTime,
+        low: projection.lowerBound,
+        high: projection.upperBound,
+        pbTime: Math.min(...history.map((swim) => swim.timeSeconds)),
+        goalTime: matchingGoal?.targetTime,
+        qualifyingTime: matchingGoal?.qualifyingTime,
+        residualQuantiles: prediction.model.calibrationResidualQuantiles
+      });
       const featureSnapshot = {
         age: profile.age ?? null,
         sex: profile.sex ?? null,
@@ -94,7 +105,9 @@ export async function syncPredictionSnapshots({
         lowerBound: projection.lowerBound,
         upperBound: projection.upperBound,
         confidence: prediction.confidence,
-        featureSnapshot
+        featureSnapshot,
+        explanation: projection.explanation,
+        probabilities
       };
 
       rows.push({
@@ -117,6 +130,10 @@ export async function syncPredictionSnapshots({
         featuresUsed: prediction.model.featuresUsed,
         eligibilityRules: prediction.model.eligibilityRules,
         topFactors: prediction.model.factors,
+        explanationMethod: projection.explanation.method,
+        explanationBaseTime: projection.explanation.baseTime,
+        explanationContributions: projection.explanation.contributions as unknown as Prisma.InputJsonValue,
+        calibrationMetadata: prediction.model.calibrationResidualQuantiles as unknown as Prisma.InputJsonValue | undefined,
         dataSufficiency: prediction.model.dataSufficiency,
         athleteAge: profile.age ?? null,
         outOfDistribution: prediction.model.outOfDistribution,
@@ -124,7 +141,12 @@ export async function syncPredictionSnapshots({
         lastRaceBaseline: baselines.lastRace,
         lastThreeBaseline: baselines.lastThreeAverage,
         linearTrendBaseline: baselines.linearTrend,
-        goalTime: goal?.event === prediction.event ? goal.targetTime : null,
+        goalTime: matchingGoal?.targetTime ?? null,
+        qualifyingTime: matchingGoal?.qualifyingTime ?? null,
+        pbProbability: probabilities.pb.probability,
+        goalProbability: probabilities.goal?.probability ?? null,
+        qualifyingProbability: probabilities.qualifying?.probability ?? null,
+        probabilityMethod: probabilities.pb.method,
         inputFingerprint: fingerprint(immutableInput)
       });
     }
@@ -193,7 +215,8 @@ export async function evaluatePredictionSnapshotsForResult(
       lowerBound: snapshot.lowerBound,
       upperBound: snapshot.upperBound,
       priorPersonalBest: priorBest?.timeSeconds,
-      goalTime: snapshot.goalTime
+      goalTime: snapshot.goalTime,
+      qualifyingTime: snapshot.qualifyingTime
     });
     return transaction.predictionSnapshot.update({
       where: { id: snapshot.id },
@@ -214,6 +237,11 @@ function sufficiency(value: string): "Low" | "Moderate" | "High" {
 
 function modelSource(value: string): "XGBOOST" | "CONSERVATIVE_ENSEMBLE" {
   return value === "XGBOOST" ? value : "CONSERVATIVE_ENSEMBLE";
+}
+
+function probabilityMethod(value: string | null): "EMPIRICAL_RESIDUAL" | "ESTIMATED_RANGE" | null {
+  if (value === "EMPIRICAL_RESIDUAL" || value === "ESTIMATED_RANGE") return value;
+  return null;
 }
 
 export async function getPredictionEvaluationDashboard(userId: string) {
@@ -247,6 +275,11 @@ export async function getPredictionEvaluationDashboard(userId: string) {
     withinInterval: snapshot.withinInterval,
     achievedPb: snapshot.achievedPb,
     achievedGoal: snapshot.achievedGoal,
+    achievedQualification: snapshot.achievedQualification,
+    pbProbability: snapshot.pbProbability,
+    goalProbability: snapshot.goalProbability,
+    qualifyingProbability: snapshot.qualifyingProbability,
+    probabilityMethod: probabilityMethod(snapshot.probabilityMethod),
     evaluatedAt: snapshot.evaluatedAt?.toISOString() ?? null,
     outOfDistribution: snapshot.outOfDistribution,
     lastRaceBaseline: snapshot.lastRaceBaseline,

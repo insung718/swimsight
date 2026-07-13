@@ -40,8 +40,11 @@ describe("analytics engine", () => {
     const projection = calculateGoalProjection(sampleSwims, sampleGoals[0]);
 
     expect(projection.event).toBe("100 Butterfly");
+    expect(projection.course).toBe("LCM");
     expect(projection.requiredMonthlyImprovement).toBeGreaterThan(0);
     expect(["High", "Medium", "Low"]).toContain(projection.likelihood);
+    expect(projection.goalProbability.probability).toBeGreaterThan(0);
+    expect(projection.goalProbability.probability).toBeLessThan(100);
   });
 
   it("builds a complete dashboard analytics payload", () => {
@@ -212,6 +215,23 @@ describe("analytics engine", () => {
     expect(prediction.likelyRanges.days90.low).toBeLessThan(prediction.predictedTimes.days90);
     expect(prediction.likelyRanges.days90.high).toBeGreaterThan(prediction.predictedTimes.days90);
     expect(prediction.model.factors.some((factor) => factor.label === "Taper plan")).toBe(true);
+    for (const key of ["days30", "days90", "days180", "days365"] as const) {
+      const explanation = prediction.explanations[key];
+      const explained = explanation.baseTime + explanation.contributions.reduce((sum, contribution) => sum + contribution.secondsImpact, 0) + explanation.additiveResidual;
+      expect(explained).toBeCloseTo(prediction.predictedTimes[key], 3);
+      expect(prediction.probabilities[key].pb.probability).toBeGreaterThan(0);
+    }
+  });
+
+  it("never mixes courses when evaluating goal feasibility", () => {
+    const mixed: SwimResult[] = [
+      { id: "lcm", userId: "u1", date: "2026-01-01", event: "100 Freestyle", course: "LCM", timeSeconds: 61, meetName: "LCM" },
+      { id: "scy", userId: "u1", date: "2026-02-01", event: "100 Freestyle", course: "SCY", timeSeconds: 45, meetName: "SCY" }
+    ];
+    const projection = calculateGoalProjection(mixed, { id: "goal", userId: "u1", event: "100 Freestyle", course: "LCM", targetTime: 60, targetDate: "2027-01-01" });
+
+    expect(projection.currentTime).toBe(61);
+    expect(projection.course).toBe("LCM");
   });
 
   it("does not crash when a goal exists before results for that event", () => {

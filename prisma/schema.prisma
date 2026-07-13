@@ -81,6 +81,10 @@ model PredictionSnapshot {
   featuresUsed             Json
   eligibilityRules         Json
   topFactors               Json
+  explanationMethod        String?
+  explanationBaseTime      Float?
+  explanationContributions Json?
+  calibrationMetadata      Json?
   dataSufficiency          String
   athleteAge               Int?
   outOfDistribution        Boolean @default(false)
@@ -89,6 +93,11 @@ model PredictionSnapshot {
   lastThreeBaseline        Float
   linearTrendBaseline      Float
   goalTime                 Float?
+  qualifyingTime           Float?
+  pbProbability            Float?
+  goalProbability          Float?
+  qualifyingProbability    Float?
+  probabilityMethod        String?
   inputFingerprint         String
   actualResultId           String?
   actualTime               Float?
@@ -98,6 +107,7 @@ model PredictionSnapshot {
   withinInterval           Boolean?
   achievedPb               Boolean?
   achievedGoal             Boolean?
+  achievedQualification    Boolean?
   evaluatedAt              DateTime?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
@@ -116,14 +126,16 @@ model Goal {
   id         String    @id @default(cuid())
   userId     String
   event      SwimEvent
+  course     Course    @default(LCM)
   targetTime Float
+  qualifyingTime Float?
   targetDate DateTime
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, event])
+  @@index([userId, event, course])
 }
 
 model Prediction {

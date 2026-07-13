@@ -226,6 +226,7 @@ export const sampleGoals: Goal[] = [
     id: "goal-001",
     userId: demoUserId,
     event: "100 Butterfly",
+    course: "LCM",
     targetTime: 59,
     targetDate: "2027-03-01"
   }

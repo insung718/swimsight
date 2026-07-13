@@ -53,8 +53,39 @@ export interface Goal {
   id: string;
   userId: string;
   event: SwimEvent;
+  course: Course;
   targetTime: number;
+  qualifyingTime?: number | null;
   targetDate: string;
+}
+
+export interface PredictionContribution {
+  label: string;
+  secondsImpact: number;
+  direction: "faster" | "slower" | "neutral";
+  detail: string;
+}
+
+export interface PredictionExplanation {
+  method: "TREE_SHAP" | "DETERMINISTIC_DECOMPOSITION";
+  baseTime: number;
+  predictedTime: number;
+  contributions: PredictionContribution[];
+  additiveResidual: number;
+  disclaimer: string;
+}
+
+export interface ProbabilityEstimate {
+  thresholdTime: number;
+  probability: number;
+  method: "EMPIRICAL_RESIDUAL" | "ESTIMATED_RANGE";
+  calibration: "Validated" | "Provisional";
+}
+
+export interface PredictionProbabilitySet {
+  pb: ProbabilityEstimate;
+  goal?: ProbabilityEstimate;
+  qualifying?: ProbabilityEstimate;
 }
 
 export interface Prediction {
@@ -75,12 +106,25 @@ export interface Prediction {
     days180: { low: number; high: number };
     days365: { low: number; high: number };
   };
+  explanations: {
+    days30: PredictionExplanation;
+    days90: PredictionExplanation;
+    days180: PredictionExplanation;
+    days365: PredictionExplanation;
+  };
+  probabilities: {
+    days30: PredictionProbabilitySet;
+    days90: PredictionProbabilitySet;
+    days180: PredictionProbabilitySet;
+    days365: PredictionProbabilitySet;
+  };
   model: {
     kind: "XGBOOST" | "CONSERVATIVE_ENSEMBLE";
     version: string;
     validationMae?: number;
     trainingDate?: string;
     trainingDatasetSize?: number;
+    calibrationResidualQuantiles?: { probability: number; residual: number }[];
     historyUsed: number;
     dataSufficiency: "Low" | "Moderate" | "High";
     factors: { label: string; impact: "positive" | "neutral" | "caution"; detail: string }[];
@@ -119,6 +163,11 @@ export interface PredictionEvaluationRecord {
   withinInterval?: boolean | null;
   achievedPb?: boolean | null;
   achievedGoal?: boolean | null;
+  achievedQualification?: boolean | null;
+  pbProbability?: number | null;
+  goalProbability?: number | null;
+  qualifyingProbability?: number | null;
+  probabilityMethod?: ProbabilityEstimate["method"] | null;
   evaluatedAt?: string | null;
   outOfDistribution: boolean;
 }
@@ -139,6 +188,8 @@ export interface ModelPerformanceDashboard {
     medianAbsoluteError: number;
     rmse: number;
     intervalCoverage: number;
+    probabilityEvaluations: number;
+    probabilityBrierScore: number;
   };
   byEvent: ModelPerformanceBreakdown[];
   byAgeGroup: ModelPerformanceBreakdown[];
@@ -149,6 +200,17 @@ export interface ModelPerformanceDashboard {
     label: "SwimSight" | "Last race" | "Last-three average" | "Linear trend";
     count: number;
     mae: number;
+  }[];
+  probabilityCalibration: {
+    label: "PB" | "Goal" | "Qualifying";
+    count: number;
+    brierScore: number;
+    bins: {
+      label: string;
+      count: number;
+      meanPredicted: number;
+      observedRate: number;
+    }[];
   }[];
   history: PredictionEvaluationRecord[];
 }
@@ -190,8 +252,10 @@ export interface EventRanking {
 
 export interface GoalProjection {
   event: SwimEvent;
+  course: Course;
   currentTime: number;
   targetTime: number;
+  qualifyingTime?: number | null;
   targetDate: string;
   weeksRemaining: number;
   requiredWeeklyImprovement: number;
@@ -199,6 +263,11 @@ export interface GoalProjection {
   currentMonthlyPace: number;
   predictedAtGoalDate: number;
   likelihood: "High" | "Medium" | "Low";
+  goalProbability: ProbabilityEstimate;
+  qualifyingProbability?: ProbabilityEstimate;
+  confidence: number;
+  paceGap: number;
+  feasibility: "On track" | "Within reach" | "Stretch goal";
 }
 
 export interface SwimPowerIndex {

@@ -134,7 +134,7 @@ export function SwimSightDashboard({
 
         {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
-        {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
+        {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} initialProjection={analytics.goalProjection} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
         {activeTab === "profile" && <DashboardPanel><SectionHeading eyebrow="Athlete page" title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /></DashboardPanel>}
       </div>

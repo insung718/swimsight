@@ -31,6 +31,11 @@ const resultDateSchema = dateSchema.refine(
   "Result date cannot be in the future."
 );
 
+const goalDateSchema = dateSchema.refine(
+  (value) => value >= new Date().toISOString().slice(0, 10),
+  "Goal date cannot be in the past."
+);
+
 export const manualSwimSchema = z.object({
   date: resultDateSchema,
   event: swimEventSchema,
@@ -44,8 +49,10 @@ export const manualSwimSchema = z.object({
 
 export const goalSchema = z.object({
   event: swimEventSchema,
+  course: courseSchema.default("LCM"),
   targetTime: z.number().finite().positive().max(7_200),
-  targetDate: dateSchema
+  qualifyingTime: z.number().finite().positive().max(7_200).nullable().optional(),
+  targetDate: goalDateSchema
 }).strict();
 
 export const communityCreateSchema = z.object({

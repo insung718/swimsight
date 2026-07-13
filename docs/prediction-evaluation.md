@@ -10,10 +10,12 @@ Each snapshot stores:
 - Point forecast, lower and upper bounds, confidence, and generation timestamp
 - Model source, version, validation MAE, training date, and training-row count
 - Immutable feature snapshot, feature groups, eligibility rules, top factors, data sufficiency, and distribution warnings
+- Explanation method, additive base value, and local contribution snapshot
+- PB, goal, and optional qualifying-time probabilities plus their calibration method
 - Last-race, last-three-average, and linear-trend baseline forecasts
 - Goal time known when the snapshot was created
 
-Feature snapshots remain server-side. The performance API returns only the metrics and history fields needed by the signed-in athlete dashboard.
+Feature snapshots, local explanation payloads, and residual quantiles remain server-side. The performance API returns only the metrics and history fields needed by the signed-in athlete dashboard.
 
 ## Matching rules
 
@@ -29,7 +31,7 @@ When an athlete has multiple eligible results for the same event, course, and da
 
 ## Metrics
 
-For each evaluated snapshot, SwimSight calculates absolute error, signed error, percentage error, interval inclusion, PB achievement, and goal achievement. The account-scoped dashboard aggregates:
+For each evaluated snapshot, SwimSight calculates absolute error, signed error, percentage error, interval inclusion, PB achievement, goal achievement, and qualifying-standard achievement. The account-scoped dashboard aggregates:
 
 - Mean absolute error (MAE)
 - Median absolute error
@@ -37,6 +39,7 @@ For each evaluated snapshot, SwimSight calculates absolute error, signed error, 
 - Forecast interval coverage
 - Error by event, age group, confidence, data sufficiency, and model version
 - MAE against last-race, last-three-average, and linear-trend baselines
+- Brier scores and reliability bins for PB, goal, and qualifying probabilities
 
 Pending forecasts are shown separately and never included in accuracy metrics.
 
@@ -48,6 +51,7 @@ Pending forecasts are shown separately and never included in accuracy metrics.
 - Relay, converted, time-trial, training, cross-course, and cross-account data are excluded from evaluation.
 - Database constraints reject invalid forecast bounds, confidence values, model sources, and sufficiency labels.
 - A malformed or incomplete XGBoost artifact fails closed to the conservative model.
+- Goal feasibility is course-specific. LCM, SCM, and SCY histories are never mixed.
 
 ## Known limitations
 
@@ -56,3 +60,5 @@ Pending forecasts are shown separately and never included in accuracy metrics.
 - Historical results created before deterministic deduplication may have a null dedupe key.
 - Accuracy becomes meaningful only after enough real forecasts reach race day. Low sample counts should not be treated as proof of model quality.
 - The first validated learned model remains 100 Freestyle. Other events use the transparent conservative ensemble until independently validated models beat the baselines.
+- Probabilities from the conservative ensemble are provisional range-derived estimates. Only forecasts backed by held-out signed residual quantiles are labeled validated.
+- TreeSHAP explains why the model produced a number; it does not prove that changing a feature will cause the corresponding time change.
