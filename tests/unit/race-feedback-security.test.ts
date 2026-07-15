@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const transaction = vi.hoisted(() => ({
+  user: { findUnique: vi.fn().mockResolvedValue({ personalAnalyticsConsentedAt: null, personalAnalyticsWithdrawnAt: null }) },
   swimResult: { findFirst: vi.fn() },
   raceFeedback: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
-  raceFeedbackRevision: { create: vi.fn() }
+  raceFeedbackRevision: { create: vi.fn() },
+  productAnalyticsEvent: { findFirst: vi.fn(), create: vi.fn() }
 }));
 const prismaMock = vi.hoisted(() => ({
   $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
@@ -33,7 +35,16 @@ describe("race feedback account isolation and history", () => {
   it("requires the result to belong to the authenticated account", async () => {
     transaction.swimResult.findFirst.mockResolvedValueOnce(null);
     await expect(createRaceFeedback("user-a", "result-owned-by-b", fields)).rejects.toThrow("FEEDBACK_RESULT_NOT_FOUND");
-    expect(transaction.swimResult.findFirst).toHaveBeenCalledWith({ where: { id: "result-owned-by-b", userId: "user-a" }, select: { id: true } });
+    expect(transaction.swimResult.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: "result-owned-by-b",
+        userId: "user-a",
+        resultKind: "OFFICIAL",
+        raceType: "INDIVIDUAL",
+        evaluatedPredictions: { some: { userId: "user-a", evaluatedAt: { not: null } } }
+      },
+      select: { id: true }
+    });
     expect(transaction.raceFeedback.create).not.toHaveBeenCalled();
   });
 

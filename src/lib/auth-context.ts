@@ -16,6 +16,13 @@ export interface AuthContext {
   personalAnalyticsConsentActive: boolean;
 }
 
+export class AccountDeletionPendingError extends Error {
+  constructor() {
+    super("ACCOUNT_DELETION_PENDING");
+    this.name = "AccountDeletionPendingError";
+  }
+}
+
 function isVerifiedEmail(emailAddress: NonNullable<Awaited<ReturnType<typeof currentUser>>>["emailAddresses"][number]) {
   return emailAddress.verification?.status === "verified";
 }
@@ -58,6 +65,12 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     };
   }
 
+  const deletionTombstone = await prisma.accountDeletionTombstone.findUnique({
+    where: { clerkId: authResult.userId },
+    select: { id: true }
+  });
+  if (deletionTombstone) throw new AccountDeletionPendingError();
+
   const userByClerkId = await prisma.user.findUnique({
     where: { clerkId: authResult.userId }
   });
@@ -72,7 +85,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       data: {
         ...(emailOwner ? {} : { email }),
         name,
-        imageUrl: clerkUser?.imageUrl
+        imageUrl: clerkUser?.imageUrl,
+        ...(!userByClerkId.onboardingCompleted && !userByClerkId.onboardingStartedAt ? { onboardingStartedAt: new Date() } : {})
       }
     });
   } else {
@@ -87,7 +101,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
         clerkId: authResult.userId,
         email,
         name,
-        imageUrl: clerkUser?.imageUrl
+        imageUrl: clerkUser?.imageUrl,
+        onboardingStartedAt: new Date()
       }
     });
   }

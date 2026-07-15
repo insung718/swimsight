@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity, BarChart3, CheckCircle2, Clock3, Scale, ShieldCheck, Target } from "lucide-react";
+import { Activity, BarChart3, CheckCircle2, Clock3, MessageSquareText, Save, Scale, ShieldCheck, Target } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslator } from "@/components/i18n/use-language";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { ModelPerformanceBreakdown, ModelPerformanceDashboard } from "@/types/swim";
@@ -146,8 +147,138 @@ export function ModelPerformancePanel({ performance }: { performance: ModelPerfo
           </div>
         </section>
       )}
+
+      <PostMeetFeedbackPanel performance={performance} />
     </div>
   );
+}
+
+type FeedbackRecord = { id: string; swimResultId: string; currentVersion: number; deletedAt: string | null };
+
+function PostMeetFeedbackPanel({ performance }: { performance: ModelPerformanceDashboard }) {
+  const { language, t } = useTranslator();
+  const matchedResults = useMemo(() => {
+    const seen = new Set<string>();
+    return performance.history.filter((record) => {
+      if (!record.evaluatedAt || !record.actualResultId || seen.has(record.actualResultId)) return false;
+      seen.add(record.actualResultId);
+      return true;
+    }).slice(0, 12);
+  }, [performance.history]);
+  const [feedback, setFeedback] = useState<FeedbackRecord[]>([]);
+  const [selectedResultId, setSelectedResultId] = useState(matchedResults[0]?.actualResultId ?? "");
+  const [taperStatus, setTaperStatus] = useState("UNKNOWN");
+  const [effort, setEffort] = useState("UNKNOWN");
+  const [illness, setIllness] = useState(false);
+  const [injury, setInjury] = useState(false);
+  const [courseInformationCorrect, setCourseInformationCorrect] = useState("UNKNOWN");
+  const [predictionUseful, setPredictionUseful] = useState("UNKNOWN");
+  const [unusualCircumstances, setUnusualCircumstances] = useState("");
+  const [status, setStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!matchedResults.length) return;
+    let active = true;
+    fetch("/api/race-feedback", { cache: "no-store" })
+      .then(async (response) => ({ response, data: await response.json() }))
+      .then(({ response, data }) => {
+        if (!active) return;
+        if (response.ok) setFeedback(Array.isArray(data.feedback) ? data.feedback : []);
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [matchedResults.length]);
+
+  const availableResults = useMemo(
+    () => matchedResults.filter((record) => !feedback.some((item) => item.swimResultId === record.actualResultId && !item.deletedAt)),
+    [feedback, matchedResults]
+  );
+
+  useEffect(() => {
+    if (!availableResults.some((record) => record.actualResultId === selectedResultId)) {
+      setSelectedResultId(availableResults[0]?.actualResultId ?? "");
+    }
+  }, [availableResults, selectedResultId]);
+
+  if (!matchedResults.length) return null;
+
+  async function saveFeedback() {
+    if (!selectedResultId) return;
+    setSaving(true);
+    setStatus("");
+    try {
+      const response = await fetch("/api/race-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          swimResultId: selectedResultId,
+          taperStatus,
+          illness,
+          injury,
+          effort,
+          courseInformationCorrect: courseInformationCorrect === "UNKNOWN" ? null : courseInformationCorrect === "YES",
+          predictionUseful: predictionUseful === "UNKNOWN" ? null : predictionUseful === "YES",
+          unusualCircumstances: unusualCircumstances.trim() || null
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setStatus(t(data.error || "Race context could not be saved."));
+        return;
+      }
+      setFeedback((current) => [...current, data.feedback]);
+      setUnusualCircumstances("");
+      setStatus(t("Race context saved."));
+    } catch {
+      setStatus(t("Race context could not be saved."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="dashboard-glass p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        <MessageSquareText aria-hidden className="mt-0.5 h-5 w-5 text-aqua-100" />
+        <div>
+          <h3 className="text-base font-semibold text-white">{t("Post-meet context")}</h3>
+          <p className="mt-1 text-sm leading-6 text-white/64">{t("Optional context helps you interpret the result. It is stored separately from measured outcomes and is not used as a training label.")}</p>
+        </div>
+      </div>
+
+      {availableResults.length ? (
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <label className="text-sm font-medium text-white/78 lg:col-span-3">
+            {t("Matched official race")}
+            <select className="mt-1 h-11 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-sm text-white outline-none focus:border-aqua-200" value={selectedResultId} onChange={(event) => setSelectedResultId(event.target.value)}>
+              {availableResults.map((record) => <option key={record.actualResultId} value={record.actualResultId ?? ""}>{t(record.event)} · {record.course} · {formatDate(record.targetRaceDate, language)} · {record.actualTime === null || record.actualTime === undefined ? "—" : formatTime(record.actualTime)}</option>)}
+            </select>
+          </label>
+          <FeedbackSelect label={t("Taper status")} value={taperStatus} onChange={setTaperStatus} options={["UNKNOWN", "TAPERED", "UNTAPERED"]} t={t} />
+          <FeedbackSelect label={t("Race effort")} value={effort} onChange={setEffort} options={["UNKNOWN", "MAXIMUM", "SUBMAXIMAL", "TRAINING_PACE"]} t={t} />
+          <FeedbackSelect label={t("Course information correct?")} value={courseInformationCorrect} onChange={setCourseInformationCorrect} options={["UNKNOWN", "YES", "NO"]} t={t} />
+          <FeedbackSelect label={t("Was the prediction useful?")} value={predictionUseful} onChange={setPredictionUseful} options={["UNKNOWN", "YES", "NO"]} t={t} />
+          <label className="flex min-h-11 items-center gap-3 rounded-md border border-white/10 bg-white/[0.06] px-3 text-sm font-medium text-white/78"><input checked={illness} className="h-4 w-4 accent-aqua-300" onChange={(event) => setIllness(event.target.checked)} type="checkbox" />{t("Illness affected this race")}</label>
+          <label className="flex min-h-11 items-center gap-3 rounded-md border border-white/10 bg-white/[0.06] px-3 text-sm font-medium text-white/78"><input checked={injury} className="h-4 w-4 accent-aqua-300" onChange={(event) => setInjury(event.target.checked)} type="checkbox" />{t("Injury affected this race")}</label>
+          <label className="text-sm font-medium text-white/78 lg:col-span-3">
+            {t("Unusual circumstances")}
+            <textarea className="mt-1 min-h-24 w-full resize-y rounded-md border border-white/12 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/36 focus:border-aqua-200" maxLength={500} placeholder={t("Optional note, up to 500 characters")} value={unusualCircumstances} onChange={(event) => setUnusualCircumstances(event.target.value)} />
+          </label>
+          <div className="flex flex-wrap items-center gap-3 lg:col-span-3">
+            <button className="inline-flex min-h-11 items-center gap-2 rounded-md bg-white px-4 text-sm font-semibold text-stitch-abyss transition hover:bg-aqua-50 disabled:cursor-not-allowed disabled:opacity-60" disabled={saving || !selectedResultId} onClick={saveFeedback} type="button"><Save aria-hidden className="h-4 w-4" />{saving ? t("Saving...") : t("Save race context")}</button>
+            {status && <p aria-live="polite" className="text-sm text-white/68">{status}</p>}
+          </div>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-white/64">{t("Context has been recorded for every matched race shown here.")}</p>
+      )}
+    </section>
+  );
+}
+
+function FeedbackSelect({ label, onChange, options, t, value }: { label: string; onChange: (value: string) => void; options: string[]; t: (value: string) => string; value: string }) {
+  return <label className="text-sm font-medium text-white/78">{label}<select className="mt-1 h-11 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-sm text-white outline-none focus:border-aqua-200" value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option key={option} value={option}>{t(option)}</option>)}</select></label>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

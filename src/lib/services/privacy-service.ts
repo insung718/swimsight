@@ -4,6 +4,7 @@ import type { ConsentAction, ConsentPurpose, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent } from "@/lib/prisma-mappers";
 import { assessPredictionDataQuality } from "@/lib/prediction-governance";
+import { recordProductEvent } from "@/lib/services/product-analytics-service";
 import type { SwimResult } from "@/types/swim";
 
 export const CONSENT_POLICY_VERSIONS: Record<ConsentPurpose, string> = {
@@ -121,6 +122,27 @@ function updateForConsent(purpose: ConsentPurpose, action: ConsentAction, policy
   }
 }
 
+async function removeUserFromResearchCohorts(
+  transaction: Prisma.TransactionClient,
+  userId: string,
+  reason: string
+) {
+  const records = await transaction.researchCohortRecord.findMany({
+    where: { userId },
+    select: { manifestId: true },
+    distinct: ["manifestId"]
+  });
+  const manifestIds = records.map((record) => record.manifestId);
+  if (manifestIds.length) {
+    await transaction.researchCohortManifest.updateMany({
+      where: { id: { in: manifestIds }, status: "SEALED" },
+      data: { status: "INVALIDATED", invalidatedAt: new Date(), invalidationReason: reason }
+    });
+    await transaction.researchCohortRecord.deleteMany({ where: { userId } });
+  }
+  return manifestIds.length;
+}
+
 export async function changeConsent({
   action,
   policyVersion,
@@ -157,7 +179,27 @@ export async function changeConsent({
         metadata: { source: "ACCOUNT_PRIVACY_API" }
       }
     });
-    return consentState(updated);
+    if (action === "WITHDRAWN" && purpose === "PERSONAL_ANALYTICS") {
+      await transaction.productAnalyticsEvent.deleteMany({ where: { userId } });
+    }
+    if (action === "WITHDRAWN" && (purpose === "MODEL_TRAINING" || purpose === "GUARDIAN")) {
+      await removeUserFromResearchCohorts(
+        transaction,
+        userId,
+        `${purpose} consent was withdrawn. Regenerate the cohort as a new version after re-consent.`
+      );
+    }
+    const nextState = consentState(updated);
+    if (nextState.personalAnalytics.active) {
+      await recordProductEvent({
+        client: transaction,
+        consentKnownActive: true,
+        userId,
+        eventName: "CONSENT_CHANGED",
+        properties: { purpose, action }
+      });
+    }
+    return nextState;
   }, { isolationLevel: "Serializable" });
 }
 
@@ -178,8 +220,63 @@ export async function excludeTrainingData(userId: string) {
         metadata: { source: "TRAINING_DATA_EXCLUSION" }
       }
     });
+    await removeUserFromResearchCohorts(
+      transaction,
+      userId,
+      "The athlete excluded their data from model training. Regenerate the cohort as a new version after re-consent."
+    );
     return consentState(updated);
   }, { isolationLevel: "Serializable" });
+}
+
+export async function deleteApplicationAccountData(userId: string, clerkId: string) {
+  return prisma.$transaction(async (transaction) => {
+    const retainedUntil = new Date();
+    retainedUntil.setUTCDate(retainedUntil.getUTCDate() + 180);
+    await transaction.accountDeletionTombstone.upsert({
+      where: { clerkId },
+      update: { completedAt: null, retainedUntil },
+      create: { clerkId, retainedUntil }
+    });
+    const invalidatedCohorts = await removeUserFromResearchCohorts(
+      transaction,
+      userId,
+      "An athlete exercised account deletion. Source records were removed and this cohort can no longer be used."
+    );
+    await transaction.user.delete({ where: { id: userId } });
+    return { invalidatedCohorts };
+  }, { isolationLevel: "Serializable", timeout: 30_000 });
+}
+
+export async function markIdentityDeletionAttempt(clerkId: string, completed: boolean) {
+  return prisma.accountDeletionTombstone.updateMany({
+    where: { clerkId },
+    data: {
+      lastAttemptAt: new Date(),
+      attemptCount: { increment: 1 },
+      ...(completed ? { completedAt: new Date() } : {})
+    }
+  });
+}
+
+export async function listPendingIdentityDeletions(limit = 25) {
+  const retryBefore = new Date(Date.now() - 20 * 60 * 60 * 1_000);
+  return prisma.accountDeletionTombstone.findMany({
+    where: {
+      completedAt: null,
+      attemptCount: { lt: 30 },
+      OR: [{ lastAttemptAt: null }, { lastAttemptAt: { lt: retryBefore } }]
+    },
+    select: { clerkId: true },
+    orderBy: { requestedAt: "asc" },
+    take: Math.min(Math.max(limit, 1), 50)
+  });
+}
+
+export async function purgeExpiredDeletionTombstones() {
+  return prisma.accountDeletionTombstone.deleteMany({
+    where: { completedAt: { not: null }, retainedUntil: { lt: new Date() } }
+  });
 }
 
 export function pseudonymizeTrainingIdentifier(userId: string) {
@@ -197,6 +294,7 @@ export function suppressSmallCohort<T>(count: number, value: T) {
 export async function getConsentedTrainingRows() {
   const users = await prisma.user.findMany({
     where: {
+      role: "ATHLETE",
       trainingConsentedAt: { not: null },
       trainingConsentVersion: CONSENT_POLICY_VERSIONS.MODEL_TRAINING,
       trainingConsentWithdrawnAt: null,

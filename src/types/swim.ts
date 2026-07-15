@@ -192,6 +192,7 @@ export interface PredictionEvaluationRecord {
   qualifyingProbability?: number | null;
   probabilityMethod?: ProbabilityEstimate["method"] | null;
   evaluatedAt?: string | null;
+  actualResultId?: string | null;
   outOfDistribution: boolean;
 }
 
@@ -372,6 +373,11 @@ export interface CoachSwimmerAnalytics {
     event: SwimEvent;
     course: Course;
   }[];
+  dataQualityStatus: "READY" | "BUILDING" | "INSUFFICIENT";
+  importStatus: "COMPLETE" | "NOT_STARTED";
+  predictionEligible: boolean;
+  upcomingMeetCount: number;
+  postMeetEvaluationCount: number;
 }
 
 export interface CoachClubSummary {
@@ -380,6 +386,9 @@ export interface CoachClubSummary {
   description?: string | null;
   joinCode: string;
   memberCount: number;
+  permissionPendingCount: number;
+  dataReadyCount: number;
+  sharingStatus?: "ACTIVE" | "WITHDRAWN";
   swimmers: CoachSwimmerAnalytics[];
 }
 

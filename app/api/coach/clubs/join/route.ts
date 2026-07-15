@@ -3,9 +3,9 @@ import { conflict, created, notFound } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
-import { joinCoachClub, listCoachClubsForSwimmer } from "@/lib/services/coach-service";
+import { joinCoachClub, listCoachClubsForSwimmer, updateCoachShareGrant } from "@/lib/services/coach-service";
 import { CannotJoinOwnedGroupError } from "@/lib/services/join-errors";
-import { coachClubJoinSchema } from "@/lib/validation";
+import { coachClubJoinSchema, coachClubShareMutationSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +44,22 @@ export async function POST(request: Request) {
     }
 
     logServerError("Could not join coach club", error);
+    return databaseUnavailable();
+  }
+}
+
+export async function PATCH(request: Request) {
+  const originError = enforceSameOrigin(request);
+  if (originError) return originError;
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  const parsed = await parseSecureJson(request, coachClubShareMutationSchema);
+  if (!parsed.ok) return parsed.response;
+  try {
+    const grant = await updateCoachShareGrant({ userId: account.context.userId, ...parsed.data });
+    return grant ? NextResponse.json({ grant }) : notFound("Coach club membership was not found.");
+  } catch (error) {
+    logServerError("Could not update coach sharing permission", error);
     return databaseUnavailable();
   }
 }

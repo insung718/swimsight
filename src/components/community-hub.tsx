@@ -82,6 +82,7 @@ export function CommunityHub() {
   }
 
   async function joinCoachClub() {
+    if (!window.confirm(t("Authorized coaches will be able to view your results, goals, predictions, and upcoming meets, and keep private coaching notes. You can withdraw access at any time."))) return;
     const response = await fetch("/api/coach/clubs/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,6 +98,22 @@ export function CommunityHub() {
     }
 
     setStatus(result.error ? t(result.error) : t("Could not join coach club."));
+  }
+
+  async function updateCoachSharing(teamId: string, action: "GRANT" | "WITHDRAW") {
+    if (action === "GRANT" && !window.confirm(t("Authorized coaches will be able to view your results, goals, predictions, and upcoming meets, and keep private coaching notes. You can withdraw access at any time."))) return;
+    const response = await fetch("/api/coach/clubs/join", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId, action })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      setStatus(result.error ? t(result.error) : t("Could not update coach access."));
+      return;
+    }
+    setCoachClubs((current) => current.map((club) => club.id === teamId ? { ...club, sharingStatus: result.grant.status } : club));
+    setStatus(action === "GRANT" ? t("Coach access granted.") : t("Coach access withdrawn."));
   }
 
   async function inviteFriend() {
@@ -245,6 +262,16 @@ export function CommunityHub() {
               {club.name}
             </div>
             <div className="mt-1 text-sm text-white/72">{club.memberCount} {t("swimmers")} · {t("coach club")}</div>
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+              <span className="text-xs text-white/58">{club.sharingStatus === "ACTIVE" ? t("Analytics shared") : t("Analytics private")}</span>
+              <button
+                className="ui-press rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:border-stitch-cyan"
+                type="button"
+                onClick={() => updateCoachSharing(club.id, club.sharingStatus === "ACTIVE" ? "WITHDRAW" : "GRANT")}
+              >
+                {club.sharingStatus === "ACTIVE" ? t("Withdraw access") : t("Grant access")}
+              </button>
+            </div>
           </div>
         ))}
       </div>

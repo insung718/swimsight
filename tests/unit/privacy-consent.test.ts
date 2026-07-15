@@ -5,11 +5,16 @@ vi.mock("server-only", () => ({}));
 const transaction = vi.hoisted(() => ({
   user: {
     findUniqueOrThrow: vi.fn(),
-    update: vi.fn()
+    update: vi.fn(),
+    delete: vi.fn()
   },
   consentEvent: {
     create: vi.fn()
-  }
+  },
+  researchCohortRecord: { findMany: vi.fn().mockResolvedValue([]), deleteMany: vi.fn() },
+  researchCohortManifest: { updateMany: vi.fn() },
+  productAnalyticsEvent: { deleteMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
+  accountDeletionTombstone: { upsert: vi.fn() }
 }));
 const prismaMock = vi.hoisted(() => ({
   $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
@@ -25,6 +30,7 @@ import {
   CONSENT_POLICY_VERSIONS,
   changeConsent,
   consentState,
+  deleteApplicationAccountData,
   getConsentedTrainingRows,
   pseudonymizeTrainingIdentifier,
   suppressSmallCohort
@@ -161,5 +167,29 @@ describe("privacy and consent foundations", () => {
       personalAnalyticsConsentedAt: new Date()
     });
     expect(state.personalAnalytics.active).toBe(false);
+  });
+
+  it("creates an identity tombstone and invalidates sealed cohorts before deleting account data", async () => {
+    transaction.researchCohortRecord.findMany.mockResolvedValueOnce([{ manifestId: "manifest-1" }]);
+    transaction.accountDeletionTombstone.upsert.mockResolvedValueOnce({ id: "tombstone-1" });
+    transaction.researchCohortManifest.updateMany.mockResolvedValueOnce({ count: 1 });
+    transaction.researchCohortRecord.deleteMany.mockResolvedValueOnce({ count: 4 });
+    transaction.user.delete.mockResolvedValueOnce({ id: "user-1" });
+
+    await expect(deleteApplicationAccountData("user-1", "clerk-user-1")).resolves.toEqual({ invalidatedCohorts: 1 });
+
+    expect(transaction.accountDeletionTombstone.upsert).toHaveBeenCalledWith({
+      where: { clerkId: "clerk-user-1" },
+      update: { completedAt: null, retainedUntil: expect.any(Date) },
+      create: { clerkId: "clerk-user-1", retainedUntil: expect.any(Date) }
+    });
+    expect(transaction.researchCohortManifest.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ["manifest-1"] }, status: "SEALED" },
+      data: expect.objectContaining({ status: "INVALIDATED" })
+    }));
+    expect(transaction.researchCohortRecord.deleteMany).toHaveBeenCalledWith({ where: { userId: "user-1" } });
+    expect(transaction.user.delete).toHaveBeenCalledWith({ where: { id: "user-1" } });
+    expect(transaction.accountDeletionTombstone.upsert.mock.invocationCallOrder[0]).toBeLessThan(transaction.user.delete.mock.invocationCallOrder[0]);
+    expect(transaction.researchCohortManifest.updateMany.mock.invocationCallOrder[0]).toBeLessThan(transaction.user.delete.mock.invocationCallOrder[0]);
   });
 });

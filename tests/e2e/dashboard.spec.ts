@@ -56,6 +56,18 @@ test("shows the active page in the staggered menu", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Features", exact: true })).toHaveAttribute("aria-current", "page");
 });
 
+test("publishes an honest validation status without unstable metrics", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/validation");
+
+  await expect(page.getByRole("heading", { name: "Validation before promotion." })).toBeVisible();
+  await expect(page.getByText("UNTRAINED", { exact: true })).toBeVisible();
+  await expect(page.getByText("Metrics appear only when defensible.")).toBeVisible();
+  await expect(page.getByText(/Current evidence is too small for a stable public claim\./)).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
 test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await forceEnglish(page);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -102,6 +114,11 @@ test("protects account APIs when signed out", async ({ request }) => {
     "/api/communities",
     "/api/coach/clubs",
     "/api/coach/clubs/join",
+    "/api/coach/notes?teamId=team-1&athleteId=athlete-1",
+    "/api/pilots/cohorts",
+    "/api/pilots/enroll",
+    "/api/pilots/invitations",
+    "/api/admin/data-foundation",
     "/api/meets",
     "/api/predictions/performance",
     "/api/race-feedback",
@@ -127,4 +144,21 @@ test("protects account APIs when signed out", async ({ request }) => {
     }
   });
   expect(writeResponse.status()).toBe(401);
+
+  for (const endpoint of [
+    "/api/import",
+    "/api/coach/roster",
+    "/api/pilots/enroll",
+    "/api/product-events",
+    "/api/admin/data-foundation"
+  ]) {
+    const response = await request.post(endpoint, {
+      data: {},
+      headers: { origin: "http://localhost:3000" }
+    });
+    expect(response.status(), endpoint).toBe(401);
+  }
+
+  const retentionResponse = await request.get("/api/cron/data-retention");
+  expect(retentionResponse.status()).toBe(401);
 });

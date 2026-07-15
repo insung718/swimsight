@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
+import { CoachOperationsPanel } from "@/components/coach-operations-panel";
+import { CoachRosterImport } from "@/components/coach-roster-import";
 import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
@@ -100,12 +102,14 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
           <DashboardPanel>
             <SectionHeading eyebrow="Club builder" title="Clubs" />
             <ClubManager clubs={dashboard.clubs} />
+            <CoachRosterImport clubs={dashboard.clubs} />
           </DashboardPanel>
         )}
 
         {activeTab === "athletes" && (
           <DashboardPanel>
             <SectionHeading eyebrow="Roster intelligence" title="Athletes" />
+            <CoachOperationsPanel clubs={dashboard.clubs} />
             <SwimmerRankingBoard swimmers={allSwimmers} />
             <AthleteRoster swimmers={allSwimmers} />
           </DashboardPanel>
@@ -243,7 +247,7 @@ function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="font-semibold text-white">{club.name}</div>
-                <div className="mt-1 text-sm text-white/62">{club.memberCount} {t("swimmers")}</div>
+                <div className="mt-1 text-sm text-white/62">{club.memberCount} {t("swimmers")} · {club.dataReadyCount} {t("data ready")} · {club.permissionPendingCount} {t("permission pending")}</div>
               </div>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
             </div>

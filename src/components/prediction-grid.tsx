@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslator } from "@/components/i18n/use-language";
+import { useProductEvent } from "@/hooks/use-product-event";
 import { cn, formatTime } from "@/lib/utils";
 import type { AthleteSex, Prediction, PredictionProfile } from "@/types/swim";
 
@@ -28,6 +29,13 @@ export function PredictionGrid({ predictions, profile }: { predictions: Predicti
       improvement: prediction.currentTime - prediction.predictedTimes.days365
     }))
     .sort((a, b) => b.improvement - a.improvement)[0];
+  const viewedPrediction = sortedPredictions[0];
+  useProductEvent("PREDICTION_VIEWED", viewedPrediction ? {
+    course: viewedPrediction.course,
+    horizonBand: "90d",
+    modelSource: viewedPrediction.model.kind,
+    hasExplanation: Boolean(viewedPrediction.explanations.days90?.contributions.length)
+  } : {}, Boolean(viewedPrediction));
 
   useEffect(() => {
     setMounted(true);

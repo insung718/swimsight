@@ -3,12 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Dumbbell, ShieldCheck, UserRound, UsersRound, Waves } from "lucide-react";
+import { BarChart3, Dumbbell, ShieldCheck, UserRound, UsersRound, Waves } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
-import type { AthleteSex, UserRole } from "@/types/swim";
+import { supportedEvents } from "@/lib/events";
+import type { AthleteSex, Course, SwimEvent, UserRole } from "@/types/swim";
+
+const countryOptions = [
+  ["VN", "Vietnam"], ["KR", "South Korea"], ["US", "United States"], ["GB", "United Kingdom"],
+  ["AU", "Australia"], ["CA", "Canada"], ["SG", "Singapore"], ["JP", "Japan"],
+  ["TH", "Thailand"], ["MY", "Malaysia"], ["PH", "Philippines"], ["ID", "Indonesia"],
+  ["HK", "Hong Kong"], ["NZ", "New Zealand"], ["FR", "France"], ["DE", "Germany"],
+  ["NL", "Netherlands"], ["IT", "Italy"], ["ES", "Spain"], ["BR", "Brazil"], ["ZA", "South Africa"],
+  ["ZZ", "Other or prefer not to say"]
+] as const;
 
 const roleCards = [
   {
@@ -33,9 +43,13 @@ export function RoleOnboarding() {
   const [savingRole, setSavingRole] = useState<UserRole | null>(null);
   const [age, setAge] = useState("");
   const [sex, setSex] = useState<AthleteSex | "">("");
+  const [countryCode, setCountryCode] = useState("");
+  const [preferredCourse, setPreferredCourse] = useState<Course | "">("");
+  const [mainEvents, setMainEvents] = useState<SwimEvent[]>([]);
   const [taperDays, setTaperDays] = useState("");
   const [swimSessionsPerWeek, setSwimSessionsPerWeek] = useState("");
   const [personalAnalyticsConsent, setPersonalAnalyticsConsent] = useState(false);
+  const [showSample, setShowSample] = useState(false);
   const [error, setError] = useState("");
 
   async function chooseRole(role: UserRole) {
@@ -46,6 +60,10 @@ export function RoleOnboarding() {
     }
     if (role === "ATHLETE" && !sex) {
       setError(t("Select the swimmer category used for performance calibration."));
+      return;
+    }
+    if (role === "ATHLETE" && (!countryCode || !preferredCourse || mainEvents.length === 0)) {
+      setError(t("Choose your country, preferred course, and at least one main event."));
       return;
     }
     if (!personalAnalyticsConsent) {
@@ -67,6 +85,9 @@ export function RoleOnboarding() {
           role,
           age: Number.isInteger(parsedAge) ? parsedAge : undefined,
           sex: sex || undefined,
+          countryCode: countryCode || undefined,
+          preferredCourse: preferredCourse || undefined,
+          mainEvents,
           taperDays: Number.isInteger(parsedTaperDays) ? parsedTaperDays : undefined,
           swimSessionsPerWeek: Number.isFinite(parsedSessions) ? parsedSessions : undefined,
           personalAnalyticsConsent
@@ -83,6 +104,12 @@ export function RoleOnboarding() {
     } finally {
       setSavingRole(null);
     }
+  }
+
+  function toggleMainEvent(event: SwimEvent) {
+    setMainEvents((current) => current.includes(event)
+      ? current.filter((item) => item !== event)
+      : current.length < 5 ? [...current, event] : current);
   }
 
   return (
@@ -155,6 +182,36 @@ export function RoleOnboarding() {
                 <p className="mt-2 text-xs text-stitch-abyss/52">{t("Used only to compare against the correct performance distribution.")}</p>
               </div>
               <div>
+                <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="swimmer-country">
+                  {t("Country or region")}
+                </label>
+                <select
+                  className="mt-2 h-11 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
+                  id="swimmer-country"
+                  value={countryCode}
+                  onChange={(event) => setCountryCode(event.target.value)}
+                >
+                  <option value="">{t("Select country")}</option>
+                  {countryOptions.map(([code, label]) => <option key={code} value={code}>{t(label)}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="preferred-course">
+                  {t("Preferred course")}
+                </label>
+                <select
+                  className="mt-2 h-11 w-full rounded-md border border-stitch-abyss/10 bg-white/74 px-4 text-stitch-abyss outline-none transition-colors duration-150 focus:border-stitch-cyan"
+                  id="preferred-course"
+                  value={preferredCourse}
+                  onChange={(event) => setPreferredCourse(event.target.value as Course | "")}
+                >
+                  <option value="">{t("Select course")}</option>
+                  <option value="LCM">{t("LCM · 50 m pool")}</option>
+                  <option value="SCM">{t("SCM · 25 m pool")}</option>
+                  <option value="SCY">{t("SCY · 25 yd pool")}</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52" htmlFor="taper-days">
                   {t("Typical taper days")}
                 </label>
@@ -187,6 +244,25 @@ export function RoleOnboarding() {
                   onChange={(event) => setSwimSessionsPerWeek(event.target.value)}
                 />
               </div>
+              <fieldset className="sm:col-span-2">
+                <legend className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-stitch-abyss/52">{t("Main events · choose up to five")}</legend>
+                <div className="mt-2 flex max-h-36 flex-wrap gap-2 overflow-y-auto rounded-md border border-stitch-abyss/10 bg-white/50 p-3">
+                  {supportedEvents.map((event) => {
+                    const selected = mainEvents.includes(event);
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${selected ? "border-stitch-abyss bg-stitch-abyss text-white" : "border-stitch-abyss/12 bg-white/70 text-stitch-abyss/65 hover:border-stitch-cyan"}`}
+                        key={event}
+                        type="button"
+                        onClick={() => toggleMainEvent(event)}
+                      >
+                        {t(event)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
             </div>
             <label className="mx-auto mt-3 flex max-w-2xl cursor-pointer items-start gap-3 rounded-lg border border-white/65 bg-white/62 p-4 text-left shadow-stitch backdrop-blur-2xl">
               <input
@@ -202,6 +278,28 @@ export function RoleOnboarding() {
                 </span>
               </span>
             </label>
+            <button
+              className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full border border-stitch-abyss/12 bg-white/60 px-4 py-2 text-sm font-semibold text-stitch-abyss transition-colors hover:border-stitch-cyan"
+              type="button"
+              onClick={() => setShowSample((current) => !current)}
+            >
+              <BarChart3 aria-hidden className="h-4 w-4 text-aqua-700" />
+              {showSample ? t("Close sample analysis") : t("Explore a sample analysis")}
+            </button>
+            {showSample && (
+              <motion.div
+                animate={{ opacity: 1, height: "auto" }}
+                className="mx-auto mt-3 max-w-2xl overflow-hidden rounded-lg border border-stitch-cyan/25 bg-stitch-abyss p-4 text-left text-white shadow-stitch"
+                initial={{ opacity: 0, height: 0 }}
+              >
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div><p className="text-xs text-white/55">{t("Personal best")}</p><p className="mt-1 font-mono text-xl">1:01.42</p></div>
+                  <div><p className="text-xs text-white/55">{t("Recent trend")}</p><p className="mt-1 text-sm font-semibold text-stitch-cyan">{t("Improving")}</p></div>
+                  <div><p className="text-xs text-white/55">{t("Data quality")}</p><p className="mt-1 text-sm font-semibold">{t("10 official races · ready")}</p></div>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-white/58">{t("This is an isolated demonstration. No sample races are added to your account or used for research.")}</p>
+              </motion.div>
+            )}
           </motion.div>
 
           <div className="mt-10 grid gap-4 lg:grid-cols-2">

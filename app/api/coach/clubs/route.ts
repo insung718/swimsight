@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { created } from "@/lib/api";
+import { conflict, created } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
     return created({ club });
   } catch (error) {
+    if (error instanceof Error && error.message === "COACH_CLUB_LIMIT_REACHED") return conflict("Each account can manage at most 20 clubs.");
     logServerError("Could not create coach club", error);
     return databaseUnavailable();
   }

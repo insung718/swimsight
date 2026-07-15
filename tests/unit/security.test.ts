@@ -32,7 +32,15 @@ describe("API security", () => {
   it("requires bounded age and category for swimmer profile calibration", () => {
     expect(profileRoleSchema.safeParse({ role: "ATHLETE" }).success).toBe(false);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16 }).success).toBe(false);
-    expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, sex: "FEMALE", personalAnalyticsConsent: true }).success).toBe(true);
+    expect(profileRoleSchema.safeParse({
+      role: "ATHLETE",
+      age: 16,
+      sex: "FEMALE",
+      countryCode: "VN",
+      preferredCourse: "LCM",
+      mainEvents: ["100 Freestyle"],
+      personalAnalyticsConsent: true
+    }).success).toBe(true);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 5 }).success).toBe(false);
     expect(profileRoleSchema.safeParse({ role: "ATHLETE", age: 16, sex: "MALE", isAdmin: true }).success).toBe(false);
     expect(profileRoleSchema.safeParse({ role: "COACH", personalAnalyticsConsent: true }).success).toBe(true);
@@ -107,6 +115,18 @@ describe("API security", () => {
 
     expect(response?.status).toBe(429);
     expect(response?.headers.get("retry-after")).toBeTruthy();
+  });
+
+  it("keeps an authenticated user quota when the caller rotates forwarded IP values", async () => {
+    let response: Response | null = null;
+    for (let index = 0; index < 61; index += 1) {
+      const request = new NextRequest("http://localhost/api/import", {
+        method: "POST",
+        headers: { "x-forwarded-for": `198.51.100.${index}` }
+      });
+      response = await enforceApiRateLimit(request, "rate-limit-user-1");
+    }
+    expect(response?.status).toBe(429);
   });
 
   it("keeps production server errors sanitized in logs", () => {

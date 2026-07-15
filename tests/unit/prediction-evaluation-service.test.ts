@@ -5,10 +5,15 @@ import type { Goal, SwimResult } from "@/types/swim";
 
 const createManyMock = vi.hoisted(() => vi.fn());
 const attemptCreateManyMock = vi.hoisted(() => vi.fn());
+const analyticsCreateMock = vi.hoisted(() => vi.fn());
+const analyticsFindFirstMock = vi.hoisted(() => vi.fn());
+const analyticsConsentMock = vi.hoisted(() => vi.fn());
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/prisma", () => ({ prisma: {
   predictionSnapshot: { createMany: createManyMock },
-  predictionAttempt: { createMany: attemptCreateManyMock }
+  predictionAttempt: { createMany: attemptCreateManyMock },
+  user: { findUnique: analyticsConsentMock },
+  productAnalyticsEvent: { findFirst: analyticsFindFirstMock, create: analyticsCreateMock }
 } }));
 
 function relativeDate(days: number) {
@@ -53,7 +58,9 @@ function transaction(snapshotRows = snapshots) {
     predictionSnapshot: {
       findMany: vi.fn().mockResolvedValueOnce(snapshotRows),
       update: vi.fn().mockResolvedValue({})
-    }
+    },
+    user: { findUnique: vi.fn().mockResolvedValue({ personalAnalyticsConsentedAt: null, personalAnalyticsWithdrawnAt: null }) },
+    productAnalyticsEvent: { findFirst: vi.fn(), create: vi.fn() }
   };
 }
 
@@ -62,6 +69,7 @@ describe("prediction result matching", () => {
     vi.clearAllMocks();
     createManyMock.mockResolvedValue({ count: 4 });
     attemptCreateManyMock.mockResolvedValue({ count: 1 });
+    analyticsConsentMock.mockResolvedValue({ personalAnalyticsConsentedAt: null, personalAnalyticsWithdrawnAt: null });
   });
 
   it("persists account-scoped explanation and probability snapshots without foreign race leakage", async () => {

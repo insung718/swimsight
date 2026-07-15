@@ -20,7 +20,13 @@ export async function GET() {
         sex: true,
         taperDays: true,
         swimSessionsPerWeek: true,
+        countryCode: true,
+        region: true,
+        preferredCourse: true,
+        mainEvents: true,
         role: true,
+        onboardingStartedAt: true,
+        firstInsightAt: true,
         createdAt: true,
         updatedAt: true,
         personalAnalyticsConsentVersion: true,
@@ -45,6 +51,15 @@ export async function GET() {
         predictionAttempts: true,
         consentEvents: true,
         raceFeedback: { include: { revisions: true } },
+        importBatches: { include: { rows: true, identities: true, actions: true } },
+        pilotEnrollments: { include: { cohort: { select: { name: true, label: true } } } },
+        shareGrants: true,
+        grantedShareAccess: true,
+        authoredCoachNotes: true,
+        productEvents: true,
+        cohortRecords: { select: { manifestId: true, swimResultId: true, splitAssignment: true, predictionCutoff: true, createdAt: true } },
+        accessAuditActions: { select: { action: true, resourceType: true, purpose: true, outcome: true, createdAt: true } },
+        accessAuditSubjects: { select: { action: true, resourceType: true, purpose: true, outcome: true, createdAt: true } },
         memberships: true,
         communityMemberships: true,
         ownedTeams: { select: { id: true, name: true, description: true, createdAt: true, updatedAt: true } },
@@ -54,14 +69,15 @@ export async function GET() {
       }
     });
     return new NextResponse(JSON.stringify({
-      schemaVersion: "swimsight-export-v1",
+      schemaVersion: "swimsight-export-v2",
       exportedAt: new Date().toISOString(),
       user
     }, null, 2), {
       headers: {
         "Cache-Control": "no-store",
         "Content-Disposition": `attachment; filename="swimsight-export-${new Date().toISOString().slice(0, 10)}.json"`,
-        "Content-Type": "application/json; charset=utf-8"
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Content-Type-Options": "nosniff"
       }
     });
   } catch (error) {

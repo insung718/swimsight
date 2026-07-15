@@ -21,6 +21,12 @@ Pseudonymization is not anonymization: authorized operators with the secret and 
 
 ## Retention
 
-Personal analytics data remains until the user deletes it or the account. Withdrawn training consent prevents future training extraction; it does not delete the user’s private analytics. Model artifacts already trained on previously consented data cannot selectively remove one contribution, so each dataset version must retain its consent snapshot and be retired or retrained when policy requires.
+Personal analytics data remains until the user deletes the individual record or account. Withdrawn training consent prevents future training extraction; it does not remove private analytics. Model artifacts already trained on previously consented data cannot selectively remove one contribution, so each dataset version retains its consent snapshot and must be invalidated, retired, or retrained when policy requires.
 
-No automatic retention deletion schedule is implemented yet. Before public launch at scale, SwimSight must define jurisdiction-reviewed retention periods, backup expiry behavior, support ownership, and a completed identity-deletion retry process.
+- Raw import files are never retained. Normalized rows, hashes, mappings, importer versions, and review history remain with the account until rollback or account deletion.
+- Product analytics contain only allowlisted categorical/bucketed properties, expire after 90 days, and are deleted immediately when personal-analytics consent is withdrawn.
+- Completed external-identity deletion tombstones are retained for 180 days to prevent accidental account resurrection during Clerk retries, then purged by the protected maintenance job.
+- Access audit records retain pseudonymized integrity evidence while direct relational identifiers are nulled on account deletion.
+- Invalidated research manifests remain as provenance; associated athlete records are removed when consent, source data, or the account is withdrawn/deleted.
+
+The protected cron route retries incomplete Clerk identity deletions and purges expired product events and completed tombstones. Application deletion cannot prove immediate erasure from encrypted provider backups; provider backup expiry, restore access, and legal retention still require documented operational controls and jurisdiction-specific review.

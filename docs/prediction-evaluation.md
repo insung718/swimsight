@@ -17,6 +17,8 @@ Each snapshot stores:
 
 Feature snapshots, local explanation payloads, and residual quantiles remain server-side. The performance API returns only the metrics and history fields needed by the signed-in athlete dashboard.
 
+PostgreSQL enforces snapshot input immutability. Only the documented outcome fields may be attached or cleared by the strict evaluation/rollback lifecycle; forecast values, model metadata, eligibility, and prediction-time features cannot be rewritten after creation.
+
 ## Matching rules
 
 A result evaluates a snapshot only when all of the following match:
@@ -26,6 +28,8 @@ A result evaluates a snapshot only when all of the following match:
 3. Event and course are identical. SwimSight never compares LCM, SCM, and SCY without an explicit conversion model.
 4. The official result date is the snapshot target date.
 5. The prediction existed before the result was recorded.
+
+The match stores an evaluation-policy version and match provenance. Public validation additionally requires a source-backed imported result with an import-row reference and original-row hash. Self-declared official results may evaluate private forecasts but do not support public performance claims.
 
 When an athlete has multiple eligible results for the same event, course, and day, SwimSight evaluates the race-day best. Multiple snapshots and model versions for that target are retained and evaluated independently.
 
@@ -43,6 +47,8 @@ For each evaluated snapshot, SwimSight calculates absolute error, signed error, 
 
 Pending forecasts are shown separately and never included in accuracy metrics.
 
+After an exact match, the athlete may optionally record taper duration, effort, illness, injury, course verification, unusual circumstances, and whether the prediction was useful. This context is versioned and kept separate from the official result, forecast snapshot, and research label; it is not silently used as a training target.
+
 ## Data quality and isolation
 
 - Result dates cannot be in the future.
@@ -52,6 +58,7 @@ Pending forecasts are shown separately and never included in accuracy metrics.
 - Database constraints reject invalid forecast bounds, confidence values, model sources, and sufficiency labels.
 - A malformed or incomplete XGBoost artifact fails closed to the conservative model.
 - Goal feasibility is course-specific. LCM, SCM, and SCY histories are never mixed.
+- Import rollback clears any derived evaluation fields before deleting the source result and invalidates sealed cohort manifests that referenced it.
 
 ## Known limitations
 

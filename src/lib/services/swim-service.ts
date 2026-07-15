@@ -8,6 +8,7 @@ import { getGymWorkoutsForUser } from "@/lib/services/gym-service";
 import { listUpcomingMeets } from "@/lib/services/meet-service";
 import { getApprovedHundredFreeChampionReleases } from "@/lib/services/model-governance-service";
 import { evaluatePredictionSnapshotsForResult, syncPredictionSnapshots } from "@/lib/services/prediction-evaluation-service";
+import { markFirstInsight } from "@/lib/services/product-analytics-service";
 import type { Course, DashboardAnalytics, Goal, SwimEvent, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
 interface CreateSwimInput {
@@ -22,6 +23,13 @@ interface CreateSwimInput {
   resultKind?: SwimResultKind;
   raceType?: SwimRaceType;
   provenance?: Prisma.InputJsonValue;
+  importBatchId?: string;
+  importRowId?: string;
+  externalResultId?: string;
+  externalAthleteId?: string;
+  externalMeetId?: string;
+  sourceStatus?: string;
+  originalRowHash?: string;
 }
 
 export class DuplicateSwimError extends Error {
@@ -31,7 +39,7 @@ export class DuplicateSwimError extends Error {
   }
 }
 
-function swimDedupeKey(input: CreateSwimInput) {
+export function buildSwimDedupeKey(input: CreateSwimInput) {
   const canonical = [
     input.userId,
     input.date,
@@ -58,7 +66,14 @@ function swimCreateData(input: CreateSwimInput) {
     source: input.source ?? "MANUAL" as const,
     resultKind: input.resultKind ?? "OFFICIAL" as const,
     raceType: input.raceType ?? "INDIVIDUAL" as const,
-    dedupeKey: swimDedupeKey(input)
+    dedupeKey: buildSwimDedupeKey(input),
+    importBatchId: input.importBatchId,
+    importRowId: input.importRowId,
+    externalResultId: input.externalResultId,
+    externalAthleteId: input.externalAthleteId,
+    externalMeetId: input.externalMeetId,
+    sourceStatus: input.sourceStatus,
+    originalRowHash: input.originalRowHash
   };
 }
 
@@ -91,6 +106,7 @@ export async function createSwim(input: CreateSwimInput) {
     swim = await prisma.$transaction(async (transaction) => {
       const created = await transaction.swimResult.create({ data: swimCreateData(input) });
       await evaluatePredictionSnapshotsForResult(transaction, created);
+      await markFirstInsight(transaction, input.userId, "MANUAL_RESULT");
       return created;
     });
   } catch (error) {
@@ -102,6 +118,11 @@ export async function createSwim(input: CreateSwimInput) {
 }
 
 export async function createManySwims(rows: CreateSwimInput[]) {
+  if (!rows.length) return [];
+  const userId = rows[0].userId;
+  if (rows.some((row) => row.userId !== userId)) {
+    throw new Error("Bulk result creation cannot span multiple accounts.");
+  }
   const data = rows.map((input) => swimCreateData({ ...input, source: input.source ?? "CSV" }));
   if (new Set(data.map((row) => row.dedupeKey)).size !== data.length) throw new DuplicateSwimError();
 
@@ -114,6 +135,7 @@ export async function createManySwims(rows: CreateSwimInput[]) {
       if (existing) throw new DuplicateSwimError();
       const created = await transaction.swimResult.createManyAndReturn({ data });
       for (const swim of created) await evaluatePredictionSnapshotsForResult(transaction, swim);
+      if (created.length) await markFirstInsight(transaction, userId, "IMPORT");
       return created;
     });
     return swims.map(toSwimResult);

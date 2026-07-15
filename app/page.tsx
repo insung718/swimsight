@@ -5,7 +5,7 @@ import { RoleOnboarding } from "@/components/role-onboarding";
 import { PersonalAnalyticsConsent } from "@/components/personal-analytics-consent";
 import { SwimSightDashboard } from "@/components/swimsight-dashboard";
 import { UserActions } from "@/components/auth/user-actions";
-import { getAuthContext } from "@/lib/auth-context";
+import { AccountDeletionPendingError, getAuthContext } from "@/lib/auth-context";
 import { buildDashboardAnalytics } from "@/lib/analytics";
 import { dashboardViewModeCookie, isDashboardViewMode } from "@/lib/dashboard-view-mode";
 import { hasDatabaseConfig } from "@/lib/prisma";
@@ -25,6 +25,9 @@ export default async function Home() {
   try {
     context = await getAuthContext();
   } catch (error) {
+    if (error instanceof AccountDeletionPendingError) {
+      return <DashboardUnavailable reason="Your SwimSight data has been removed. Identity deletion is still being finalized, so this session cannot recreate the account." />;
+    }
     logServerError("Account bootstrap failed", error);
     return <DashboardUnavailable reason="Google sign-in worked, but SwimSight could not create your account record in the database yet." />;
   }

@@ -6,6 +6,7 @@ import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell
 import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
+import { DataPrivacyPanel } from "@/components/data-privacy-panel";
 import { useTranslator } from "@/components/i18n/use-language";
 import { EventRankings } from "@/components/event-rankings";
 import { GoalTracker } from "@/components/goal-tracker";
@@ -26,6 +27,7 @@ import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
 import { FlipText } from "@/components/ui/flip-text";
+import { useProductEvent } from "@/hooks/use-product-event";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { isOfficialResult } from "@/lib/analytics";
 import { formatTime } from "@/lib/utils";
@@ -67,6 +69,7 @@ export function SwimSightDashboard({
   const trainingSwims = swims.filter((swim) => (swim.resultKind ?? "OFFICIAL") === "TRAINING");
   const hasResults = officialSwims.length > 0;
   const primaryPrediction = [...analytics.predictions].sort((a, b) => b.confidence - a.confidence)[0];
+  useProductEvent("RETURN_VISIT");
 
   return (
     <main className="dark dashboard-shell min-h-screen w-full overflow-x-clip text-stitch-text">
@@ -136,7 +139,7 @@ export function SwimSightDashboard({
 
         {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} initialProjection={analytics.goalProjection} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
-        {activeTab === "profile" && <DashboardPanel><SectionHeading eyebrow="Athlete page" title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /></DashboardPanel>}
+        {activeTab === "profile" && <DashboardPanel><SectionHeading eyebrow="Athlete page" title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
       </div>
       <Dock
         items={tabs.map(({ id, label, icon: Icon }) => ({

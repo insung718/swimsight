@@ -13,6 +13,7 @@ import {
 import { fromPrismaEvent, toPrismaEvent } from "@/lib/prisma-mappers";
 import { prisma } from "@/lib/prisma";
 import { assessPredictionDataQuality } from "@/lib/prediction-governance";
+import { countBucket, recordProductEvent } from "@/lib/services/product-analytics-service";
 import type { Goal, Prediction, PredictionProfile, SwimResult, UpcomingMeet } from "@/types/swim";
 
 interface SyncPredictionSnapshotsInput {
@@ -23,6 +24,8 @@ interface SyncPredictionSnapshotsInput {
   goal?: Goal;
   meets?: UpcomingMeet[];
 }
+
+export const PREDICTION_MATCH_POLICY_VERSION = "official-individual-exact-date-best-time-v1";
 
 function addDays(date: string, days: number) {
   const value = new Date(`${date}T00:00:00.000Z`);
@@ -204,6 +207,12 @@ export async function syncPredictionSnapshots({
   if (attempts.length) await prisma.predictionAttempt.createMany({ data: attempts, skipDuplicates: true });
   if (!rows.length) return 0;
   const result = await prisma.predictionSnapshot.createMany({ data: rows, skipDuplicates: true });
+  await recordProductEvent({
+    userId,
+    eventName: "PREDICTION_ELIGIBLE",
+    properties: { eligible: true, eventGroupCountBucket: countBucket(new Set(rows.map((row) => `${row.event}|${row.course}`)).size) },
+    minimumIntervalMinutes: 43_200
+  });
   return result.count;
 }
 
@@ -258,7 +267,7 @@ export async function evaluatePredictionSnapshotsForResult(
     select: { timeSeconds: true }
   });
 
-  await Promise.all(snapshots.map((snapshot) => {
+  const evaluated = snapshots.map((snapshot) => {
     const outcome = calculatePredictionOutcome({
       actualTime: bestResult.timeSeconds,
       predictedTime: snapshot.predictedTime,
@@ -268,15 +277,45 @@ export async function evaluatePredictionSnapshotsForResult(
       goalTime: snapshot.goalTime,
       qualifyingTime: snapshot.qualifyingTime
     });
-    return transaction.predictionSnapshot.update({
+    return { snapshot, outcome };
+  });
+
+  await Promise.all(evaluated.map(({ snapshot, outcome }) => transaction.predictionSnapshot.update({
       where: { id: snapshot.id },
       data: {
         actualResultId: bestResult.id,
+        evaluationPolicyVersion: PREDICTION_MATCH_POLICY_VERSION,
+        evaluationMatchMetadata: {
+          matchedResultId: bestResult.id,
+          exactAccountEventCourseAndDate: true,
+          bestOfficialIndividualResultOnDate: true,
+          predictionCreatedBeforeResult: true,
+          resultSource: bestResult.source,
+          sourceStatus: bestResult.sourceStatus,
+          importBatchId: bestResult.importBatchId,
+          importRowId: bestResult.importRowId,
+          externalMeetId: bestResult.externalMeetId,
+          externalResultId: bestResult.externalResultId,
+          resultCreatedAt: bestResult.createdAt.toISOString()
+        },
         ...outcome,
         evaluatedAt: new Date()
       }
-    });
-  }));
+    })));
+
+  const first = evaluated[0];
+  await recordProductEvent({
+    client: transaction,
+    userId: result.userId,
+    eventName: "POST_MEET_MATCHED",
+    properties: {
+      course: result.course,
+      targetType: first.snapshot.targetType ?? "UNKNOWN",
+      modelSource: first.snapshot.modelSource ?? "UNKNOWN",
+      withinInterval: first.outcome.withinInterval
+    },
+    minimumIntervalMinutes: 5
+  });
 
   return snapshots.length;
 }
@@ -333,6 +372,7 @@ export async function getPredictionEvaluationDashboard(userId: string) {
     qualifyingProbability: snapshot.qualifyingProbability,
     probabilityMethod: probabilityMethod(snapshot.probabilityMethod),
     evaluatedAt: snapshot.evaluatedAt?.toISOString() ?? null,
+    actualResultId: snapshot.actualResultId,
     outOfDistribution: snapshot.outOfDistribution,
     lastRaceBaseline: snapshot.lastRaceBaseline,
     lastThreeBaseline: snapshot.lastThreeBaseline,

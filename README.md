@@ -1,266 +1,165 @@
 # SwimSight
 
-SwimSight is a modern swim analytics MVP for competitive swimmers, coaches, and school or club teams. It tracks race history, personal bests, improvement rates, consistency, trends, future time predictions, goals, team leaderboards, and a proprietary Swim Power Index.
+SwimSight is a private-by-default swim performance platform for competitive swimmers and coaches. It combines course-specific race history, personal bests, goal planning, meet preparation, transparent forecasts, team sharing, and a governed data foundation for future model research.
 
-## Tech Stack
+Production forecasts remain conservative and deterministic. SwimSight does **not** claim a trained machine-learning champion until a consented, immutable cohort and prospective evaluation pass the documented release gates. The public evidence state is available at `/validation`.
 
-- Next.js 15 App Router
-- React, TypeScript, TailwindCSS, Recharts
-- Next.js API Routes
-- PostgreSQL with Prisma ORM
-- Clerk authentication
-- Vitest unit tests and Playwright e2e tests
-- Vercel-ready deployment
-- Vercel Web Analytics for privacy-friendly pageview tracking
+## Product Surfaces
 
-## MVP Features
+- **Athlete workspace:** manual result entry, versioned spreadsheet import, PBs, progression, consistency, SPI, goals, meets, gym context, predictions, post-meet review, privacy controls, friends, and communities.
+- **Coach workspace:** clubs, permission-reviewed pilot invitations, roster readiness, athlete PB/trend summaries, prediction availability, upcoming meets, and private notes.
+- **Pilot enrollment:** expiring, use-limited invitations with the cohort, club, and exact sharing scopes disclosed before acceptance.
+- **Internal readiness:** administrator-only raw, consent-eligible, statistically usable, coverage, pilot, evaluation, and immutable cohort status at `/internal/readiness`.
+- **Public validation:** thresholded, source-backed, consented aggregate evidence and explicit limitations at `/validation`.
 
-- Performance overview with total swims, PB count, strongest event, and most improved event
-- Personal best tracker with current PB, date achieved, previous PB, and improvement
-- Interactive progression chart with event filter, year filter, hover values, and zoom brush
-- Analytics engine for improvement rate, rankings, consistency, trends, predictions, goal pace, and SPI
-- Regression predictions for 30, 90, 180, and 365 days
-- Goal tracker with required weekly/monthly improvement, current pace, and likelihood
-- Google-ready Clerk authentication and per-user account sync
-- Manual time entry plus CSV upload/import
-- Upcoming meet countdowns with target events
-- Communities, join codes, friend requests, and comparison-ready community analytics
-- Motivational tips generated from training data and upcoming meets
-- Coach/team dashboard with leaderboard, most improved swimmer, fastest swimmer, and team progress
-- CSV upload and validation for `Date,Event,Time`
-- Light/dark mode and responsive layouts
+## Data Foundation v1
 
-## Getting Started
+- Versioned `SWIMSIGHT_CANONICAL`, `GENERIC_RACE_CSV`, and SwimCloud-compatible user-export adapters.
+- Preview, explicit column mapping, per-row validation, partial commit, idempotency, provenance, identity review, correction, unmerge, and rollback.
+- Formula-injection, malformed encoding/CSV, future-date, duplicate, row, column, cell, and 1.5 MB upload protections.
+- Separate versioned consent for personal analytics, model training, public research, and verified guardian authorization.
+- Athlete-controlled coach grants for `RESULTS`, `GOALS`, `PREDICTIONS`, and `UPCOMING_MEETS`.
+- Immutable cohort manifests with source hashes, consent/schema/importer versions, athlete-level splits, extraction cutoff, distributions, exclusion counts, and prediction-time histories.
+- Strict post-meet matching that keeps subjective taper, effort, illness, injury, and usefulness feedback separate from official labels.
+- Consent-dependent, allowlisted product events with 90-day expiry and no names, emails, race times, or free text.
+
+## Stack
+
+- Next.js 15 App Router, React, TypeScript, Tailwind CSS, Recharts
+- PostgreSQL and Prisma ORM
+- Clerk authentication with Google OAuth
+- Vitest and Playwright
+- Vercel, Vercel Web Analytics, and optional Upstash Redis rate limiting
+
+## Local Setup
 
 ```bash
 npm install
 cp .env.example .env.local
+npm run db:generate
+npm run db:migrate
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Without Clerk or PostgreSQL configuration, the public site remains available while private account features fail closed.
 
-Without Clerk keys, the public product page remains available but account features stay locked. Add Clerk values to `.env.local` to enable sign-in:
+Enable Google OAuth in Clerk under **User & Authentication > Social connections**. Use exact production domains and redirect allowlists.
 
-```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL="/"
-NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL="/"
-ADMIN_EMAILS="your-google-email@example.com"
-```
-
-Enable Google OAuth in the Clerk dashboard under **User & Authentication > Social connections**. Once enabled, the app's sign-in button creates a real user account and the backend upserts that user into PostgreSQL.
-
-## Database
-
-Set `DATABASE_URL` in `.env.local`, then run:
+### Required Production Secrets
 
 ```bash
-npm run db:generate
-npm run db:migrate
-```
-
-For production deploys, run:
-
-```bash
-npm run db:deploy
-```
-
-The Prisma schema includes users, swim results, goals, predictions, teams, and memberships. New accounts start empty and all displayed performance data comes from that authenticated user.
-
-The v1 schema also includes:
-
-- `Community` and `CommunityMembership` for swim groups and join codes
-- `Friendship` for friend requests and accepted connections
-- `UpcomingMeet` for countdowns and target events
-- `SwimSource` for distinguishing manual, CSV, and meet-import results
-- Immutable model registry decisions, quality-scored prediction attempts, and drift snapshots
-- Versioned consent events and isolated post-race feedback revisions
-
-Vercel preview and local builds never run migrations. Production builds run `prisma migrate deploy` under a PostgreSQL advisory lock and fail before application compilation if migration deployment fails. See [Migration Safety](./docs/migration-safety.md) before changing production schema.
-
-## API
-
-All account API endpoints require Clerk auth and `DATABASE_URL`. They fail closed with `401` or `503` when auth/database configuration is missing.
-
-### `GET /api/me`
-
-Returns the current authenticated account.
-
-### `GET /api/swims`
-
-Returns the signed-in user's swims.
-
-### `GET|PATCH|DELETE /api/me/privacy`
-
-Reads or changes versioned consent. `DELETE` supports confirmed training-data exclusion or full account-data deletion. Model-training and public-research consent for users under 18 requires separate guardian consent.
-
-### `GET /api/me/export`
-
-Downloads a no-cache, machine-readable JSON export of the authenticated account.
-
-### `GET|POST|PATCH|DELETE /api/race-feedback`
-
-Manages account-scoped, versioned post-race context. Subjective feedback is stored separately from official result labels and is not training eligible.
-
-### `GET|POST /api/admin/model-governance`
-
-Trusted-admin-only model registry and monitoring endpoint. It can refresh evidence snapshots but cannot train or promote a model.
-
-## Security
-
-- Every `/api/*` request is rate limited by IP; authenticated requests also receive a user quota.
-- Admin status is server-only and email-allowlisted with `ADMIN_EMAILS`; regular users can only choose swimmer or coach.
-- Production should configure Upstash Redis for distributed limits:
-
-```bash
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_APP_URL="https://your-domain.example"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_live_..."
+CLERK_SECRET_KEY="sk_live_..."
+ADMIN_EMAILS="trusted-admin@example.com"
+TRAINING_PSEUDONYM_SECRET="independent-32-byte-or-longer-secret"
+MODEL_GOVERNANCE_AUDIT_SECRET="independent-32-byte-or-longer-secret"
+AUDIT_PSEUDONYM_SECRET="independent-32-byte-or-longer-secret"
+ROSTER_IMPORT_SECRET="independent-32-byte-or-longer-secret"
+CRON_SECRET="independent-random-secret"
 UPSTASH_REDIS_REST_URL="https://..."
 UPSTASH_REDIS_REST_TOKEN="..."
 ```
 
-- Local development falls back to an in-memory limiter.
-- JSON writes enforce content type, body-size limits, same-origin checks, strict Zod schemas, allowlisted enums, normalized text, and unknown-field rejection.
-- CSV imports are capped at 500 rows and reject unsupported or duplicate headers.
-- Secrets belong only in `.env.local` and Vercel environment variables. Never prefix server secrets with `NEXT_PUBLIC_`.
-- Configure independent 32-byte `TRAINING_PSEUDONYM_SECRET` and `MODEL_GOVERNANCE_AUDIT_SECRET` values for production.
-- See [SECURITY.md](./SECURITY.md) for reporting and operational guidance.
+Never expose a server secret through `NEXT_PUBLIC_*`. Preview deployments never run migrations. Production builds run `prisma migrate deploy` under a PostgreSQL advisory lock and fail closed if migration deployment fails. See [Migration Safety](./docs/migration-safety.md).
 
-### `POST /api/swims`
+## Spreadsheet Import
 
-Creates a manual swim result.
+Use the dashboard’s **Import spreadsheet** workflow or `POST /api/import`.
 
 ```json
 {
-  "date": "2026-03-16",
-  "event": "100 Butterfly",
-  "course": "LCM",
-  "timeSeconds": 63.8,
-  "meetName": "BIS HCMC Time Trial"
+  "mode": "PREVIEW",
+  "sourceName": "authorized-export.csv",
+  "defaultResultKind": "OFFICIAL",
+  "csv": "Date,Event,Time,Course,Meet Name,Result Kind\n2026-03-16,50 Free,25.56,LCM,Spring Meet,OFFICIAL"
 }
 ```
 
-### `GET /api/analytics`
-
-Returns dashboard analytics: overview, PBs, rankings, predictions, goal projection, and Swim Power Index.
-
-### `POST /api/import`
-
-Validates CSV text. Pass `"persist": true` to save valid rows to the signed-in account.
-
-Request:
+The preview saves no race result. Review mapping, errors, duplicates, and athlete identity, then commit valid row IDs:
 
 ```json
-{
-  "csv": "Date,Event,Time\n2026-03-16,50 Free,25.56"
-}
+{ "mode": "COMMIT", "batchId": "...", "rowIds": ["..."] }
 ```
 
-Response:
+`CORRECT_ROW`, `RESOLVE_IDENTITY`, and `ROLLBACK` are account-scoped modes on the same endpoint. The raw file is never retained. See the [canonical import specification](./docs/canonical-import-specification.md) and [example files](./docs/examples/).
 
-```json
-{
-  "validRows": [
-    {
-      "date": "2026-03-16",
-      "event": "50 Freestyle",
-      "timeSeconds": 25.56,
-      "course": "LCM",
-      "meetName": "Imported meet"
-    }
-  ],
-  "errors": []
-}
-```
+## Important APIs
 
-### `POST /api/goals`
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/me` | Authenticated account and onboarding state |
+| `GET /api/swims` / `POST /api/swims` | Account-scoped race history and manual entry |
+| `GET /api/analytics` | Private athlete analytics and transparent predictions |
+| `GET /api/import` / `POST /api/import` | Versioned import lifecycle |
+| `GET|PATCH|DELETE /api/me/privacy` | Consent, training exclusion, and account deletion |
+| `GET /api/me/export` | No-cache private account archive |
+| `GET|POST|PATCH|DELETE /api/race-feedback` | Versioned subjective post-meet context |
+| `GET|POST /api/pilots/enroll` | Invitation preview/acceptance and enrollment listing |
+| `POST /api/coach/roster` | Permission-reviewed roster invitation import |
+| `GET /api/coach/roster` | Grant-scoped coach athlete summaries |
+| `GET|POST|DELETE /api/coach/notes` | Private coach notes, separate from labels |
+| `GET|POST /api/admin/data-foundation` | Administrator readiness and cohort sealing |
+| `/validation` | Public thresholded validation status page |
 
-Creates a goal for the signed-in user.
+All private endpoints derive account ownership from Clerk. State changes require same-origin requests, strict schemas, bounded bodies, and rate limits. Administrator status is resolved server-side from `ADMIN_EMAILS`; users cannot promote themselves through profile or database role input.
 
-### `GET /api/meets`
+## Privacy and Security
 
-Returns upcoming meets with `daysUntil`.
+- Private data is no-cache and account-scoped.
+- Coaches need team role, athlete membership, active share grant, and the resource’s exact scope.
+- Imports, identity decisions, access events, prediction inputs, and research lineage have database-backed integrity controls.
+- Account deletion first creates an external-identity tombstone, invalidates affected cohorts, deletes application data, and retries Clerk identity deletion through the protected cron route.
+- Public counts and metrics are suppressed below their configured cohort/sample thresholds.
+- Production must use Redis-backed distributed rate limiting; local in-memory limits are per process.
+- No system is “unhackable.” Operational MFA, least privilege, secret rotation, dependency patching, backups, restore drills, alerting, and incident response remain required.
 
-### `POST /api/meets`
+See [Security Model](./docs/security-model.md), [Privacy and Retention](./docs/privacy-retention.md), and [SECURITY.md](./SECURITY.md).
 
-Creates an upcoming meet.
-
-```json
-{
-  "name": "City Championships",
-  "location": "Ho Chi Minh City",
-  "startDate": "2027-03-01",
-  "targetEvents": ["50 Freestyle", "100 Butterfly"]
-}
-```
-
-### `GET /api/motivation`
-
-Returns short motivational tips based on swims and the next meet.
-
-### `GET /api/communities`
-
-Lists communities for the signed-in user.
-
-### `POST /api/communities`
-
-Creates a community and owner membership.
-
-```json
-{
-  "name": "BIS HCMC Swim Team",
-  "description": "School swim team comparison group"
-}
-```
-
-### `POST /api/communities/join`
-
-Joins a community by join code.
-
-### `GET /api/communities/:communityId/compare`
-
-Returns comparison-ready member analytics for a community.
-
-### `GET /api/friends`
-
-Lists friend requests and accepted connections.
-
-### `POST /api/friends`
-
-Creates a friend request by email.
-
-### `PATCH /api/friends`
-
-Accepts or blocks an incoming friend request.
-
-## Tests
+## Verification
 
 ```bash
-npm run test
+npm run db:generate
+npx prisma validate
+npx tsc --noEmit
+npm run lint
+npm test
+npm run build
 npm run test:e2e
+npm audit
+```
+
+Model evaluation reporting is non-training and can be regenerated with:
+
+```bash
 npm run model:report
 ```
 
-## Vercel Analytics
+## Documentation
 
-Web Analytics is enabled through `@vercel/analytics`. After deployment, visit the production site once and Vercel will begin showing visitors and page views in the project Analytics tab.
+- [Data Foundation Architecture](./docs/data-foundation-architecture.md)
+- [Canonical Import Specification](./docs/canonical-import-specification.md)
+- [Data Dictionary](./docs/data-dictionary.md)
+- [Pilot Operations Guide](./docs/pilot-operations-guide.md)
+- [Research Cohort Methodology](./docs/research-cohort-methodology.md)
+- [Public Validation Methodology](./docs/public-validation-methodology.md)
+- [Prediction Evaluation](./docs/prediction-evaluation.md)
+- [Model Governance Policy](./docs/model-governance-policy.md)
 
-## Project Structure
+## Repository Layout
 
 ```text
-app/                  Next.js routes and API handlers
-prisma/               PostgreSQL schema
-src/components/       Reusable dashboard components
-src/lib/              Analytics, CSV validation, events, sample data, utilities
-src/types/            Shared TypeScript models
-tests/unit/           Vitest coverage for analytics and CSV import
-tests/e2e/            Playwright smoke tests
+app/                  Next.js pages and API handlers
+prisma/               Schema and expand-only migrations
+src/components/       Product and operations UI
+src/lib/imports/      Bounded parsers and versioned adapters
+src/lib/services/     Account-scoped application services
+docs/                 Contracts, methodology, examples, and operations
+tests/unit/            Security, consent, import, cohort, and analytics tests
+tests/e2e/             Desktop/mobile browser workflows
 ```
 
-## Next Steps
+## Current Next Step
 
-1. Acquire a credible, version-consented multi-athlete dataset.
-2. Complete a provider-backup restore drill and record recovery time.
-3. Run rolling-origin evaluation and register immutable champion/challenger evidence.
-4. Keep unsupported cohorts provisional instead of adding another forecasting algorithm.
+Run a small, consented longitudinal pilot and collect real future official outcomes. Do not fabricate athletes, readiness, retention, accuracy, or subgroup evidence. Seal a new cohort version only when the internal readiness surface and governance review support it.

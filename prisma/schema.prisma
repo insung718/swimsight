@@ -17,8 +17,14 @@ model User {
   sex                             AthleteSex?
   taperDays                       Int?
   swimSessionsPerWeek             Float?
+  countryCode                     String?
+  region                          String?
+  preferredCourse                 Course?
+  mainEvents                      SwimEvent[] @default([])
   role                            UserRole    @default(ATHLETE)
   onboardingCompleted             Boolean     @default(false)
+  onboardingStartedAt             DateTime?
+  firstInsightAt                  DateTime?
   personalAnalyticsConsentVersion String?
   personalAnalyticsConsentedAt    DateTime?
   personalAnalyticsWithdrawnAt    DateTime?
@@ -36,47 +42,197 @@ model User {
   createdAt                       DateTime    @default(now())
   updatedAt                       DateTime    @updatedAt
 
-  swims                  SwimResult[]
-  goals                  Goal[]
-  predictions            Prediction[]
-  ownedTeams             Team[]                 @relation("TeamOwner")
-  memberships            TeamMembership[]
-  ownedCommunities       Community[]            @relation("CommunityOwner")
-  communityMemberships   CommunityMembership[]
-  sentFriendRequests     Friendship[]           @relation("FriendRequester")
-  receivedFriendRequests Friendship[]           @relation("FriendAddressee")
-  upcomingMeets          UpcomingMeet[]
-  gymWorkouts            GymWorkout[]
-  predictionSnapshots    PredictionSnapshot[]
-  predictionAttempts     PredictionAttempt[]
-  consentEvents          ConsentEvent[]
-  raceFeedback           RaceFeedback[]
-  raceFeedbackRevisions  RaceFeedbackRevision[]
+  swims                   SwimResult[]
+  goals                   Goal[]
+  predictions             Prediction[]
+  ownedTeams              Team[]                    @relation("TeamOwner")
+  memberships             TeamMembership[]
+  ownedCommunities        Community[]               @relation("CommunityOwner")
+  communityMemberships    CommunityMembership[]
+  sentFriendRequests      Friendship[]              @relation("FriendRequester")
+  receivedFriendRequests  Friendship[]              @relation("FriendAddressee")
+  upcomingMeets           UpcomingMeet[]
+  gymWorkouts             GymWorkout[]
+  predictionSnapshots     PredictionSnapshot[]
+  predictionAttempts      PredictionAttempt[]
+  consentEvents           ConsentEvent[]
+  raceFeedback            RaceFeedback[]
+  raceFeedbackRevisions   RaceFeedbackRevision[]
+  importBatches           ImportBatch[]
+  importIdentities        ImportIdentityCandidate[] @relation("ImportIdentityOwner")
+  matchedImportIdentities ImportIdentityCandidate[] @relation("ImportIdentityMatch")
+  createdPilotInvites     PilotInvitation[]         @relation("PilotInviteCreator")
+  pilotEnrollments        PilotEnrollment[]
+  shareGrants             AthleteShareGrant[]       @relation("SharedAthlete")
+  grantedShareAccess      AthleteShareGrant[]       @relation("ShareGrantActor")
+  authoredCoachNotes      CoachNote[]               @relation("CoachNoteAuthor")
+  receivedCoachNotes      CoachNote[]               @relation("CoachNoteSubject")
+  accessAuditActions      AccessAuditLog[]          @relation("AccessAuditActor")
+  accessAuditSubjects     AccessAuditLog[]          @relation("AccessAuditSubject")
+  productEvents           ProductAnalyticsEvent[]
+  createdCohorts          ResearchCohortManifest[]  @relation("CohortCreator")
+  cohortRecords           ResearchCohortRecord[]
 }
 
 model SwimResult {
-  id          String         @id @default(cuid())
-  userId      String
-  date        DateTime
-  event       SwimEvent
-  course      Course
-  timeSeconds Float
-  meetName    String
-  source      SwimSource     @default(MANUAL)
-  resultKind  SwimResultKind @default(OFFICIAL)
-  raceType    SwimRaceType   @default(INDIVIDUAL)
-  dedupeKey   String?        @unique
-  notes       String?
-  provenance  Json?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id                String         @id @default(cuid())
+  userId            String
+  date              DateTime
+  event             SwimEvent
+  course            Course
+  timeSeconds       Float
+  meetName          String
+  source            SwimSource     @default(MANUAL)
+  resultKind        SwimResultKind @default(OFFICIAL)
+  raceType          SwimRaceType   @default(INDIVIDUAL)
+  dedupeKey         String?        @unique
+  notes             String?
+  provenance        Json?
+  importBatchId     String?
+  importRowId       String?        @unique
+  externalResultId  String?
+  externalAthleteId String?
+  externalMeetId    String?
+  sourceStatus      String?
+  originalRowHash   String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  evaluatedPredictions PredictionSnapshot[] @relation("PredictionActualResult")
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluatedPredictions PredictionSnapshot[]   @relation("PredictionActualResult")
   feedback             RaceFeedback?
+  importBatch          ImportBatch?           @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  importRow            ImportRow?             @relation(fields: [importRowId], references: [id], onDelete: SetNull)
+  cohortRecords        ResearchCohortRecord[]
 
   @@index([userId, event, date])
   @@index([userId, resultKind, date])
+  @@index([userId, externalResultId])
+  @@index([importBatchId])
+}
+
+model ImportBatch {
+  id                   String            @id @default(cuid())
+  userId               String
+  teamId               String?
+  adapter              ImportAdapter
+  adapterVersion       String
+  sourceName           String
+  sourceFileHash       String
+  importDefinitionHash String
+  status               ImportBatchStatus @default(PREVIEWED)
+  detectedFormat       String
+  columnMapping        Json
+  totalRows            Int
+  validRows            Int
+  invalidRows          Int
+  duplicateRows        Int               @default(0)
+  reviewRows           Int               @default(0)
+  importedRows         Int               @default(0)
+  metadata             Json?
+  committedAt          DateTime?
+  rolledBackAt         DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  user       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team       Team?                     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  rows       ImportRow[]
+  swims      SwimResult[]
+  identities ImportIdentityCandidate[]
+  actions    ImportActionLog[]
+
+  @@unique([userId, importDefinitionHash])
+  @@index([userId, createdAt])
+  @@index([userId, sourceFileHash])
+  @@index([teamId, createdAt])
+  @@index([status, createdAt])
+}
+
+model ImportRow {
+  id                  String              @id @default(cuid())
+  batchId             String
+  rowNumber           Int
+  originalRowHash     String
+  status              ImportRowStatus
+  normalizedData      Json?
+  sourceProvenance    Json
+  errors              Json
+  warnings            Json
+  duplicateResultId   String?
+  duplicateConfidence IdentityConfidence?
+  identityCandidateId String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  batch             ImportBatch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  identityCandidate ImportIdentityCandidate? @relation(fields: [identityCandidateId], references: [id], onDelete: SetNull)
+  result            SwimResult?
+
+  @@unique([batchId, rowNumber])
+  @@index([batchId, originalRowHash])
+  @@index([batchId, status])
+  @@index([duplicateResultId])
+}
+
+model ImportIdentityCandidate {
+  id                String              @id @default(cuid())
+  batchId           String
+  ownerUserId       String
+  matchedUserId     String?
+  externalAthleteId String?
+  sourceName        String?
+  sourceBirthYear   Int?
+  confidence        IdentityConfidence
+  score             Float
+  status            IdentityMatchStatus
+  reasonCodes       Json
+  reviewedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  batch       ImportBatch               @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  owner       User                      @relation("ImportIdentityOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  matchedUser User?                     @relation("ImportIdentityMatch", fields: [matchedUserId], references: [id], onDelete: SetNull)
+  rows        ImportRow[]
+  events      IdentityResolutionEvent[]
+
+  @@unique([batchId, externalAthleteId, sourceName])
+  @@index([ownerUserId, status])
+  @@index([matchedUserId])
+}
+
+model IdentityResolutionEvent {
+  id             String   @id @default(cuid())
+  candidateId    String
+  actorUserId    String
+  action         String
+  previousStatus String
+  nextStatus     String
+  reason         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  candidate ImportIdentityCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model ImportActionLog {
+  id            String       @id @default(cuid())
+  batchId       String
+  actorUserId   String
+  action        ImportAction
+  rowCount      Int          @default(0)
+  metadata      Json?
+  integrityHash String
+  createdAt     DateTime     @default(now())
+
+  batch ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, createdAt])
+  @@index([actorUserId, createdAt])
 }
 
 model PredictionSnapshot {
@@ -126,6 +282,8 @@ model PredictionSnapshot {
   probabilityMethod        String?
   inputFingerprint         String
   actualResultId           String?
+  evaluationPolicyVersion  String?
+  evaluationMatchMetadata  Json?
   actualTime               Float?
   absoluteError            Float?
   signedError              Float?
@@ -322,10 +480,213 @@ model Team {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  owner       User?            @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  memberships TeamMembership[]
+  owner            User?               @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships      TeamMembership[]
+  importBatches    ImportBatch[]
+  pilotInvitations PilotInvitation[]
+  pilotEnrollments PilotEnrollment[]
+  shareGrants      AthleteShareGrant[]
+  coachNotes       CoachNote[]
+  accessAuditLogs  AccessAuditLog[]
 
   @@index([ownerId])
+}
+
+model PilotCohort {
+  id          String    @id @default(cuid())
+  name        String
+  label       String    @unique
+  description String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  invitations PilotInvitation[]
+  enrollments PilotEnrollment[]
+
+  @@index([active, createdAt])
+}
+
+model PilotInvitation {
+  id                 String        @id @default(cuid())
+  cohortId           String
+  teamId             String?
+  createdById        String?
+  createdByPseudonym String
+  tokenHash          String        @unique
+  label              String
+  audience           PilotAudience
+  maxUses            Int           @default(1)
+  useCount           Int           @default(0)
+  expiresAt          DateTime
+  revokedAt          DateTime?
+  createdAt          DateTime      @default(now())
+
+  cohort      PilotCohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  team        Team?             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator     User?             @relation("PilotInviteCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  enrollments PilotEnrollment[]
+
+  @@index([cohortId, expiresAt])
+  @@index([teamId])
+  @@index([createdById, createdAt])
+}
+
+model PilotEnrollment {
+  id           String                @id @default(cuid())
+  cohortId     String
+  invitationId String?
+  userId       String
+  teamId       String?
+  status       PilotEnrollmentStatus @default(ACTIVE)
+  enrolledAt   DateTime              @default(now())
+  withdrawnAt  DateTime?
+  metadata     Json?
+
+  cohort     PilotCohort      @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  invitation PilotInvitation? @relation(fields: [invitationId], references: [id], onDelete: SetNull)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team       Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@unique([cohortId, userId])
+  @@index([userId, status])
+  @@index([teamId, status])
+}
+
+model AthleteShareGrant {
+  id             String           @id @default(cuid())
+  athleteId      String
+  teamId         String
+  grantedById    String
+  status         ShareGrantStatus @default(ACTIVE)
+  scopes         Json
+  consentVersion String
+  grantedAt      DateTime         @default(now())
+  withdrawnAt    DateTime?
+  updatedAt      DateTime         @updatedAt
+
+  athlete   User @relation("SharedAthlete", fields: [athleteId], references: [id], onDelete: Cascade)
+  grantedBy User @relation("ShareGrantActor", fields: [grantedById], references: [id], onDelete: Cascade)
+  team      Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([athleteId, teamId])
+  @@index([teamId, status])
+  @@index([athleteId, status])
+}
+
+model CoachNote {
+  id            String   @id @default(cuid())
+  teamId        String
+  authorId      String
+  subjectUserId String
+  content       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  author  User @relation("CoachNoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  subject User @relation("CoachNoteSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, subjectUserId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model AccessAuditLog {
+  id               String   @id @default(cuid())
+  actorId          String?
+  subjectUserId    String?
+  teamId           String?
+  actorPseudonym   String?
+  subjectPseudonym String?
+  teamPseudonym    String?
+  action           String
+  resourceType     String
+  resourceId       String?
+  purpose          String
+  outcome          String
+  metadata         Json?
+  previousHash     String?
+  integrityHash    String
+  createdAt        DateTime @default(now())
+
+  actor   User? @relation("AccessAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  subject User? @relation("AccessAuditSubject", fields: [subjectUserId], references: [id], onDelete: SetNull)
+  team    Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([subjectUserId, createdAt])
+  @@index([teamId, createdAt])
+}
+
+model ProductAnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  eventName  String
+  sessionId  String?
+  properties Json
+  occurredAt DateTime @default(now())
+  expiresAt  DateTime
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventName, occurredAt])
+  @@index([userId, occurredAt])
+  @@index([expiresAt])
+}
+
+model ResearchCohortManifest {
+  id                   String       @id @default(cuid())
+  version              String       @unique
+  createdById          String?
+  createdByPseudonym   String
+  status               CohortStatus @default(SEALED)
+  extractionCutoff     DateTime
+  inclusionRules       Json
+  exclusionRules       Json
+  consentVersion       String
+  featureSchemaVersion String
+  splitPolicyVersion   String
+  importerVersions     Json
+  distributions        Json
+  exclusionCounts      Json
+  sourceSummary        Json
+  datasetHash          String
+  manifestHash         String       @unique
+  recordCount          Int
+  athleteCount         Int
+  invalidatedAt        DateTime?
+  invalidationReason   String?
+  createdAt            DateTime     @default(now())
+
+  creator User?                  @relation("CohortCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  records ResearchCohortRecord[]
+
+  @@index([status, createdAt])
+  @@index([extractionCutoff])
+}
+
+model ResearchCohortRecord {
+  id               String   @id @default(cuid())
+  manifestId       String
+  userId           String
+  swimResultId     String
+  athletePseudonym String
+  splitAssignment  String
+  sourceRecordHash String
+  featureSnapshot  Json
+  predictionCutoff DateTime
+  createdAt        DateTime @default(now())
+
+  manifest   ResearchCohortManifest @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swimResult SwimResult             @relation(fields: [swimResultId], references: [id], onDelete: Cascade)
+
+  @@unique([manifestId, swimResultId])
+  @@index([manifestId, splitAssignment])
+  @@index([userId])
+  @@index([swimResultId])
 }
 
 model TeamMembership {
@@ -419,6 +780,19 @@ model GymWorkout {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
+}
+
+model AccountDeletionTombstone {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  requestedAt   DateTime  @default(now())
+  lastAttemptAt DateTime?
+  attemptCount  Int       @default(0)
+  completedAt   DateTime?
+  retainedUntil DateTime
+
+  @@index([completedAt, lastAttemptAt])
+  @@index([retainedUntil])
 }
 
 enum UserRole {
@@ -548,4 +922,73 @@ enum FeedbackChangeType {
   CREATED
   UPDATED
   DELETED
+}
+
+enum ImportAdapter {
+  SWIMSIGHT_CANONICAL
+  GENERIC_RACE_CSV
+  SWIMCLOUD_EXPORT
+}
+
+enum ImportBatchStatus {
+  PREVIEWED
+  PARTIALLY_COMMITTED
+  COMMITTED
+  ROLLED_BACK
+  FAILED
+}
+
+enum ImportRowStatus {
+  VALID
+  INVALID
+  DUPLICATE
+  REVIEW_REQUIRED
+  IMPORTED
+  SKIPPED
+  ROLLED_BACK
+}
+
+enum IdentityConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IdentityMatchStatus {
+  AUTO_MATCHED
+  REVIEW_REQUIRED
+  CONFIRMED
+  REJECTED
+  UNMERGED
+}
+
+enum ImportAction {
+  PREVIEWED
+  ROW_CORRECTED
+  IDENTITY_CONFIRMED
+  IDENTITY_REJECTED
+  COMMITTED
+  ROLLED_BACK
+}
+
+enum PilotAudience {
+  INDIVIDUAL
+  SCHOOL
+  CLUB
+}
+
+enum PilotEnrollmentStatus {
+  ACTIVE
+  WITHDRAWN
+  COMPLETED
+}
+
+enum ShareGrantStatus {
+  ACTIVE
+  WITHDRAWN
+}
+
+enum CohortStatus {
+  SEALED
+  INVALIDATED
 }

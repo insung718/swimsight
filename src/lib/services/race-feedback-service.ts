@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma, RaceEffort, TaperStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { recordProductEvent } from "@/lib/services/product-analytics-service";
 
 export interface RaceFeedbackFields {
   taperStatus: TaperStatus;
@@ -37,7 +38,16 @@ export async function listRaceFeedback(userId: string) {
 
 export async function createRaceFeedback(userId: string, swimResultId: string, fields: RaceFeedbackFields) {
   return prisma.$transaction(async (transaction) => {
-    const result = await transaction.swimResult.findFirst({ where: { id: swimResultId, userId }, select: { id: true } });
+    const result = await transaction.swimResult.findFirst({
+      where: {
+        id: swimResultId,
+        userId,
+        resultKind: "OFFICIAL",
+        raceType: "INDIVIDUAL",
+        evaluatedPredictions: { some: { userId, evaluatedAt: { not: null } } }
+      },
+      select: { id: true }
+    });
     if (!result) throw new Error("FEEDBACK_RESULT_NOT_FOUND");
     const existing = await transaction.raceFeedback.findUnique({ where: { swimResultId }, select: { id: true } });
     if (existing) throw new Error("FEEDBACK_ALREADY_EXISTS");
@@ -52,6 +62,13 @@ export async function createRaceFeedback(userId: string, swimResultId: string, f
         changeType: "CREATED",
         snapshot: snapshot(fields)
       }
+    });
+    await recordProductEvent({
+      client: transaction,
+      userId,
+      eventName: "FEEDBACK_COMPLETED",
+      properties: { predictionUsefulAnswered: fields.predictionUseful !== null },
+      minimumIntervalMinutes: 5
     });
     return feedback;
   }, { isolationLevel: "Serializable" });

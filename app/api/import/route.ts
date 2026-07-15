@@ -1,53 +1,64 @@
-import { createHash } from "node:crypto";
-import { badRequest, conflict, created } from "@/lib/api";
-import { validateSwimCsv } from "@/lib/csv";
+import { badRequest, created, notFound, ok } from "@/lib/api";
+import { CsvDocumentError } from "@/lib/imports/csv-parser";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
-import { createManySwims, DuplicateSwimError } from "@/lib/services/swim-service";
-import { csvImportSchema } from "@/lib/validation";
+import {
+  commitImportBatch,
+  correctImportRow,
+  listImportBatches,
+  previewImportBatch,
+  resolveImportIdentity,
+  rollbackImportBatch
+} from "@/lib/services/import-service";
+import { importMutationSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const account = await requireApiAccount();
+  if (!account.ok) return account.response;
+  try {
+    return ok({ batches: await listImportBatches(account.context.userId) });
+  } catch (error) {
+    logServerError("Could not list import batches", error);
+    return databaseUnavailable();
+  }
+}
 
 export async function POST(request: Request) {
   const originError = enforceSameOrigin(request);
   if (originError) return originError;
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  const parsed = await parseSecureJson(request, csvImportSchema, 120_000);
+  const parsed = await parseSecureJson(request, importMutationSchema, 1_650_000);
   if (!parsed.ok) return parsed.response;
-  const result = validateSwimCsv(parsed.data.csv);
-
-  if (!parsed.data.persist) {
-    return Response.json(result);
-  }
-
-  if (result.errors.length) {
-    return badRequest("Fix CSV validation errors before importing.", result.errors);
-  }
 
   try {
-    const sourceFileHash = createHash("sha256").update(parsed.data.csv).digest("hex");
-    const swims = await createManySwims(
-      result.validRows.map((row, index) => ({
-        userId: account.context.userId,
-        ...row,
-        notes: row.notes ?? undefined,
-        source: "CSV",
-        resultKind: row.resultKind ?? parsed.data.resultKind,
-        provenance: {
-          method: "CSV",
-          sourceFileHash,
-          sourceRowNumber: index + 2,
-          parserVersion: "csv-v1"
-        }
-      }))
-    );
-
-    return created({ ...result, swims });
+    switch (parsed.data.mode) {
+      case "PREVIEW":
+        return created(await previewImportBatch({ userId: account.context.userId, ...parsed.data }));
+      case "COMMIT": {
+        const batch = await commitImportBatch({ userId: account.context.userId, batchId: parsed.data.batchId, rowIds: parsed.data.rowIds });
+        return batch ? ok({ batch }) : notFound("Import batch is unavailable or no longer commit-ready.");
+      }
+      case "ROLLBACK": {
+        const batch = await rollbackImportBatch({ userId: account.context.userId, batchId: parsed.data.batchId });
+        return batch ? ok({ batch }) : notFound("Import batch was not found or was already rolled back.");
+      }
+      case "CORRECT_ROW": {
+        const batch = await correctImportRow({ userId: account.context.userId, batchId: parsed.data.batchId, rowId: parsed.data.rowId, result: parsed.data.result });
+        return batch ? ok({ batch }) : notFound("Import row was not found or can no longer be edited.");
+      }
+      case "RESOLVE_IDENTITY": {
+        const batch = await resolveImportIdentity({ userId: account.context.userId, batchId: parsed.data.batchId, candidateId: parsed.data.candidateId, action: parsed.data.action });
+        return batch ? ok({ batch }) : notFound("Identity review was not found.");
+      }
+    }
   } catch (error) {
-    if (error instanceof DuplicateSwimError) return conflict(error.message);
-    logServerError("Could not import swims", error);
+    if (error instanceof CsvDocumentError) return badRequest(error.message, [{ code: error.code }]);
+    if (error instanceof Error && error.message.startsWith("Column mapping")) return badRequest(error.message);
+    logServerError("Import operation failed", error);
     return databaseUnavailable();
   }
 }

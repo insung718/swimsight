@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { supportedEvents } from "@/lib/events";
+import { isFormulaLike } from "@/lib/imports/csv-parser";
 
 export const swimEventSchema = z.enum(supportedEvents);
 export const courseSchema = z.enum(["SCM", "LCM", "SCY"]);
@@ -78,6 +79,9 @@ export const profileRoleSchema = z.object({
   personalAnalyticsConsent: z.literal(true),
   age: z.number().int().min(6).max(100).optional(),
   sex: athleteSexSchema.optional(),
+  countryCode: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/).optional(),
+  preferredCourse: courseSchema.optional(),
+  mainEvents: z.array(swimEventSchema).max(5).default([]),
   taperDays: z.number().int().min(0).max(28).optional(),
   swimSessionsPerWeek: z.number().min(0).max(14).multipleOf(0.5).optional()
 }).strict().superRefine((value, context) => {
@@ -94,6 +98,15 @@ export const profileRoleSchema = z.object({
       message: "Performance category is required for swimmer analytics.",
       path: ["sex"]
     });
+  }
+  if (value.role === "ATHLETE" && !value.countryCode) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Country is required for coverage reporting.", path: ["countryCode"] });
+  }
+  if (value.role === "ATHLETE" && !value.preferredCourse) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Preferred course is required.", path: ["preferredCourse"] });
+  }
+  if (value.role === "ATHLETE" && value.mainEvents.length === 0) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Choose at least one main event.", path: ["mainEvents"] });
   }
 });
 
@@ -163,6 +176,98 @@ export const coachClubJoinSchema = z.object({
   joinCode: z.string().trim().toUpperCase().regex(/^[A-Z0-9_-]{5,24}$/)
 }).strict();
 
+export const coachClubShareMutationSchema = z.object({
+  teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  action: z.enum(["GRANT", "WITHDRAW"])
+}).strict();
+
+export const coachNoteCreateSchema = z.object({
+  teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  athleteId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  content: cleanText(1, 2_000)
+}).strict();
+
+export const coachNoteQuerySchema = z.object({
+  teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  athleteId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+}).strict();
+
+export const coachNoteDeleteSchema = z.object({
+  teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  noteId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+}).strict();
+
+export const rosterImportMutationSchema = z.discriminatedUnion("mode", [
+  z.object({
+    mode: z.literal("PREVIEW"),
+    teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    cohortId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    csv: z.string().min(1).max(200_000)
+  }).strict(),
+  z.object({
+    mode: z.literal("COMMIT"),
+    teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    cohortId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    csv: z.string().min(1).max(200_000),
+    previewToken: z.string().trim().min(64).max(2_048).regex(/^[a-zA-Z0-9_.-]+$/)
+  }).strict()
+]);
+
+export const pilotInviteCreateSchema = z.object({
+  cohortId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+  teamId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/).optional(),
+  label: cleanText(2, 80),
+  audience: z.enum(["INDIVIDUAL", "SCHOOL", "CLUB"]),
+  maxUses: z.number().int().min(1).max(500),
+  expiresAt: z.string().datetime().refine((value) => new Date(value).getTime() > Date.now(), "Invitation must expire in the future.")
+}).strict();
+
+export const pilotInviteRevokeSchema = z.object({
+  invitationId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+}).strict();
+
+const pilotTokenSchema = z.string().trim().min(24).max(128).regex(/^[a-zA-Z0-9_-]+$/);
+export const pilotEnrollmentSchema = z.discriminatedUnion("mode", [
+  z.object({ mode: z.literal("PREVIEW"), token: pilotTokenSchema }).strict(),
+  z.object({ mode: z.literal("ACCEPT"), token: pilotTokenSchema }).strict()
+]);
+
+export const pilotWithdrawalSchema = z.object({
+  enrollmentId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+}).strict();
+
+export const pilotCohortCreateSchema = z.object({
+  name: cleanText(2, 100),
+  label: z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9-]{2,39}$/),
+  description: cleanText(1, 500).optional(),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().optional()
+}).strict().refine((value) => !value.startsAt || !value.endsAt || new Date(value.endsAt) > new Date(value.startsAt), {
+  message: "Pilot end date must be after its start date.",
+  path: ["endsAt"]
+});
+
+export const researchCohortBuildSchema = z.object({
+  action: z.literal("CREATE_COHORT_MANIFEST"),
+  extractionCutoff: z.string().datetime().refine((value) => new Date(value) <= new Date(), "Extraction cutoff cannot be in the future.")
+}).strict();
+
+const productEventPropertySchema = z.union([
+  z.string().max(80),
+  z.number().finite(),
+  z.boolean(),
+  z.null()
+]);
+
+export const productEventMutationSchema = z.object({
+  eventName: z.enum(["PREDICTION_VIEWED", "RETURN_VISIT"]),
+  sessionId: z.string().trim().regex(/^[a-zA-Z0-9_-]{8,64}$/).optional(),
+  properties: z.record(z.string().regex(/^[a-z][a-zA-Z0-9]{0,39}$/), productEventPropertySchema).refine(
+    (value) => Object.keys(value).length <= 12,
+    "Analytics events can include at most 12 properties."
+  ).default({})
+}).strict();
+
 export const upcomingMeetSchema = z.object({
   name: cleanText(2, 120),
   location: cleanText(1, 120).optional(),
@@ -185,6 +290,76 @@ export const csvImportSchema = z.object({
   resultKind: swimResultKindSchema.default("OFFICIAL"),
   persist: z.boolean().default(false)
 }).strict();
+
+const importAdapterSchema = z.enum(["SWIMSIGHT_CANONICAL", "GENERIC_RACE_CSV", "SWIMCLOUD_EXPORT"]);
+const importColumnMappingSchema = z.object({
+  date: cleanText(1, 80).optional(),
+  event: cleanText(1, 80).optional(),
+  time: cleanText(1, 80).optional(),
+  course: cleanText(1, 80).optional(),
+  meetName: cleanText(1, 80).optional(),
+  resultKind: cleanText(1, 80).optional(),
+  raceType: cleanText(1, 80).optional(),
+  athleteName: cleanText(1, 80).optional(),
+  athleteBirthYear: cleanText(1, 80).optional(),
+  externalAthleteId: cleanText(1, 80).optional(),
+  externalMeetId: cleanText(1, 80).optional(),
+  externalResultId: cleanText(1, 80).optional(),
+  sourceStatus: cleanText(1, 80).optional()
+}).strict();
+
+const importResultCorrectionSchema = manualSwimSchema.omit({ notes: true }).extend({
+  athleteName: cleanText(1, 120).optional(),
+  athleteBirthYear: z.number().int().min(1920).max(new Date().getUTCFullYear()).optional(),
+  externalAthleteId: cleanText(1, 128).optional(),
+  externalMeetId: cleanText(1, 128).optional(),
+  externalResultId: cleanText(1, 128).optional(),
+  sourceStatus: cleanText(1, 80).optional()
+}).strict().superRefine((value, context) => {
+  const distance = Number.parseInt(value.event.split(" ")[0] ?? "0", 10);
+  const broadMinimum = distance * 0.15;
+  const broadMaximum = Math.min(7_200, Math.max(300, distance * 4.8));
+  if (distance && (value.timeSeconds < broadMinimum || value.timeSeconds > broadMaximum)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Corrected time is outside the broad plausibility range for this event.", path: ["timeSeconds"] });
+  }
+  for (const [field, raw] of Object.entries(value)) {
+    if (typeof raw === "string" && isFormulaLike(raw)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Formula-like values are not accepted in import corrections.", path: [field] });
+    }
+  }
+});
+
+export const importMutationSchema = z.discriminatedUnion("mode", [
+  z.object({
+    mode: z.literal("PREVIEW"),
+    csv: z.string().min(1).max(1_500_000),
+    sourceName: cleanText(1, 160).default("upload.csv"),
+    defaultResultKind: swimResultKindSchema.default("OFFICIAL"),
+    adapter: importAdapterSchema.optional(),
+    columnMapping: importColumnMappingSchema.optional()
+  }).strict(),
+  z.object({
+    mode: z.literal("COMMIT"),
+    batchId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    rowIds: z.array(z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)).max(10_000).optional()
+  }).strict(),
+  z.object({
+    mode: z.literal("ROLLBACK"),
+    batchId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/)
+  }).strict(),
+  z.object({
+    mode: z.literal("CORRECT_ROW"),
+    batchId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    rowId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    result: importResultCorrectionSchema
+  }).strict(),
+  z.object({
+    mode: z.literal("RESOLVE_IDENTITY"),
+    batchId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    candidateId: z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/),
+    action: z.enum(["CONFIRM_SELF", "REJECT", "UNMERGE"])
+  }).strict()
+]);
 
 export const communityIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/);
 

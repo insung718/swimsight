@@ -1,11 +1,10 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { conflict, ok } from "@/lib/api";
-import { prisma } from "@/lib/prisma";
 import { requireApiAccount } from "@/lib/security/api-auth";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
-import { changeConsent, excludeTrainingData, getConsentState } from "@/lib/services/privacy-service";
+import { changeConsent, deleteApplicationAccountData, excludeTrainingData, getConsentState, markIdentityDeletionAttempt } from "@/lib/services/privacy-service";
 import { consentMutationSchema, privacyDeletionSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -69,7 +68,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await prisma.user.delete({ where: { id: account.context.userId } });
+    await deleteApplicationAccountData(account.context.userId, account.context.clerkId);
   } catch (error) {
     logServerError("Could not delete SwimSight account data", error);
     return NextResponse.json({ error: "Account data could not be deleted." }, { status: 503 });
@@ -78,8 +77,10 @@ export async function DELETE(request: Request) {
   try {
     const clerk = await clerkClient();
     await clerk.users.deleteUser(account.context.clerkId);
+    await markIdentityDeletionAttempt(account.context.clerkId, true);
     return ok({ applicationDataDeleted: true, identityDeleted: true });
   } catch (error) {
+    await markIdentityDeletionAttempt(account.context.clerkId, false).catch(() => undefined);
     logServerError("Clerk identity deletion remains pending after application-data deletion", error);
     return NextResponse.json({ applicationDataDeleted: true, identityDeleted: false, identityDeletionPending: true }, { status: 202 });
   }

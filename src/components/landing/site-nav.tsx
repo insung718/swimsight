@@ -12,6 +12,7 @@ export const publicNavItems = [
   { label: "Features", href: "/features" },
   { label: "Performance", href: "/performance" },
   { label: "Community", href: "/community" },
+  { label: "Validation", href: "/validation" },
   { label: "Privacy", href: "/privacy" },
   { label: "Contact", href: "/contact" }
 ];

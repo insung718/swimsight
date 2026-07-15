@@ -7,6 +7,8 @@ import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { profileRoleSchema } from "@/lib/validation";
 import { CONSENT_POLICY_VERSIONS } from "@/lib/services/privacy-service";
+import { toPrismaEvent } from "@/lib/prisma-mappers";
+import { elapsedSecondsBucket, recordProductEvent } from "@/lib/services/product-analytics-service";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ export async function GET() {
   try {
     user = await prisma.user.findUnique({
       where: { id: account.context.userId },
-      select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true, createdAt: true }
+      select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, countryCode: true, region: true, preferredCourse: true, mainEvents: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true, createdAt: true }
     });
   } catch (error) {
     logServerError("Could not load profile", error);
@@ -42,12 +44,19 @@ export async function PATCH(request: Request) {
   try {
     const user = await prisma.$transaction(async (transaction) => {
       const now = new Date();
+      const existing = await transaction.user.findUniqueOrThrow({
+        where: { id: account.context.userId },
+        select: { onboardingStartedAt: true }
+      });
       const updated = await transaction.user.update({
         where: { id: account.context.userId },
         data: {
           role: nextRole,
           age: parsed.data.age ?? null,
           sex: parsed.data.sex ?? null,
+          countryCode: parsed.data.countryCode ?? null,
+          preferredCourse: parsed.data.preferredCourse ?? null,
+          mainEvents: parsed.data.mainEvents.map(toPrismaEvent),
           taperDays: parsed.data.taperDays ?? null,
           swimSessionsPerWeek: parsed.data.swimSessionsPerWeek ?? null,
           onboardingCompleted: true,
@@ -55,7 +64,7 @@ export async function PATCH(request: Request) {
           personalAnalyticsConsentedAt: now,
           personalAnalyticsWithdrawnAt: null
         },
-        select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true }
+        select: { id: true, name: true, email: true, imageUrl: true, age: true, sex: true, countryCode: true, preferredCourse: true, mainEvents: true, taperDays: true, swimSessionsPerWeek: true, role: true, onboardingCompleted: true }
       });
       await transaction.consentEvent.create({
         data: {
@@ -65,6 +74,16 @@ export async function PATCH(request: Request) {
           policyVersion: CONSENT_POLICY_VERSIONS.PERSONAL_ANALYTICS,
           metadata: { source: "ONBOARDING" }
         }
+      });
+      const elapsedSeconds = existing.onboardingStartedAt
+        ? Math.max(0, Math.round((now.getTime() - existing.onboardingStartedAt.getTime()) / 1_000))
+        : 0;
+      await recordProductEvent({
+        client: transaction,
+        consentKnownActive: true,
+        userId: account.context.userId,
+        eventName: "ONBOARDING_COMPLETED",
+        properties: { role: nextRole, entryMethod: "profile", elapsedSecondsBucket: elapsedSecondsBucket(elapsedSeconds) }
       });
       return updated;
     }, { isolationLevel: "Serializable" });
