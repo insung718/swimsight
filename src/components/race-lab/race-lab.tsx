@@ -21,6 +21,7 @@ import {
   Waves
 } from "lucide-react";
 import { useTranslator } from "@/components/i18n/use-language";
+import { AdaptiveSlider } from "@/components/ui/adaptive-slider";
 import {
   DEFAULT_SIMULATION_SETTINGS,
   RACE_LAB_ENGINE_VERSION,
@@ -548,7 +549,17 @@ function ReplayView({ actual, animationDefault, goal, mutate, pb, prediction, ra
           <button aria-label={t("Next length")} className="race-lab-icon-button" disabled={progress >= 1} title={t("Next length")} type="button" onClick={() => seekLength("next")}><SkipForward aria-hidden className="h-4 w-4" /></button>
           <button aria-label={t("Reset replay")} className="race-lab-icon-button" type="button" onClick={() => { setPlaying(false); setProgress(0); }}><RotateCcw aria-hidden className="h-4 w-4" /></button>
         </div>
-        <input aria-label={t("Race replay position")} className="min-h-11 w-full accent-aqua-600" max="1" min="0" step="0.001" type="range" value={progress} onChange={(event) => { setPlaying(false); setProgress(Number(event.target.value)); }} />
+        <AdaptiveSlider
+          ariaLabel={t("Race replay position")}
+          className="min-w-0"
+          hideLabel
+          label={t("Race replay position")}
+          max={1}
+          min={0}
+          step={0.001}
+          value={progress}
+          onChange={(value) => { setPlaying(false); setProgress(value); }}
+        />
         <div className="text-right font-mono text-xs text-stitch-abyss/55">{Math.round(progress * 100)}%</div>
       </div>
 
@@ -777,7 +788,8 @@ function BuildView({ actual, goal, historicalShapes, mutate, pb, race, scenarios
 
 function Control({ label, max, min, onChange, signed = false, step, suffix, value }: { label: string; max: number; min: number; onChange: (value: number) => void; signed?: boolean; step: number; suffix: string; value: number }) {
   const { t } = useTranslator();
-  return <label className="grid grid-cols-[1fr_74px] items-center gap-x-3 gap-y-1"><span className="text-sm font-semibold text-stitch-abyss/75">{t(label)}</span><span className="text-right font-mono text-sm font-semibold text-stitch-abyss">{signed && value > 0 ? "+" : ""}{value.toFixed(step < 0.05 ? 2 : 1)}{suffix}</span><input className="col-span-2 min-h-11 w-full accent-aqua-600" max={max} min={min} step={step} type="range" value={value} onChange={(event) => onChange(Number(event.target.value))} /></label>;
+  const formatValue = (current: number) => `${signed && current > 0 ? "+" : ""}${current.toFixed(step < 0.05 ? 2 : 1)}${suffix}`;
+  return <AdaptiveSlider label={t(label)} max={max} min={min} step={step} value={value} formatValue={formatValue} onChange={onChange} />;
 }
 
 function Difference({ label, value }: { label: string; value?: number }) {

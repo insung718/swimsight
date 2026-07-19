@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { BarChart3, Building2, Copy, LayoutDashboard, Plus, ShieldCheck, TrendingUp, UsersRound, Waves } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { UserActions } from "@/components/auth/user-actions";
@@ -12,8 +12,7 @@ import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { Counter } from "@/components/ui/counter";
-import { Dock } from "@/components/ui/dock";
-import { FlipText } from "@/components/ui/flip-text";
+import { DashboardOptionWheel } from "@/components/ui/dashboard-option-wheel";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { formatTime } from "@/lib/utils";
@@ -58,40 +57,38 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-32 pt-5 sm:px-6 sm:pt-7 lg:px-8">
-        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
+        {activeTab === "overview" && <section className="dashboard-hero dashboard-enter mb-5 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss sm:p-6 lg:p-7">
+          <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold text-aqua-600">{t("Coach command center")}</p>
-              <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
+              <h1 className="text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
                 {t("Every swimmer, club, goal, and trend in one calm view.")}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">
-                {t("Create clubs, add swimmers, and see the development signal behind every athlete without losing the premium SwimSight feel.")}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 <QuickAction label="Create club" onClick={() => setActiveTab("clubs")} />
                 <QuickAction label="Review athletes" onClick={() => setActiveTab("athletes")} secondary />
               </div>
             </div>
             <CoachSpotlight swimmer={spotlight} />
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <div className="mt-6 grid grid-cols-2 divide-x divide-y divide-stitch-abyss/10 border-t border-stitch-abyss/10 pt-2 sm:grid-cols-4 sm:divide-y-0">
             <MiniStat label="Clubs" value={dashboard.overview.clubCount.toString()} />
             <MiniStat label="Swimmers" value={dashboard.overview.swimmerCount.toString()} />
             <MiniStat label="Logged swims" value={dashboard.overview.totalSwims.toString()} />
             <MiniStat label="Avg SPI" value={dashboard.overview.averageSpi.toString()} />
           </div>
-        </section>
+        </section>}
 
         {activeTab === "overview" && (
           <DashboardPanel>
-            <SectionHeading eyebrow="Team pulse" title="Coach overview" />
             {dashboard.clubs.length === 0 ? (
               <EmptyCoachState onCreate={() => setActiveTab("clubs")} />
             ) : (
-              <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-                <ClubGrid clubs={dashboard.clubs} />
+              <div className="grid items-start gap-5 xl:grid-cols-[0.82fr_1.18fr]">
+                <div className="grid gap-5">
+                  <ClubGrid clubs={dashboard.clubs} />
+                  <CoachPulse swimmers={allSwimmers} />
+                </div>
                 <DevelopmentPanel swimmers={allSwimmers} />
               </div>
             )}
@@ -100,7 +97,7 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
 
         {activeTab === "clubs" && (
           <DashboardPanel>
-            <SectionHeading eyebrow="Club builder" title="Clubs" />
+            <SectionHeading title="Clubs" />
             <ClubManager clubs={dashboard.clubs} />
             <CoachRosterImport clubs={dashboard.clubs} />
           </DashboardPanel>
@@ -108,7 +105,7 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
 
         {activeTab === "athletes" && (
           <DashboardPanel>
-            <SectionHeading eyebrow="Roster intelligence" title="Athletes" />
+            <SectionHeading title="Athletes" />
             <CoachOperationsPanel clubs={dashboard.clubs} />
             <SwimmerRankingBoard swimmers={allSwimmers} />
             <AthleteRoster swimmers={allSwimmers} />
@@ -117,45 +114,45 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
 
         {activeTab === "reports" && (
           <DashboardPanel>
-            <SectionHeading eyebrow="Development reports" title="Reports" />
+            <SectionHeading title="Reports" />
             <DevelopmentPanel swimmers={allSwimmers} expanded />
             <SwimmerRankingBoard swimmers={allSwimmers} />
           </DashboardPanel>
         )}
       </div>
 
-      <Dock
+      <DashboardOptionWheel
+        activeId={activeTab}
         items={tabs.map(({ id, label, icon: Icon }) => ({
-          active: activeTab === id,
+          id,
           icon: <Icon aria-hidden className="h-5 w-5" />,
-          label,
-          onClick: () => setActiveTab(id)
+          label
         }))}
+        onChange={setActiveTab}
       />
     </main>
   );
 }
 
 function DashboardPanel({ children }: { children: ReactNode }) {
+  const reducedMotion = useReducedMotion();
   return (
-    <motion.div animate={{ opacity: 1, y: 0 }} className="space-y-5" initial={{ opacity: 0, y: 8 }} transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}>
+    <motion.div animate={{ opacity: 1, y: 0 }} className="space-y-4" initial={reducedMotion ? false : { opacity: 0.72, y: 7 }} transition={{ duration: reducedMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}>
       {children}
     </motion.div>
   );
 }
 
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+function SectionHeading({ title }: { title: string }) {
   const { t } = useTranslator();
-  const translatedTitle = t(title);
-
-  return <div><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-2xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
+  return <h2 className="text-2xl font-semibold tracking-normal text-stitch-abyss sm:text-3xl">{t(title)}</h2>;
 }
 
 function QuickAction({ label, onClick, secondary = false }: { label: string; onClick: () => void; secondary?: boolean }) {
   const { t } = useTranslator();
 
   return (
-    <button className={`ui-press inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
+    <button className={`ui-press inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${secondary ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white" : "bg-stitch-abyss text-white hover:bg-[#10243a]"}`} type="button" onClick={onClick}>
       {t(label)}
       <TrendingUp aria-hidden className="h-4 w-4" />
     </button>
@@ -168,8 +165,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
-    <div className="ui-lift min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl hover:bg-white/58 sm:p-4">
-      <div className="truncate text-[0.68rem] font-semibold uppercase text-stitch-abyss/48 sm:text-xs">{t(label)}</div>
+    <div className="min-w-0 px-3 py-3 sm:px-4">
+      <div className="truncate text-[0.68rem] font-semibold text-stitch-abyss/58 sm:text-xs">{t(label)}</div>
       <div className="mt-1 font-mono text-2xl font-semibold text-stitch-abyss sm:text-3xl">
         {shouldCount ? (
           <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
@@ -183,9 +180,10 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
   const { t } = useTranslator();
+  const reducedMotion = useReducedMotion();
 
   return (
-    <motion.article animate={{ opacity: 1, scale: 1 }} className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl" initial={{ opacity: 0, scale: 0.985 }} transition={{ duration: 0.24, delay: 0.04, ease: [0.23, 1, 0.32, 1] }}>
+    <motion.article animate={{ opacity: 1, y: 0 }} className="min-w-0 border-t border-stitch-abyss/10 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" initial={reducedMotion ? false : { opacity: 0.7, y: 6 }} transition={{ duration: reducedMotion ? 0 : 0.22, delay: 0.03, ease: [0.23, 1, 0.32, 1] }}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
@@ -200,15 +198,15 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
       </div>
 
       {swimmer ? (
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="mt-5 grid grid-cols-3 divide-x divide-stitch-abyss/10 border-y border-stitch-abyss/10 py-3">
           <CoachMini label="Athlete" value={swimmer.name} />
           <CoachMini label="Swims" value={swimmer.totalSwims.toString()} />
           <CoachMini label="Goals" value={swimmer.activeGoals.toString()} />
         </div>
       ) : (
-        <div className="mt-5 rounded-lg border border-dashed border-stitch-abyss/15 bg-white/45 p-4 text-sm leading-6 text-stitch-abyss/64">
+        <p className="mt-5 border-t border-stitch-abyss/10 pt-4 text-sm leading-6 text-stitch-abyss/64">
           {t("Create a club and add swimmers to unlock coach analytics.")}
-        </div>
+        </p>
       )}
     </motion.article>
   );
@@ -217,14 +215,14 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
 function CoachMini({ label, value }: { label: string; value: string }) {
   const { t } = useTranslator();
 
-  return <div className="min-w-0 rounded-md border border-white/60 bg-white/54 p-3"><div className="text-xs font-semibold uppercase text-stitch-abyss/46">{t(label)}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
+  return <div className="min-w-0 px-2 first:pl-0 last:pr-0 sm:px-3"><div className="truncate text-[0.68rem] font-semibold text-stitch-abyss/52">{t(label)}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
 }
 
 function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslator();
 
   return (
-    <section className="dashboard-glass flex min-h-[420px] items-center justify-center px-6 text-center">
+    <section className="dashboard-glass flex min-h-[320px] items-center justify-center px-6 text-center">
       <div className="max-w-lg">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stitch-abyss text-stitch-cyan shadow-glow"><Building2 aria-hidden className="h-6 w-6" /></div>
         <h2 className="mt-6 text-3xl font-semibold text-white">{t("Your coach workspace is ready.")}</h2>
@@ -241,15 +239,43 @@ function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
   return (
     <section className="dashboard-glass p-5">
       <h2 className="text-lg font-semibold text-white">{t("Active clubs")}</h2>
-      <div className="mt-4 grid gap-3">
+      <div className="mt-4">
         {clubs.slice(0, 4).map((club) => (
-          <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="font-semibold text-white">{club.name}</div>
-                <div className="mt-1 text-sm text-white/62">{club.memberCount} {t("swimmers")} · {club.dataReadyCount} {t("data ready")} · {club.permissionPendingCount} {t("permission pending")}</div>
+          <div className="border-t border-white/12 py-4 first:border-t-0 first:pt-0 last:pb-0" key={club.id}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate font-semibold text-white">{club.name}</div>
+                <div className="mt-1 text-sm leading-5 text-white/62">{club.memberCount} {t("swimmers")} · {club.dataReadyCount} {t("data ready")} · {club.permissionPendingCount} {t("permission pending")}</div>
               </div>
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
+              <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CoachPulse({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
+  const { t } = useTranslator();
+  const ranked = [...swimmers]
+    .sort((a, b) => b.yearlyImprovement - a.yearlyImprovement || b.swimPowerIndex - a.swimPowerIndex)
+    .slice(0, 3);
+
+  return (
+    <section className="dashboard-glass p-5">
+      <h2 className="text-lg font-semibold text-white">{t("Swimmer ranking")}</h2>
+      <div className="mt-4">
+        {ranked.map((swimmer, index) => (
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-white/12 py-3 first:border-t-0 first:pt-0 last:pb-0" key={swimmer.id}>
+            <span className="font-mono text-xs font-semibold text-aqua-100">{String(index + 1).padStart(2, "0")}</span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">{swimmer.name}</p>
+              <p className="mt-0.5 truncate text-xs text-white/52">{swimmer.strongestEvent ?? t("No event yet")}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-sm font-semibold text-stitch-cyan">{t("SPI")} {swimmer.swimPowerIndex}</p>
+              <p className="mt-0.5 text-xs text-mint-200">{swimmer.yearlyImprovement}% {t("Yearly")}</p>
             </div>
           </div>
         ))}
@@ -289,8 +315,8 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
 
   return (
     <section className="dashboard-glass p-5">
-      <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4">
+      <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="lg:border-r lg:border-white/12 lg:pr-5">
           <h2 className="text-lg font-semibold text-white">{t("Create club")}</h2>
           <input className="mt-4 h-10 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Club name")} value={name} onChange={(event) => setName(event.target.value)} />
           <textarea className="mt-3 min-h-24 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 py-2 text-sm text-white outline-none placeholder:text-white/45 focus:border-stitch-cyan" placeholder={t("Optional description")} value={description} onChange={(event) => setDescription(event.target.value)} />
@@ -300,10 +326,10 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
           </button>
           {status && <p className="mt-3 text-sm text-white/72">{status}</p>}
         </div>
-        <div className="space-y-3">
+        <div>
           {clubs.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">{t("No clubs yet.")}</div>}
           {clubs.map((club) => (
-            <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4" key={club.id}>
+            <div className="border-t border-white/12 py-4 first:border-t-0 first:pt-0 last:pb-0" key={club.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="font-semibold text-white">{club.name}</div>
@@ -321,7 +347,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
                   {t("Copy code")}
                 </button>
               </div>
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-aqua-200/15 bg-aqua-300/10 p-3 text-sm leading-6 text-white/68">
+              <div className="mt-3 flex items-start gap-2 text-xs leading-5 text-white/62">
                 <ShieldCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-aqua-100" />
                 {t("Swimmers must join with this code before their times and goals appear here.")}
               </div>
@@ -399,9 +425,9 @@ function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }
                 <div className="text-xs text-white/48">{t("SPI")}</div>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">{t("Yearly")}</span><strong className="font-mono text-mint-200">{swimmer.yearlyImprovement}%</strong></div>
-              <div className="rounded-md bg-white/[0.08] p-2"><span className="block text-white/44">{t("Swims")}</span><strong className="font-mono text-white">{swimmer.totalSwims}</strong></div>
+            <div className="mt-4 grid grid-cols-2 divide-x divide-white/12 border-t border-white/12 pt-3 text-sm">
+              <div className="pr-3"><span className="block text-white/44">{t("Yearly")}</span><strong className="font-mono text-mint-200">{swimmer.yearlyImprovement}%</strong></div>
+              <div className="pl-3"><span className="block text-white/44">{t("Swims")}</span><strong className="font-mono text-white">{swimmer.totalSwims}</strong></div>
             </div>
           </article>
         ))}
@@ -497,7 +523,7 @@ function CoachSelect({
 
   return (
     <label className="min-w-0">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-white/44">{t(label)}</span>
+      <span className="mb-1 block text-[11px] font-semibold text-white/58">{t(label)}</span>
       <select
         className="h-10 w-full rounded-md border border-white/12 bg-stitch-abyss px-3 text-sm text-white outline-none transition focus:border-stitch-cyan"
         value={value}

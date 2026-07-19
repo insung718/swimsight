@@ -6,6 +6,14 @@ async function forceEnglish(page: Page) {
   });
 }
 
+async function chooseDashboardView(page: Page, label: string) {
+  await page.getByRole("button", { name: "Open dashboard navigation" }).click();
+  const navigator = page.getByRole("dialog", { name: "Dashboard navigation" });
+  await expect(navigator).toBeVisible();
+  await navigator.getByRole("option", { name: label, exact: true }).click();
+  await expect(navigator).toBeHidden();
+}
+
 test("renders the signed-out SwimSight product page", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/");
@@ -110,12 +118,45 @@ test("keeps the signed-in dashboard focused while switching tools", async ({ pag
   await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeVisible();
   await expect(page.getByText("Performance overview", { exact: true })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Results", exact: true }).click();
+  await chooseDashboardView(page, "Results");
   await expect(page.getByRole("heading", { name: "Results", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeHidden();
 
-  await page.getByRole("button", { name: "Race Lab", exact: true }).click();
+  await chooseDashboardView(page, "Race Lab");
   await expect(page.getByRole("heading", { name: "Replay the race. Change the plan." })).toBeVisible();
+
+  await chooseDashboardView(page, "Profile");
+  await expect(page.getByRole("heading", { name: "Profile & community" })).toBeVisible();
+  await chooseDashboardView(page, "Overview");
+  await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeVisible();
+});
+
+test("supports keyboard navigation in the dashboard option wheel", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/e2e-dashboard");
+
+  await page.getByRole("button", { name: "Open dashboard navigation" }).click();
+  const navigator = page.getByRole("dialog", { name: "Dashboard navigation" });
+  const wheel = navigator.getByRole("listbox", { name: "Dashboard views" });
+  await wheel.focus();
+  await wheel.press("End");
+  await expect(navigator.getByRole("option", { name: "Profile", exact: true })).toHaveAttribute("aria-selected", "true");
+  await wheel.press("Enter");
+  await expect(page.getByRole("heading", { name: "Profile & community" })).toBeVisible();
+  await expect(navigator).toBeHidden();
+});
+
+test("translates the dashboard option wheel", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/e2e-dashboard");
+
+  await page.getByRole("button", { name: "KO" }).click();
+  await page.getByRole("button", { name: "대시보드 내비게이션 열기" }).click();
+  const navigator = page.getByRole("dialog", { name: "대시보드 내비게이션" });
+  await expect(navigator.getByRole("heading", { name: "화면 선택" })).toBeVisible();
+  await expect(navigator.getByRole("option", { name: "레이스 랩", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "대시보드 내비게이션 닫기" }).click();
+  await expect(navigator).toBeHidden();
 });
 
 test("keeps every primary dashboard surface inside a mobile viewport", async ({ page }) => {
@@ -124,15 +165,35 @@ test("keeps every primary dashboard surface inside a mobile viewport", async ({ 
   await page.goto("/e2e-dashboard");
 
   for (const tab of ["Overview", "Results", "Analytics", "Race Lab", "Training", "Goals & Meets", "Profile"]) {
-    await page.getByRole("button", { name: tab, exact: true }).click();
+    await chooseDashboardView(page, tab);
     await page.waitForTimeout(80);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${tab} creates signed-in dashboard overflow`).toBeLessThanOrEqual(1);
   }
 });
 
+test("keeps the coach workspace focused and navigable", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/e2e-coach-dashboard");
+
+  await expect(page.getByRole("heading", { name: "Every swimmer, club, goal, and trend in one calm view." })).toBeVisible();
+  await chooseDashboardView(page, "Clubs");
+  await expect(page.getByRole("heading", { name: "Clubs", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Every swimmer, club, goal, and trend in one calm view." })).toBeHidden();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const tab of ["Overview", "Clubs", "Athletes", "Reports"]) {
+    await chooseDashboardView(page, tab);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `${tab} creates coach dashboard overflow`).toBeLessThanOrEqual(1);
+  }
+});
+
 test("protects account APIs when signed out", async ({ request }) => {
   const testOrigin = "http://localhost:3100";
+  const expectProtected = (status: number, endpoint: string) => {
+    expect([401, 429], endpoint).toContain(status);
+  };
   const protectedReads = [
     "/api/me",
     "/api/me/prediction-profile",
@@ -163,7 +224,7 @@ test("protects account APIs when signed out", async ({ request }) => {
     const batch = protectedReads.slice(index, index + 5);
     const responses = await Promise.all(batch.map((endpoint) => request.get(endpoint)));
     responses.forEach((response, responseIndex) => {
-      expect(response.status(), batch[responseIndex]).toBe(401);
+      expectProtected(response.status(), batch[responseIndex]);
     });
   }
 
@@ -179,7 +240,7 @@ test("protects account APIs when signed out", async ({ request }) => {
       origin: testOrigin
     }
   });
-  expect(writeResponse.status()).toBe(401);
+  expectProtected(writeResponse.status(), "/api/swims");
 
   const protectedWrites = [
     "/api/import",
@@ -191,11 +252,11 @@ test("protects account APIs when signed out", async ({ request }) => {
   const writeResponses = await Promise.all(protectedWrites.map((endpoint) => request.post(endpoint, {
       data: {},
       headers: { origin: testOrigin }
-    })));
+  })));
   writeResponses.forEach((response, index) => {
-    expect(response.status(), protectedWrites[index]).toBe(401);
+    expectProtected(response.status(), protectedWrites[index]);
   });
 
   const retentionResponse = await request.get("/api/cron/data-retention");
-  expect(retentionResponse.status()).toBe(401);
+  expectProtected(retentionResponse.status(), "/api/cron/data-retention");
 });

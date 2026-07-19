@@ -2938,6 +2938,26 @@ Object.assign(vi, {
   "Single-length race": "Cuộc đua một chiều bể"
 });
 
+Object.assign(ko, {
+  "Open dashboard navigation": "대시보드 내비게이션 열기",
+  "Close dashboard navigation": "대시보드 내비게이션 닫기",
+  "Dashboard navigation": "대시보드 내비게이션",
+  "Dashboard views": "대시보드 화면",
+  "Workspace": "워크스페이스",
+  "Choose a view": "화면 선택",
+  "Open view": "화면 열기"
+});
+
+Object.assign(vi, {
+  "Open dashboard navigation": "Mở điều hướng bảng điều khiển",
+  "Close dashboard navigation": "Đóng điều hướng bảng điều khiển",
+  "Dashboard navigation": "Điều hướng bảng điều khiển",
+  "Dashboard views": "Các màn hình bảng điều khiển",
+  "Workspace": "Không gian làm việc",
+  "Choose a view": "Chọn màn hình",
+  "Open view": "Mở màn hình"
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {

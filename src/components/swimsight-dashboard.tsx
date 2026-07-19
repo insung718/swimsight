@@ -26,7 +26,7 @@ import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { Counter } from "@/components/ui/counter";
-import { Dock } from "@/components/ui/dock";
+import { DashboardOptionWheel } from "@/components/ui/dashboard-option-wheel";
 import { useProductEvent } from "@/hooks/use-product-event";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { isOfficialResult } from "@/lib/analytics";
@@ -88,7 +88,7 @@ export function SwimSightDashboard({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-32 pt-5 sm:px-6 sm:pt-7 lg:px-8">
+      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
         {activeTab === "overview" && <section className="dashboard-hero dashboard-enter mb-5 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss sm:p-6 lg:p-7">
           <div className="max-w-4xl">
               <h1 className="text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
@@ -138,13 +138,14 @@ export function SwimSightDashboard({
 
         {activeTab === "profile" && <DashboardPanel><SectionHeading title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
       </div>
-      <Dock
+      <DashboardOptionWheel
+        activeId={activeTab}
         items={tabs.map(({ id, label, icon: Icon }) => ({
-          active: activeTab === id,
+          id,
           icon: <Icon aria-hidden className="h-5 w-5" />,
-          label,
-          onClick: () => setActiveTab(id)
+          label
         }))}
+        onChange={setActiveTab}
       />
     </main>
   );
@@ -213,7 +214,7 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
       className={`ui-press inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold ${
         secondary
           ? "border border-stitch-abyss/15 bg-white/45 text-stitch-abyss hover:bg-white"
-          : "bg-stitch-abyss text-white shadow-[0_16px_40px_rgba(4,17,29,0.18)] hover:bg-[#10243a]"
+          : "bg-stitch-abyss text-white hover:bg-[#10243a]"
       }`}
       type="button"
       onClick={onClick}
