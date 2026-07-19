@@ -103,6 +103,34 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   }
 });
 
+test("keeps the signed-in dashboard focused while switching tools", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/e2e-dashboard");
+
+  await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeVisible();
+  await expect(page.getByText("Performance overview", { exact: true })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Results", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Results", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeHidden();
+
+  await page.getByRole("button", { name: "Race Lab", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Replay the race. Change the plan." })).toBeVisible();
+});
+
+test("keeps every primary dashboard surface inside a mobile viewport", async ({ page }) => {
+  await forceEnglish(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/e2e-dashboard");
+
+  for (const tab of ["Overview", "Results", "Analytics", "Race Lab", "Training", "Goals & Meets", "Profile"]) {
+    await page.getByRole("button", { name: tab, exact: true }).click();
+    await page.waitForTimeout(80);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `${tab} creates signed-in dashboard overflow`).toBeLessThanOrEqual(1);
+  }
+});
+
 test("protects account APIs when signed out", async ({ request }) => {
   const testOrigin = "http://localhost:3100";
   const protectedReads = [

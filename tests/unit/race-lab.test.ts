@@ -2,14 +2,17 @@ import { describe, expect, it } from "vitest";
 import {
   analyzeRaceShape,
   buildSegmentsFromCumulative,
+  buildSegmentsFromTimes,
   compareRaceSegments,
   estimateRaceSegments,
   generateGoalRace,
   getCourseLength,
+  getRaceReplayPosition,
   getSegmentCount,
   RaceLabValidationError,
   rebuildEditableGoal,
-  simulateRace
+  simulateRace,
+  validateStoredSegmentGeometry
 } from "@/lib/race-lab";
 
 describe("Race Lab split integrity", () => {
@@ -58,6 +61,30 @@ describe("Race Lab split integrity", () => {
     expect(segments.at(-1)?.cumulativeTime).toBeCloseTo(120, 2);
   });
 
+  it("rejects impossible estimated finish times instead of fabricating split precision", () => {
+    expect(() => estimateRaceSegments({ event: "100 Freestyle", course: "LCM", totalTime: 20 }))
+      .toThrow(/plausibility limits/);
+  });
+
+  it("rejects stored split rows with missing indexes or mismatched geometry", () => {
+    const segments = buildSegmentsFromCumulative({
+      event: "100 Freestyle",
+      course: "LCM",
+      cumulativeTimes: [27, 56],
+      source: "OFFICIAL"
+    });
+    expect(() => validateStoredSegmentGeometry({
+      event: "100 Freestyle",
+      course: "LCM",
+      segments: [{ ...segments[0], segmentIndex: 1 }, segments[1]]
+    })).toThrow(/geometry/);
+    expect(() => validateStoredSegmentGeometry({
+      event: "100 Freestyle",
+      course: "LCM",
+      segments: [segments[0], { ...segments[1], segmentTime: 12 }]
+    })).toThrow(/inconsistent/);
+  });
+
   it("handles LCM, SCM, and SCY course lengths independently", () => {
     expect(getCourseLength("LCM")).toBe(50);
     expect(getCourseLength("SCM")).toBe(25);
@@ -65,6 +92,83 @@ describe("Race Lab split integrity", () => {
     expect(getSegmentCount("100 Freestyle", "LCM")).toBe(2);
     expect(getSegmentCount("100 Freestyle", "SCM")).toBe(4);
     expect(getSegmentCount("100 Freestyle", "SCY")).toBe(4);
+  });
+
+  it("moves out and back across the pool for multi-length races", () => {
+    const segments = buildSegmentsFromCumulative({
+      event: "100 Freestyle",
+      course: "LCM",
+      cumulativeTimes: [27, 56],
+      source: "OFFICIAL"
+    });
+
+    expect(getRaceReplayPosition(segments, 0)).toMatchObject({
+      direction: "OUTBOUND",
+      laneProgress: 0,
+      lengthIndex: 0
+    });
+    expect(getRaceReplayPosition(segments, 27)).toMatchObject({
+      direction: "OUTBOUND",
+      laneProgress: 1,
+      lengthIndex: 0
+    });
+    expect(getRaceReplayPosition(segments, 41.5)).toMatchObject({
+      direction: "RETURN",
+      laneProgress: 0.5,
+      lengthIndex: 1
+    });
+    expect(getRaceReplayPosition(segments, 56)).toMatchObject({
+      completed: true,
+      direction: "RETURN",
+      laneProgress: 0,
+      lengthIndex: 1
+    });
+  });
+
+  it("alternates every SCM and SCY length without losing cumulative distance", () => {
+    for (const course of ["SCM", "SCY"] as const) {
+      const segments = buildSegmentsFromCumulative({
+        event: "100 Freestyle",
+        course,
+        cumulativeTimes: [13, 27, 42, 58],
+        source: "OFFICIAL"
+      });
+      expect(getRaceReplayPosition(segments, 13)).toMatchObject({ laneProgress: 1, lengthIndex: 0 });
+      expect(getRaceReplayPosition(segments, 27)).toMatchObject({ laneProgress: 0, lengthIndex: 1 });
+      expect(getRaceReplayPosition(segments, 42)).toMatchObject({ laneProgress: 1, lengthIndex: 2 });
+      expect(getRaceReplayPosition(segments, 58)).toMatchObject({
+        completed: true,
+        cumulativeDistance: 100,
+        laneProgress: 0,
+        lengthIndex: 3
+      });
+    }
+  });
+
+  it("reaches every wall correctly for 50, 100, 200, and 400 races in every course", () => {
+    const events = ["50 Freestyle", "100 Freestyle", "200 Freestyle", "400 Freestyle"] as const;
+    const courses = ["LCM", "SCM", "SCY"] as const;
+
+    for (const event of events) {
+      for (const course of courses) {
+        const segmentCount = getSegmentCount(event, course);
+        const segmentTime = course === "LCM" ? 30 : course === "SCM" ? 15 : 13;
+        const segments = buildSegmentsFromTimes({
+          event,
+          course,
+          segmentTimes: Array.from({ length: segmentCount }, () => segmentTime),
+          source: "OFFICIAL"
+        });
+
+        segments.forEach((segment, index) => {
+          expect(getRaceReplayPosition(segments, segment.cumulativeTime)).toMatchObject({
+            cumulativeDistance: segment.cumulativeDistance,
+            laneProgress: index % 2 === 0 ? 1 : 0,
+            lengthIndex: index
+          });
+        });
+      }
+    }
   });
 
   it("compares segment and cumulative gain or loss", () => {

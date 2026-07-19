@@ -1,6 +1,6 @@
 import type { Course, SwimEvent } from "@/types/swim";
 
-export const RACE_LAB_ENGINE_VERSION = "race-lab-v1.0.0";
+export const RACE_LAB_ENGINE_VERSION = "race-lab-v1.1.0";
 export const RACE_LAB_DISTANCES = [50, 100, 200, 400] as const;
 
 export type RaceLabDistance = (typeof RACE_LAB_DISTANCES)[number];
@@ -67,6 +67,16 @@ export interface SegmentComparison {
   cumulativeDelta?: number;
   source: RaceSplitSource;
   referenceSource?: RaceSplitSource;
+}
+
+export interface RaceReplayPosition {
+  completed: boolean;
+  cumulativeDistance: number;
+  direction: "OUTBOUND" | "RETURN";
+  laneProgress: number;
+  lengthCount: number;
+  lengthIndex: number;
+  lengthProgress: number;
 }
 
 export interface StoredRaceSplit extends RaceSegment {
@@ -183,6 +193,82 @@ export function getSegmentCount(event: SwimEvent, course: Course) {
   return distance / getCourseLength(course);
 }
 
+export function getRaceReplayPosition(segments: RaceSegment[], elapsedTime: number): RaceReplayPosition {
+  if (!segments.length) {
+    return {
+      completed: true,
+      cumulativeDistance: 0,
+      direction: "OUTBOUND",
+      laneProgress: 0,
+      lengthCount: 0,
+      lengthIndex: 0,
+      lengthProgress: 0
+    };
+  }
+
+  const totalTime = segments.at(-1)?.cumulativeTime ?? 0;
+  const boundedElapsed = Number.isFinite(elapsedTime)
+    ? Math.max(0, Math.min(totalTime, elapsedTime))
+    : 0;
+  let lengthIndex = segments.findIndex((segment) => boundedElapsed <= segment.cumulativeTime + 0.0001);
+  if (lengthIndex < 0) lengthIndex = segments.length - 1;
+
+  const segment = segments[lengthIndex];
+  const previousTime = lengthIndex > 0 ? segments[lengthIndex - 1].cumulativeTime : 0;
+  const previousDistance = lengthIndex > 0 ? segments[lengthIndex - 1].cumulativeDistance : 0;
+  const rawLengthProgress = Math.max(0, Math.min(1, (boundedElapsed - previousTime) / Math.max(0.001, segment.segmentTime)));
+  const lengthProgress = rawLengthProgress <= 0.0001 ? 0 : rawLengthProgress >= 0.9999 ? 1 : rawLengthProgress;
+  const direction = lengthIndex % 2 === 0 ? "OUTBOUND" : "RETURN";
+
+  return {
+    completed: boundedElapsed >= totalTime - 0.0001,
+    cumulativeDistance: previousDistance + segment.segmentDistance * lengthProgress,
+    direction,
+    laneProgress: direction === "OUTBOUND" ? lengthProgress : 1 - lengthProgress,
+    lengthCount: segments.length,
+    lengthIndex,
+    lengthProgress
+  };
+}
+
+export function validateStoredSegmentGeometry(input: {
+  event: SwimEvent;
+  course: Course;
+  segments: Pick<RaceSegment, "segmentIndex" | "segmentDistance" | "cumulativeDistance" | "segmentTime" | "cumulativeTime">[];
+}) {
+  const expectedCount = getSegmentCount(input.event, input.course);
+  const expectedDistance = getCourseLength(input.course);
+  if (input.segments.length !== expectedCount) {
+    throw new RaceLabValidationError(`Expected ${expectedCount} stored segments for this event and course.`);
+  }
+
+  let previousCumulativeTime = 0;
+  input.segments.forEach((segment, index) => {
+    const expectedCumulativeDistance = expectedDistance * (index + 1);
+    if (
+      !Number.isInteger(segment.segmentIndex)
+      || segment.segmentIndex !== index
+      || !Number.isFinite(segment.segmentDistance)
+      || !Number.isFinite(segment.cumulativeDistance)
+      || Math.abs(segment.segmentDistance - expectedDistance) > 0.01
+      || Math.abs(segment.cumulativeDistance - expectedCumulativeDistance) > 0.01
+    ) {
+      throw new RaceLabValidationError("Stored split geometry does not match the event and course.");
+    }
+    const derivedSegmentTime = segment.cumulativeTime - previousCumulativeTime;
+    if (
+      !Number.isFinite(segment.segmentTime)
+      || !Number.isFinite(segment.cumulativeTime)
+      || !Number.isFinite(derivedSegmentTime)
+      || Math.abs(segment.segmentTime - derivedSegmentTime) > 0.06
+    ) {
+      throw new RaceLabValidationError("Stored segment and cumulative times are inconsistent.");
+    }
+    previousCumulativeTime = segment.cumulativeTime;
+  });
+  return input.segments;
+}
+
 export function minimumSegmentTime(segmentDistance: number, course: Course) {
   if (segmentDistance === 25) return course === "SCY" ? 6 : 7;
   if (segmentDistance === 50) return course === "SCY" ? 14 : 17;
@@ -273,30 +359,25 @@ export function estimateRaceSegments(input: {
   referenceShapes?: RaceSegment[][];
   note?: string;
 }) {
-  if (!Number.isFinite(input.totalTime) || input.totalTime <= 0) {
-    throw new RaceLabValidationError("Finish time must be a positive finite value.");
-  }
   const segmentCount = getSegmentCount(input.event, input.course);
+  const segmentDistance = getCourseLength(input.course);
+  const minimumTotal = segmentCount * minimumSegmentTime(segmentDistance, input.course);
+  if (!Number.isFinite(input.totalTime) || input.totalTime < minimumTotal || input.totalTime > 7_200) {
+    throw new RaceLabValidationError("Finish time is outside Race Lab's broad plausibility limits.");
+  }
   const matchingShapes = (input.referenceShapes ?? []).filter((shape) => shape.length === segmentCount);
   const weights = matchingShapes.length
     ? normalizedWeights(Array.from({ length: segmentCount }, (_, index) => average(matchingShapes.map((shape) => shapeWeightsFromSegments(shape)[index]))))
     : defaultShapeWeights(segmentCount);
   const rawTimes = weights.map((weight) => input.totalTime * weight);
   rawTimes[rawTimes.length - 1] += input.totalTime - sum(rawTimes);
-
-  let cumulative = 0;
-  return rawTimes.map((segmentTime, index): RaceSegment => {
-    cumulative += segmentTime;
-    return {
-      segmentIndex: index,
-      segmentDistance: getCourseLength(input.course),
-      cumulativeDistance: getCourseLength(input.course) * (index + 1),
-      segmentTime: round(segmentTime),
-      cumulativeTime: round(cumulative),
-      source: "ESTIMATED",
-      precision: "TENTH",
-      note: input.note ?? "Estimated from finish time and available race shape; not an official split."
-    };
+  return buildSegmentsFromTimes({
+    event: input.event,
+    course: input.course,
+    segmentTimes: rawTimes,
+    source: "ESTIMATED",
+    precision: "TENTH",
+    note: input.note ?? "Estimated from finish time and available race shape; not an official split."
   });
 }
 

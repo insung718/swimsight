@@ -8,19 +8,20 @@ Race Lab replays and compares existing race data. It does not introduce another 
 - `MANUAL` splits are entered by the athlete and stored separately from official splits.
 - `ESTIMATED` splits are generated only when no valid official or manual pool-length splits exist. They are labeled as estimates and displayed at tenth-second precision.
 - `SIMULATED` segments live inside an immutable scenario snapshot. They are never written over a source race or official split.
+- If a source result is deleted, PostgreSQL removes only the saved scenario's source reference; the immutable settings and segments remain unchanged.
 - A single-length race uses its official finish time as its only segment; no intermediate precision is inferred.
 
-The preferred source order is official, manual, then estimated. The API scopes every race, split, and scenario query to the authenticated account. Clients cannot submit a user ID, official provenance, or projected finish time. Saved finish times and segments are recalculated on the server.
+The preferred source order is official, manual, then estimated. Stored split indexes, distances, segment times, and cumulative times must agree with the event and course before they are used. The API scopes every race, split, and scenario query to the authenticated account, and PostgreSQL owner-match triggers provide a second boundary against cross-account references. Clients cannot submit a user ID, official provenance, or projected finish time. Saved finish times and segments are recalculated on the server.
 
 ## Replay and comparison
 
-The replay interpolates distance between known pool-length timestamps. This makes the marker move smoothly; it does not claim to reconstruct stroke-by-stroke position. Prediction and goal lanes use an estimated race shape and remain visibly labeled. LCM uses 50 m lengths, SCM uses 25 m lengths, and SCY uses 25 yd lengths.
+The replay interpolates distance between known pool-length timestamps. Each marker reverses direction at the wall, every comparison lane has a live clock, and previous/next-length controls seek to real split checkpoints. This makes the race readable without claiming to reconstruct stroke-by-stroke position. Prediction and goal lanes use an estimated race shape and remain visibly labeled. LCM uses 50 m lengths, SCM uses 25 m lengths, and SCY uses 25 yd lengths.
 
 Split comparisons report segment and cumulative differences. Positive values mean the selected race lost time against the reference; negative values mean it gained time. Missing references remain blank.
 
 ## Race-shape rules
 
-Race-shape labels are descriptive, not medical or physiological claims. Version `race-lab-v1.0.0` uses these fixed thresholds:
+Race-shape labels are descriptive, not medical or physiological claims. Version `race-lab-v1.1.0` uses these fixed thresholds:
 
 | Pattern | Rule |
 | --- | --- |
@@ -33,11 +34,11 @@ Race-shape labels are descriptive, not medical or physiological claims. Version 
 
 ## What-if simulation
 
-Simulation controls adjust the selected race deterministically. Reaction time uses a 0.70 s baseline proxy because Race Lab v1 does not store start-system reaction data. Turn and underwater controls are bounded proxies, not biomechanical measurements. Broad segment minimums reject clearly unrealistic values. Every output is labeled `Simulation`, and saved settings and segments are snapshotted together.
+Simulation controls adjust the selected race deterministically. Reaction time uses a 0.70 s baseline proxy because Race Lab v1 does not store start-system reaction data. Turn and underwater controls are bounded proxies, not biomechanical measurements. Broad segment minimums reject clearly unrealistic values. The exact simulated split calculation is available on demand. Every output is labeled `Simulation`, and saved settings and segments are snapshotted together.
 
 ## Goal race builder
 
-Goal splits blend explicit recent race shapes with a conservative event template. The fastest valid race among the eight most recent receives modest extra weight, keeping the target grounded in both the athlete's best recent execution and broader pacing history. If explicit source splits are unavailable, only the template is used and that limitation is shown. Aggressive, balanced, and conservative strategies shift the distribution across the race without changing the requested finish time. Athletes may edit every target segment, but the segments must remain plausible and sum to the goal time.
+Goal splits blend explicit recent race shapes with a conservative event template. The fastest valid race among the eight most recent receives modest extra weight, keeping the target grounded in both the athlete's best recent execution and broader pacing history. If explicit source splits are unavailable, only the template is used and that limitation is shown. Aggressive, balanced, and conservative strategies shift the distribution across the race without changing the requested finish time. Goal time accepts seconds or `m:ss.xx`. Athletes may edit every target segment, but the segments must remain plausible and sum to the goal time. Untouched generated targets are regenerated from the full eligible server-side history when saved; only genuine athlete edits are stored as edited targets.
 
 ## Share card privacy
 

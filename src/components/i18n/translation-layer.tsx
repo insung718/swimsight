@@ -13,7 +13,9 @@ const localizedToEnglish = Object.fromEntries(Object.entries(translations).map((
     .sort((a, b) => b[1].length - a[1].length)
 ]));
 const originalTextNodes = new WeakMap<Node, string>();
+const renderedTextNodes = new WeakMap<Node, string>();
 const originalAttributes = new WeakMap<Element, Record<string, string>>();
+const renderedAttributes = new WeakMap<Element, Record<string, string>>();
 
 function currentLanguage(): LanguageCode {
   if (typeof window === "undefined") return "en";
@@ -77,9 +79,14 @@ function translateDocument(language: LanguageCode) {
 
   while (node) {
     if (!shouldSkipElement(node.parentElement)) {
-      if (!originalTextNodes.has(node)) originalTextNodes.set(node, recoverEnglishSource(node.textContent ?? "", language));
+      const currentValue = node.textContent ?? "";
+      const renderedValue = renderedTextNodes.get(node);
+      if (!originalTextNodes.has(node) || (renderedValue !== undefined && currentValue !== renderedValue)) {
+        originalTextNodes.set(node, recoverEnglishSource(currentValue, language));
+      }
       const translated = translateValue(originalTextNodes.get(node) ?? "", language);
       if (translated !== node.textContent) node.textContent = translated;
+      renderedTextNodes.set(node, translated);
     }
     node = walker.nextNode();
   }
@@ -89,12 +96,15 @@ function translateDocument(language: LanguageCode) {
       const value = element.getAttribute(attr);
       if (!value) continue;
       const originals = originalAttributes.get(element) ?? {};
-      if (!originals[attr]) {
+      const rendered = renderedAttributes.get(element) ?? {};
+      if (!originals[attr] || (rendered[attr] !== undefined && value !== rendered[attr])) {
         originals[attr] = recoverEnglishSource(value, language);
         originalAttributes.set(element, originals);
       }
       const translated = translateValue(originals[attr], language);
       if (element.getAttribute(attr) !== translated) element.setAttribute(attr, translated);
+      rendered[attr] = translated;
+      renderedAttributes.set(element, rendered);
     }
   }
 }

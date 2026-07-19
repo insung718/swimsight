@@ -16,9 +16,6 @@ export function SwimPowerIndexPanel({ spi }: { spi: SwimPowerIndex }) {
             {t("SPI")}
           </div>
           <h2 className="mt-4 text-2xl font-bold">{t("Swim Power Index")}</h2>
-          <p className="mt-1 max-w-md text-sm leading-6 text-white/76">
-            {t("Speed, improvement, consistency, and event difficulty compressed into one proprietary read.")}
-          </p>
         </div>
         <div className="text-right">
           <div className="text-5xl font-black">{spi.score}</div>
@@ -32,11 +29,6 @@ export function SwimPowerIndexPanel({ spi }: { spi: SwimPowerIndex }) {
         <span>{t("Developing")}</span>
         <span>{t("Competitive")}</span>
         <span>{t("Elite")}</span>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] uppercase tracking-[0.12em] text-white/52">
-        <span>{t("45% speed")}</span>
-        <span>{t("20% improvement")}</span>
-        <span>{t("35% stability")}</span>
       </div>
     </section>
   );

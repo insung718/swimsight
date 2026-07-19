@@ -19,7 +19,7 @@ const prismaMock = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 
-import { deleteRaceLabScenario, saveManualRaceSplits } from "@/lib/services/race-lab-service";
+import { deleteRaceLabScenario, getRaceLabState, saveManualRaceSplits } from "@/lib/services/race-lab-service";
 import { raceLabMutationSchema } from "@/lib/validation";
 
 describe("Race Lab account isolation and provenance", () => {
@@ -89,5 +89,29 @@ describe("Race Lab account isolation and provenance", () => {
         underwaterEfficiency: 0
       }
     }).success).toBe(false);
+  });
+
+  it("fails closed when a stored scenario contains malformed split geometry", async () => {
+    prismaMock.raceLabScenario.findMany.mockResolvedValueOnce([{
+      id: "scenario-corrupt",
+      baseResultId: "race-a",
+      kind: "SIMULATION",
+      event: "ONE_HUNDRED_FREESTYLE",
+      course: "LCM",
+      name: "Corrupt snapshot",
+      strategy: null,
+      targetTime: null,
+      projectedTime: 56,
+      settings: {},
+      segments: [
+        { segmentIndex: 3, segmentDistance: 50, cumulativeDistance: 50, segmentTime: 27, cumulativeTime: 27, source: "SIMULATED", precision: "HUNDREDTH" },
+        { segmentIndex: 4, segmentDistance: 50, cumulativeDistance: 100, segmentTime: 29, cumulativeTime: 56, source: "SIMULATED", precision: "HUNDREDTH" }
+      ],
+      engineVersion: "race-lab-v1.0.0",
+      createdAt: new Date("2026-06-01")
+    }]);
+
+    const state = await getRaceLabState("user-a");
+    expect(state.scenarios[0].segments).toEqual([]);
   });
 });

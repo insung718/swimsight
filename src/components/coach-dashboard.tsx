@@ -53,7 +53,7 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
           <div className="flex w-full min-w-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end sm:gap-2">
             <DashboardViewToggle mode={viewMode} />
             <LanguageToggle compact />
-            <UserActions />
+            <UserActions compact />
           </div>
         </div>
       </header>

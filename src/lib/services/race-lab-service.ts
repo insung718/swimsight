@@ -7,12 +7,14 @@ import {
   RaceLabValidationError,
   analyzeRaceShape,
   buildSegmentsFromCumulative,
+  buildSegmentsFromTimes,
   estimateRaceSegments,
   generateGoalRace,
   getEventDistance,
   getSegmentCount,
   rebuildEditableGoal,
   simulateRace,
+  validateStoredSegmentGeometry,
   type RaceLabState,
   type RacePacingStrategy,
   type RaceSegment,
@@ -83,16 +85,41 @@ function scenarioRecordToDto(record: {
   engineVersion: string;
   createdAt: Date;
 }): SavedRaceLabScenario {
+  const event = fromPrismaEvent(record.event);
+  const course = record.course as Course;
   const settings = record.settings && typeof record.settings === "object" && !Array.isArray(record.settings)
     ? record.settings as Record<string, unknown>
     : {};
-  const segments = Array.isArray(record.segments) ? record.segments as unknown as RaceSegment[] : [];
+  let segments: RaceSegment[] = [];
+  if (Array.isArray(record.segments)) {
+    const candidates = record.segments as unknown[];
+    const validShape = candidates.every((candidate): candidate is RaceSegment => {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return false;
+      const segment = candidate as Partial<RaceSegment>;
+      return typeof segment.segmentIndex === "number" && Number.isInteger(segment.segmentIndex)
+        && typeof segment.segmentDistance === "number" && Number.isFinite(segment.segmentDistance)
+        && typeof segment.cumulativeDistance === "number" && Number.isFinite(segment.cumulativeDistance)
+        && typeof segment.segmentTime === "number" && Number.isFinite(segment.segmentTime)
+        && typeof segment.cumulativeTime === "number" && Number.isFinite(segment.cumulativeTime)
+        && segment.source === "SIMULATED"
+        && ["HUNDREDTH", "TENTH", "WHOLE_SECOND"].includes(segment.precision ?? "");
+    });
+    if (validShape) {
+      try {
+        validateStoredSegmentGeometry({ event, course, segments: candidates });
+        buildSegmentsFromTimes({ event, course, segmentTimes: candidates.map((segment) => segment.segmentTime), source: "SIMULATED" });
+        if (Math.abs((candidates.at(-1)?.cumulativeTime ?? 0) - record.projectedTime) <= 0.06) segments = candidates;
+      } catch {
+        segments = [];
+      }
+    }
+  }
   return {
     id: record.id,
     baseResultId: record.baseResultId ?? undefined,
     kind: record.kind as SavedRaceLabScenario["kind"],
-    event: fromPrismaEvent(record.event),
-    course: record.course as Course,
+    event,
+    course,
     name: record.name,
     strategy: record.strategy as RacePacingStrategy | undefined,
     targetTime: record.targetTime ?? undefined,
@@ -139,6 +166,7 @@ function rowsToValidatedSegments(input: {
     const rows = input.rows.filter((row) => row.source === source).sort((a, b) => a.segmentIndex - b.segmentIndex);
     if (!rows.length) continue;
     try {
+      validateStoredSegmentGeometry({ event: input.event, course: input.course, segments: rows });
       const rebuilt = buildSegmentsFromCumulative({
         event: input.event,
         course: input.course,

@@ -10,6 +10,10 @@ const raceLabMigration = readFileSync(
   new URL("../../prisma/migrations/20260715110000_race_lab_v1/migration.sql", import.meta.url),
   "utf8"
 );
+const raceLabOwnerMigration = readFileSync(
+  new URL("../../prisma/migrations/20260719120000_race_lab_owner_invariants/migration.sql", import.meta.url),
+  "utf8"
+);
 
 describe("production migration policy", () => {
   it("never permits a preview deployment to migrate even when it has a database URL", () => {
@@ -55,5 +59,14 @@ describe("production migration policy", () => {
     expect(raceLabMigration).toContain("Existing results, predictions, and goals remain unchanged.");
     expect(raceLabMigration).toContain('CREATE TRIGGER "RaceSplit_source_immutable"');
     expect(raceLabMigration).toContain('CREATE TRIGGER "RaceLabScenario_immutable_update"');
+  });
+
+  it("enforces Race Lab account ownership at the database boundary", () => {
+    expect(containsDestructiveMigration(raceLabOwnerMigration)).toBe(false);
+    expect(raceLabOwnerMigration).toContain('CREATE TRIGGER "RaceSplit_owner_match"');
+    expect(raceLabOwnerMigration).toContain('CREATE TRIGGER "RaceLabScenario_owner_match"');
+    expect(raceLabOwnerMigration).toContain('"userId" = NEW."userId"');
+    expect(raceLabOwnerMigration).toContain('CREATE OR REPLACE FUNCTION "enforce_race_lab_scenario_immutability"');
+    expect(raceLabOwnerMigration).toContain("(to_jsonb(NEW) - 'baseResultId') = (to_jsonb(OLD) - 'baseResultId')");
   });
 });

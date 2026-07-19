@@ -1,8 +1,8 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { motion } from "framer-motion";
-import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TimerReset, TrendingUp, UserRound, Waves } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Activity, AlertTriangle, ArrowRight, BarChart3, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TimerReset, TrendingUp, UserRound, Waves } from "lucide-react";
 import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
@@ -27,7 +27,6 @@ import { UserActions } from "@/components/auth/user-actions";
 import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { Counter } from "@/components/ui/counter";
 import { Dock } from "@/components/ui/dock";
-import { FlipText } from "@/components/ui/flip-text";
 import { useProductEvent } from "@/hooks/use-product-event";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { isOfficialResult } from "@/lib/analytics";
@@ -84,29 +83,24 @@ export function SwimSightDashboard({
           <div className="flex w-full min-w-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end sm:gap-2">
             <DashboardViewToggle mode={viewMode} />
             <LanguageToggle compact />
-            <UserActions />
+            <UserActions compact />
           </div>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-32 pt-5 sm:px-6 sm:pt-7 lg:px-8">
-        {activeTab !== "raceLab" && <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-            <div className="max-w-3xl">
-              <p className="text-sm font-semibold text-aqua-600">{t("Live training workspace")}</p>
-              <h1 className="mt-2 text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
+        {activeTab === "overview" && <section className="dashboard-hero dashboard-enter mb-5 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss sm:p-6 lg:p-7">
+          <div className="max-w-4xl">
+              <h1 className="text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
                 {t("Your season, lit up by the times you enter.")}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-stitch-abyss/64 sm:text-base">{t("Log. Read. Adjust.")}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 <QuickAction label="Add result" onClick={() => setActiveTab("results")} />
                 <QuickAction label="Log gym" onClick={() => setActiveTab("training")} secondary />
                 <QuickAction label="View predictions" onClick={() => setActiveTab("analytics")} secondary />
               </div>
-            </div>
-            <PredictionSpotlight prediction={primaryPrediction} hasResults={hasResults} onAddResult={() => setActiveTab("results")} />
           </div>
-          <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="mt-6 grid grid-cols-3 divide-x divide-stitch-abyss/10 border-t border-stitch-abyss/10 pt-2">
             <MiniStat label="Logged" value={overview.totalSwims.toString()} />
             <MiniStat label="PB events" value={overview.personalBestCount.toString()} />
             <MiniStat label="SPI" value={analytics.swimPowerIndex.score.toString()} />
@@ -115,7 +109,6 @@ export function SwimSightDashboard({
 
         {activeTab === "overview" && (
           <DashboardPanel>
-            <SectionHeading eyebrow="Your season" title="Performance overview" />
             {!hasResults ? (
               <EmptyState title="Your dashboard is ready." body="Add your first result to unlock personal bests, trends, predictions, and your Swim Power Index." action="Add a result" onAction={() => setActiveTab("results")} />
             ) : (
@@ -131,19 +124,19 @@ export function SwimSightDashboard({
           </DashboardPanel>
         )}
 
-        {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
+        {activeTab === "results" && <DashboardPanel><SectionHeading title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
-        {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+        {activeTab === "analytics" && <DashboardPanel><SectionHeading title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
         {activeTab === "raceLab" && <DashboardPanel><RaceLab analytics={analytics} goals={goals} swims={swims} /></DashboardPanel>}
 
-        {activeTab === "model" && <DashboardPanel><SectionHeading eyebrow="Prediction proof" title="Model performance" /><ModelPerformancePanel performance={modelPerformance} /></DashboardPanel>}
+        {activeTab === "model" && <DashboardPanel><SectionHeading title="Model performance" /><ModelPerformancePanel performance={modelPerformance} /></DashboardPanel>}
 
-        {activeTab === "training" && <DashboardPanel><SectionHeading eyebrow="Dryland signal" title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
+        {activeTab === "training" && <DashboardPanel><SectionHeading title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
-        {activeTab === "goals" && <DashboardPanel><SectionHeading eyebrow="What comes next" title="Goals & meets" /><GoalTracker initialGoal={goals[0]} initialProjection={analytics.goalProjection} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
+        {activeTab === "goals" && <DashboardPanel><SectionHeading title="Goals & meets" /><GoalTracker initialGoal={goals[0]} initialProjection={analytics.goalProjection} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
-        {activeTab === "profile" && <DashboardPanel><SectionHeading eyebrow="Athlete page" title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
+        {activeTab === "profile" && <DashboardPanel><SectionHeading title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
       </div>
       <Dock
         items={tabs.map(({ id, label, icon: Icon }) => ({
@@ -158,22 +151,22 @@ export function SwimSightDashboard({
 }
 
 function DashboardPanel({ children }: { children: ReactNode }) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-5"
-      initial={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+      animate={{ y: 0 }}
+      className="space-y-4"
+      initial={reducedMotion ? false : { y: 6 }}
+      transition={{ duration: reducedMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}
     >
       {children}
     </motion.div>
   );
 }
 
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+function SectionHeading({ title }: { title: string }) {
   const { t } = useTranslator();
-  const translatedTitle = t(title);
-  return <div data-no-translate><p className="text-sm font-semibold text-stitch-abyss/58">{t(eyebrow)}</p><h2 className="mt-1 text-2xl font-semibold tracking-normal text-stitch-abyss sm:text-4xl"><FlipText key={translatedTitle}>{translatedTitle}</FlipText></h2></div>;
+  return <h2 className="text-2xl font-semibold tracking-normal text-stitch-abyss sm:text-3xl">{t(title)}</h2>;
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
@@ -182,8 +175,8 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   const shouldCount = Number.isInteger(numericValue) && /^\d+$/.test(value);
 
   return (
-    <div className="ui-lift min-w-0 rounded-lg border border-white/60 bg-white/45 p-3 backdrop-blur-xl hover:bg-white/58 sm:p-4">
-      <div className="truncate text-[0.68rem] font-semibold uppercase text-stitch-abyss/48 sm:text-xs">{t(label)}</div>
+    <div className="min-w-0 px-2 py-3 sm:px-4">
+      <div className="truncate text-[0.68rem] font-semibold text-stitch-abyss/58 sm:text-xs">{t(label)}</div>
       <div className="mt-1 font-mono text-2xl font-semibold text-stitch-abyss sm:text-3xl">
         {shouldCount ? (
           <Counter fontSize={30} fontWeight={700} gradientFrom="rgba(255,255,255,0.64)" value={numericValue} />
@@ -200,15 +193,13 @@ function ResultSplitSummary({ officialCount, trainingCount }: { officialCount: n
 
   return (
     <section className="grid gap-3 sm:grid-cols-2">
-      <div className="rounded-lg border border-white/60 bg-white/55 p-4 text-stitch-abyss shadow-[0_18px_55px_rgba(4,17,29,0.07)] backdrop-blur-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">{t("Official meet times")}</p>
-        <div className="mt-2 font-mono text-3xl font-semibold">{officialCount}</div>
-        <p className="mt-2 text-sm text-stitch-abyss/58">{t("Counts toward PBs, SPI, predictions, rewards, and awards.")}</p>
+      <div className="flex min-h-20 items-center justify-between gap-4 rounded-lg border border-white/60 bg-white/55 p-4 text-stitch-abyss backdrop-blur-xl">
+        <div><p className="text-sm font-semibold">{t("Official meet times")}</p><p className="mt-1 text-xs text-stitch-abyss/62">{t("Counts toward PBs, SPI, predictions, rewards, and awards.")}</p></div>
+        <div className="shrink-0 font-mono text-3xl font-semibold">{officialCount}</div>
       </div>
-      <div className="rounded-lg border border-white/45 bg-white/35 p-4 text-stitch-abyss backdrop-blur-xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stitch-abyss/46">{t("Training / unofficial")}</p>
-        <div className="mt-2 font-mono text-3xl font-semibold">{trainingCount}</div>
-        <p className="mt-2 text-sm text-stitch-abyss/58">{t("Stored for context, but kept out of official rankings and badges.")}</p>
+      <div className="flex min-h-20 items-center justify-between gap-4 rounded-lg border border-white/45 bg-white/35 p-4 text-stitch-abyss backdrop-blur-xl">
+        <div><p className="text-sm font-semibold">{t("Training / unofficial")}</p><p className="mt-1 text-xs text-stitch-abyss/62">{t("Stored for context, but kept out of official rankings and badges.")}</p></div>
+        <div className="shrink-0 font-mono text-3xl font-semibold">{trainingCount}</div>
       </div>
     </section>
   );
@@ -233,64 +224,13 @@ function QuickAction({ label, onClick, secondary = false }: { label: string; onC
   );
 }
 
-function PredictionSpotlight({
-  hasResults,
-  onAddResult,
-  prediction
-}: {
-  hasResults: boolean;
-  onAddResult: () => void;
-  prediction?: DashboardAnalytics["predictions"][number];
-}) {
-  const { t } = useTranslator();
-
-  return (
-    <motion.article
-      animate={{ opacity: 1, scale: 1 }}
-      className="rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_24px_90px_rgba(4,17,29,0.10)] backdrop-blur-2xl"
-      initial={{ opacity: 0, scale: 0.985 }}
-      transition={{ duration: 0.24, delay: 0.04, ease: [0.23, 1, 0.32, 1] }}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
-            <CalendarClock aria-hidden className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold">{t("Next prediction")}</p>
-            <p className="text-xs text-stitch-abyss/55">{prediction ? `${prediction.confidence}% ${t("confidence")}` : t("Waiting for your first result")}</p>
-          </div>
-        </div>
-        {prediction && <span className="rounded-full bg-stitch-abyss px-3 py-1 font-mono text-xs font-semibold text-stitch-cyan">{t(prediction.event)} · {prediction.course}</span>}
-      </div>
-
-      {prediction ? (
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          <PredictionMini label="Now" value={formatTime(prediction.currentTime)} />
-          <PredictionMini label="90d" value={formatTime(prediction.predictedTimes.days90)} />
-          <PredictionMini label="365d" value={formatTime(prediction.predictedTimes.days365)} />
-        </div>
-      ) : (
-        <div className="mt-5 rounded-lg border border-dashed border-stitch-abyss/15 bg-white/45 p-4">
-          <p className="text-sm leading-6 text-stitch-abyss/64">
-            {hasResults ? t("Add another event to expand your forecast.") : t("Add a time and SwimSight will generate your first baseline forecast.")}
-          </p>
-          <button className="ui-press mt-3 rounded-md text-sm font-semibold text-aqua-700" type="button" onClick={onAddResult}>
-            {t("Add result")}
-          </button>
-        </div>
-      )}
-    </motion.article>
-  );
-}
-
 function PredictionMini({ label, value }: { label: string; value: string }) {
   const { t } = useTranslator();
 
   return (
-    <div className="rounded-md border border-white/60 bg-white/54 p-3">
-      <div className="text-xs font-semibold uppercase text-stitch-abyss/46">{t(label)}</div>
-      <div className="mt-1 font-mono text-lg font-semibold text-stitch-abyss">{value}</div>
+    <div className="min-w-0 px-2 first:pl-0 last:pr-0 sm:px-4">
+      <div className="text-[0.68rem] font-semibold text-white/52">{t(label)}</div>
+      <div className="mt-1 truncate font-mono text-lg font-semibold text-white">{value}</div>
     </div>
   );
 }
@@ -309,41 +249,33 @@ function SeasonSnapshot({
   const { t } = useTranslator();
 
   return (
-    <section className="dashboard-glass overflow-hidden p-5">
+    <section className="dashboard-glass overflow-hidden p-5 sm:p-6">
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-white">{t("Season intelligence")}</h2>
-          <p className="mt-1 text-sm text-white/62">{t("What matters first.")}</p>
-        </div>
+        <h2 className="text-lg font-semibold text-white">{t("Season intelligence")}</h2>
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-aqua-100">
-          {overview.weeklyImprovement}% week
+          {overview.weeklyImprovement}% {t("week")}
         </span>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <motion.button
-          className="group ui-lift relative overflow-hidden rounded-lg border border-aqua-200/20 bg-aqua-300/10 p-4 text-left sm:col-span-2 xl:row-span-2"
+      <motion.button
+          className="group ui-press mt-5 block w-full border-y border-white/12 py-5 text-left"
           type="button"
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.99 }}
+          whileTap={{ scale: 0.995 }}
           onClick={onViewPredictions}
         >
-          <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(78,232,255,0.28),transparent_34%)] opacity-80 transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100" />
-          <div className="relative">
-            <div className="flex items-center justify-between gap-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-aqua-100">{t("Prediction lane")}</span>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-semibold text-aqua-100">{t("Prediction lane")}</span>
               <ArrowRight aria-hidden className="h-4 w-4 text-aqua-100 transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5" />
-            </div>
-            <div className="mt-10 text-3xl font-semibold leading-tight text-white">
-              {prediction ? `${t(prediction.event)} · ${prediction.course}` : t("Forecast locked.")}
-            </div>
-            <div className="mt-5 grid grid-cols-3 gap-2">
+          </div>
+          <div className="mt-3 truncate text-xl font-semibold text-white sm:text-2xl">
+            {prediction ? `${t(prediction.event)} · ${prediction.course}` : t("Forecast locked.")}
+          </div>
+          <div className="mt-5 grid grid-cols-3 divide-x divide-white/12">
               <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />
               <PredictionMini label="90d" value={prediction ? formatTime(prediction.predictedTimes.days90) : "--"} />
               <PredictionMini label="365d" value={prediction ? formatTime(prediction.predictedTimes.days365) : "--"} />
-            </div>
           </div>
-        </motion.button>
-        <SnapshotMetric detail={`${overview.personalBestCount} ${t("PB events")}`} icon={Activity} label="Logged" value={overview.totalSwims.toString()} />
+      </motion.button>
+      <div className="grid grid-cols-3 divide-x divide-white/12 pt-5">
         <SnapshotMetric detail={overview.bestEvent ? t(overview.bestEvent) : t("No ranking yet")} icon={Medal} label="Strongest" value={overview.bestEvent ? t("Top 1") : "—"} />
         <SnapshotMetric detail={overview.mostImprovedEvent ? t(overview.mostImprovedEvent) : t("No trend yet")} icon={TrendingUp} label="Year pace" value={`${overview.yearlyImprovement}%`} />
         <SnapshotMetric detail={t(trainingLoad.label)} icon={Dumbbell} label="Gym load" value={trainingLoad.weeklyLoad ? `${trainingLoad.weeklyLoad}` : "—"} />
@@ -366,13 +298,13 @@ function SnapshotMetric({
   const { t } = useTranslator();
 
   return (
-    <div className="rounded-lg border border-white/12 bg-white/[0.08] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/56">{t(label)}</span>
-        <Icon aria-hidden className="h-4 w-4 text-aqua-200" />
+    <div className="min-w-0 px-2 first:pl-0 last:pr-0 sm:px-4">
+      <div className="flex items-center gap-1.5">
+        <Icon aria-hidden className="h-3.5 w-3.5 shrink-0 text-aqua-200" />
+        <span className="truncate text-[0.66rem] font-semibold text-white/56 sm:text-xs">{t(label)}</span>
       </div>
-      <div className="mt-4 font-mono text-2xl font-semibold text-white">{value}</div>
-      <p className="mt-1 text-sm text-white/62">{detail}</p>
+      <div className="mt-2 truncate font-mono text-lg font-semibold text-white sm:text-2xl">{value}</div>
+      <p className="mt-1 truncate text-[0.65rem] text-white/58 sm:text-xs" title={detail}>{detail}</p>
     </div>
   );
 }

@@ -84,28 +84,19 @@ body {
   }
 
   .dashboard-shell {
-    background:
-      radial-gradient(circle at 14% 14%, rgba(78, 232, 255, 0.18), transparent 19rem),
-      radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.92), transparent 26rem),
-      radial-gradient(circle at 82% 10%, rgba(0, 219, 255, 0.28), transparent 30rem),
-      radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.52), transparent 34rem),
-      linear-gradient(180deg, #f8fcff 0%, #e8f8ff 32%, #d7eef8 66%, #eef8fc 100%);
+    background: linear-gradient(180deg, #f8fcfd 0%, #edf7fa 48%, #e7f2f6 100%);
     isolation: isolate;
     position: relative;
   }
 
   .dashboard-shell::before {
     background:
-      linear-gradient(90deg, rgba(4, 17, 29, 0.035) 1px, transparent 1px),
-      repeating-linear-gradient(180deg, rgba(4, 17, 29, 0.035) 0 1px, transparent 1px 78px),
-      radial-gradient(circle at 82% 8%, rgba(4, 17, 29, 0.08), transparent 28rem);
-    background-size:
-      12.5% 100%,
-      100% 100%,
-      100% 100%;
+      linear-gradient(90deg, rgba(4, 17, 29, 0.028) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(4, 17, 29, 0.028) 1px, transparent 1px);
+    background-size: 96px 96px;
     content: "";
     inset: 0;
-    opacity: 0.52;
+    opacity: 0.34;
     pointer-events: none;
     position: fixed;
     z-index: 0;
@@ -117,37 +108,22 @@ body {
   }
 
   .dashboard-glass {
-    @apply rounded-lg border border-white/35 bg-stitch-abyss/[0.78] shadow-stitch backdrop-blur-2xl;
+    @apply rounded-lg border border-white/30 bg-stitch-abyss/[0.84] backdrop-blur-2xl;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.17),
-      inset 0 -1px 0 rgba(78, 232, 255, 0.08),
-      0 26px 90px rgba(2, 13, 25, 0.16);
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 0 rgba(78, 232, 255, 0.07),
+      0 6px 12px rgba(2, 13, 25, 0.12);
   }
 
   .dashboard-hero {
-    background:
-      radial-gradient(circle at 18% 18%, rgba(78, 232, 255, 0.28), transparent 15rem),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
-      repeating-linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.34) 0,
-        rgba(255, 255, 255, 0.34) 2px,
-        transparent 2px,
-        transparent 56px
-      ),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(206, 247, 255, 0.84) 42%, rgba(238, 250, 255, 0.70));
-    background-size:
-      12.5% 100%,
-      100% 56px,
-      100% 100%;
+    background: rgba(255, 255, 255, 0.76);
+    backdrop-filter: blur(24px);
     isolation: isolate;
     position: relative;
   }
 
   .dashboard-hero::after {
-    background:
-      linear-gradient(116deg, transparent 0 38%, rgba(255, 255, 255, 0.62) 48%, transparent 58% 100%),
-      radial-gradient(circle at 82% 18%, rgba(4, 17, 29, 0.10), transparent 19rem);
+    background: linear-gradient(90deg, rgba(78, 232, 255, 0.08), transparent 42%);
     content: "";
     inset: 0;
     opacity: 0.44;
@@ -1217,7 +1193,7 @@ textarea {
 .race-pool {
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(218, 246, 250, 0.68)),
-    repeating-linear-gradient(90deg, transparent 0 12%, rgba(4, 17, 29, 0.025) 12% 12.25%);
+    linear-gradient(90deg, rgba(8, 174, 203, 0.035), transparent 18%, transparent 82%, rgba(8, 174, 203, 0.035));
 }
 
 .race-lab-button {
@@ -1230,15 +1206,14 @@ textarea {
   font-size: 0.8125rem;
   font-weight: 650;
   gap: 0.45rem;
-  height: 2.5rem;
+  height: 2.75rem;
   justify-content: center;
   padding: 0 0.9rem;
   transition: background-color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.race-lab-button:hover:not(:disabled) {
-  background: #0b2b3c;
-  transform: translateY(-1px);
+.race-lab-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .race-lab-button:focus-visible,
@@ -1259,8 +1234,10 @@ textarea {
   color: #04111d;
 }
 
-.race-lab-button-secondary:hover:not(:disabled) {
-  background: white;
+.race-lab-button-accent {
+  background: #4ee8ff;
+  border-color: rgba(78, 232, 255, 0.64);
+  color: #04111d;
 }
 
 .race-lab-icon-button {
@@ -1270,15 +1247,14 @@ textarea {
   border-radius: 6px;
   color: #04111d;
   display: inline-flex;
-  height: 2.5rem;
+  height: 2.75rem;
   justify-content: center;
   transition: background-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-  width: 2.5rem;
+  width: 2.75rem;
 }
 
-.race-lab-icon-button:hover:not(:disabled) {
-  background: white;
-  transform: translateY(-1px);
+.race-lab-icon-button:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .race-lab-icon-button:disabled {
@@ -1292,7 +1268,7 @@ textarea {
   border-radius: 6px;
   color: #04111d;
   font-size: 0.875rem;
-  height: 2.5rem;
+  height: 2.75rem;
   outline: none;
   padding: 0 0.7rem;
   transition: border-color 150ms ease, box-shadow 150ms ease;
@@ -1318,6 +1294,21 @@ textarea {
   font-size: 0.65rem;
   font-weight: 700;
   padding: 0.22rem 0.5rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .race-lab-button:hover:not(:disabled) {
+    background: #0b2b3c;
+  }
+
+  .race-lab-button-secondary:hover:not(:disabled),
+  .race-lab-icon-button:hover:not(:disabled) {
+    background: white;
+  }
+
+  .race-lab-button-accent:hover:not(:disabled) {
+    background: white;
+  }
 }
 
 @keyframes flip-text {
