@@ -117,6 +117,52 @@ export const predictionProfileSchema = z.object({
   swimSessionsPerWeek: z.number().min(0).max(14).multipleOf(0.5).nullable()
 }).strict();
 
+const raceLabIdSchema = z.string().trim().regex(/^[a-zA-Z0-9_-]{1,64}$/);
+const simulationSettingsSchema = z.object({
+  reactionTime: z.number().finite().min(0.45).max(1.5),
+  firstSegmentAdjustment: z.number().finite().min(-2).max(3),
+  middleSegmentAdjustment: z.number().finite().min(-1.25).max(2),
+  finalSegmentAdjustment: z.number().finite().min(-1.5).max(2.5),
+  turnAdjustment: z.number().finite().min(-0.4).max(0.8),
+  underwaterEfficiency: z.number().finite().min(-1).max(1)
+}).strict();
+
+export const raceLabMutationSchema = z.discriminatedUnion("mode", [
+  z.object({
+    mode: z.literal("SAVE_SPLITS"),
+    raceId: raceLabIdSchema,
+    cumulativeTimes: z.array(z.number().finite().positive().max(7_200)).min(1).max(16)
+  }).strict(),
+  z.object({
+    mode: z.literal("GENERATE_ESTIMATE"),
+    raceId: raceLabIdSchema
+  }).strict(),
+  z.object({
+    mode: z.literal("SAVE_SIMULATION"),
+    raceId: raceLabIdSchema,
+    name: cleanText(1, 80),
+    settings: simulationSettingsSchema
+  }).strict(),
+  z.object({
+    mode: z.literal("SAVE_GOAL_RACE"),
+    raceId: raceLabIdSchema,
+    name: cleanText(1, 80),
+    targetTime: z.number().finite().positive().max(7_200),
+    strategy: z.enum(["AGGRESSIVE", "BALANCED", "CONSERVATIVE"]),
+    segmentTimes: z.array(z.number().finite().positive().max(1_000)).min(1).max(16).optional()
+  }).strict(),
+  z.object({
+    mode: z.literal("DELETE_SCENARIO"),
+    scenarioId: raceLabIdSchema
+  }).strict()
+]);
+
+export const raceLabQuerySchema = z.object({
+  raceIds: z.string().trim().max(260).regex(/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+){0,3}$/).optional()
+}).strict().transform((value) => ({
+  raceIds: value.raceIds ? Array.from(new Set(value.raceIds.split(","))) : []
+}));
+
 export const dashboardViewModeSchema = z.object({
   viewMode: z.enum(["swimmer", "coach"])
 }).strict();

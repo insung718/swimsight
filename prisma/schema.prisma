@@ -72,6 +72,8 @@ model User {
   productEvents           ProductAnalyticsEvent[]
   createdCohorts          ResearchCohortManifest[]  @relation("CohortCreator")
   cohortRecords           ResearchCohortRecord[]
+  raceSplits              RaceSplit[]
+  raceLabScenarios        RaceLabScenario[]
 }
 
 model SwimResult {
@@ -104,11 +106,59 @@ model SwimResult {
   importBatch          ImportBatch?           @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
   importRow            ImportRow?             @relation(fields: [importRowId], references: [id], onDelete: SetNull)
   cohortRecords        ResearchCohortRecord[]
+  splits               RaceSplit[]
+  raceLabScenarios     RaceLabScenario[]
 
   @@index([userId, event, date])
   @@index([userId, resultKind, date])
   @@index([userId, externalResultId])
   @@index([importBatchId])
+}
+
+model RaceSplit {
+  id                 String             @id @default(cuid())
+  userId             String
+  swimResultId       String
+  segmentIndex       Int
+  segmentDistance    Float
+  cumulativeDistance Float
+  segmentTime        Float
+  cumulativeTime     Float
+  source             RaceSplitSource
+  precision          RaceSplitPrecision
+  note               String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swimResult SwimResult @relation(fields: [swimResultId], references: [id], onDelete: Cascade)
+
+  @@unique([swimResultId, segmentIndex, source])
+  @@index([userId, swimResultId, source])
+}
+
+model RaceLabScenario {
+  id            String              @id @default(cuid())
+  userId        String
+  baseResultId  String?
+  kind          RaceLabScenarioKind
+  event         SwimEvent
+  course        Course
+  name          String
+  strategy      RacePacingStrategy?
+  targetTime    Float?
+  projectedTime Float
+  settings      Json
+  segments      Json
+  engineVersion String
+  createdAt     DateTime            @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  baseResult SwimResult? @relation(fields: [baseResultId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([userId, event, course])
+  @@index([baseResultId])
 }
 
 model ImportBatch {
@@ -845,6 +895,29 @@ enum SwimRaceType {
   RELAY_SPLIT
   TIME_TRIAL
   CONVERTED
+}
+
+enum RaceSplitSource {
+  OFFICIAL
+  MANUAL
+  ESTIMATED
+}
+
+enum RaceSplitPrecision {
+  HUNDREDTH
+  TENTH
+  WHOLE_SECOND
+}
+
+enum RaceLabScenarioKind {
+  SIMULATION
+  GOAL_RACE
+}
+
+enum RacePacingStrategy {
+  AGGRESSIVE
+  BALANCED
+  CONSERVATIVE
 }
 
 enum SwimEvent {

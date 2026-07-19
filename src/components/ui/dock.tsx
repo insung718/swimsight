@@ -21,7 +21,7 @@ export function Dock({ items, className }: DockProps) {
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 sm:bottom-4", className)}>
-      <div className="pointer-events-auto flex max-w-full items-end gap-1.5 rounded-lg border border-white/25 bg-stitch-abyss/[0.86] px-2 py-2 shadow-stitch backdrop-blur-2xl sm:gap-2 sm:px-3" data-no-translate role="toolbar" aria-label={t("Dashboard dock")}>
+      <div className="pointer-events-auto flex max-w-[calc(100vw-1.5rem)] items-end gap-1.5 overflow-x-auto rounded-lg border border-white/25 bg-stitch-abyss/[0.86] px-2 py-2 shadow-stitch backdrop-blur-2xl sm:gap-2 sm:px-3" data-no-translate role="toolbar" aria-label={t("Dashboard dock")}>
         {items.map((item) => {
           const label = t(item.label);
           return (

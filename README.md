@@ -96,6 +96,7 @@ The preview saves no race result. Review mapping, errors, duplicates, and athlet
 | `GET|PATCH|DELETE /api/me/privacy` | Consent, training exclusion, and account deletion |
 | `GET /api/me/export` | No-cache private account archive |
 | `GET|POST|PATCH|DELETE /api/race-feedback` | Versioned subjective post-meet context |
+| `GET|POST /api/race-lab` | Account-scoped splits, estimates, and immutable race scenarios |
 | `GET|POST /api/pilots/enroll` | Invitation preview/acceptance and enrollment listing |
 | `POST /api/coach/roster` | Permission-reviewed roster invitation import |
 | `GET /api/coach/roster` | Grant-scoped coach athlete summaries |
@@ -146,6 +147,7 @@ npm run model:report
 - [Public Validation Methodology](./docs/public-validation-methodology.md)
 - [Prediction Evaluation](./docs/prediction-evaluation.md)
 - [Model Governance Policy](./docs/model-governance-policy.md)
+- [Race Lab v1](./docs/race-lab-v1.md)
 
 ## Repository Layout
 

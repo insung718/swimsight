@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TrendingUp, UserRound, Waves } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarClock, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TimerReset, TrendingUp, UserRound, Waves } from "lucide-react";
 import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
@@ -19,6 +19,7 @@ import { MotivationPanel } from "@/components/motivation-panel";
 import { PersonalBestTable } from "@/components/personal-best-table";
 import { PredictionGrid } from "@/components/prediction-grid";
 import { ProgressionChart } from "@/components/progression-chart";
+import { RaceLab } from "@/components/race-lab/race-lab";
 import { SwimPowerIndexPanel } from "@/components/swim-power-index";
 import { StrokeSpecialtyPentagon } from "@/components/stroke-specialty-pentagon";
 import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
@@ -33,12 +34,13 @@ import { isOfficialResult } from "@/lib/analytics";
 import { formatTime } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, GymWorkout, ModelPerformanceDashboard, PredictionProfile, SwimResult } from "@/types/swim";
 
-type DashboardTab = "overview" | "results" | "analytics" | "model" | "training" | "goals" | "profile";
+type DashboardTab = "overview" | "results" | "analytics" | "raceLab" | "model" | "training" | "goals" | "profile";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "results", label: "Results", icon: ListPlus },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "raceLab", label: "Race Lab", icon: TimerReset },
   { id: "model", label: "Model", icon: Gauge },
   { id: "training", label: "Training", icon: Dumbbell },
   { id: "goals", label: "Goals & Meets", icon: Target },
@@ -88,7 +90,7 @@ export function SwimSightDashboard({
       </header>
 
       <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-32 pt-5 sm:px-6 sm:pt-7 lg:px-8">
-        <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
+        {activeTab !== "raceLab" && <section className="dashboard-hero dashboard-enter mb-6 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss shadow-stitch sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold text-aqua-600">{t("Live training workspace")}</p>
@@ -109,7 +111,7 @@ export function SwimSightDashboard({
             <MiniStat label="PB events" value={overview.personalBestCount.toString()} />
             <MiniStat label="SPI" value={analytics.swimPowerIndex.score.toString()} />
           </div>
-        </section>
+        </section>}
 
         {activeTab === "overview" && (
           <DashboardPanel>
@@ -132,6 +134,8 @@ export function SwimSightDashboard({
         {activeTab === "results" && <DashboardPanel><SectionHeading eyebrow="Race history" title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
         {activeTab === "analytics" && <DashboardPanel><SectionHeading eyebrow="Your data" title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+
+        {activeTab === "raceLab" && <DashboardPanel><RaceLab analytics={analytics} goals={goals} swims={swims} /></DashboardPanel>}
 
         {activeTab === "model" && <DashboardPanel><SectionHeading eyebrow="Prediction proof" title="Model performance" /><ModelPerformancePanel performance={modelPerformance} /></DashboardPanel>}
 

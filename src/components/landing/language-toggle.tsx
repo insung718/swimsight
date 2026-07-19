@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguageControls } from "@/components/i18n/use-language";
 import { languageOptions, type LanguageCode } from "@/lib/i18n";
 
@@ -23,9 +24,12 @@ const localizedMenuLabel: Record<LanguageCode, string> = {
 
 export function LanguageToggle({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useLanguageControls();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => setReady(true), []);
 
   return (
-    <div className="flex shrink-0 items-center rounded-full border border-black/10 bg-white/76 p-0.5 shadow-[0_14px_40px_rgba(4,17,29,0.12)] backdrop-blur-xl" aria-label={localizedMenuLabel[language]} data-no-translate>
+    <div className="flex shrink-0 items-center rounded-full border border-black/10 bg-white/76 p-0.5 shadow-[0_14px_40px_rgba(4,17,29,0.12)] backdrop-blur-xl" aria-label={localizedMenuLabel[language]} data-language-ready={ready} data-no-translate>
       {languageOptions.map((option) => (
         <button
           aria-pressed={language === option.code}

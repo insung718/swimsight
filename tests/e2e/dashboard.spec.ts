@@ -20,6 +20,7 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
 test("opens and closes the signed-out staggered menu", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/");
+  await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Open navigation menu" }).click();
   const menu = page.getByRole("dialog", { name: "SwimSight navigation menu" });
@@ -39,6 +40,7 @@ test("opens and closes the signed-out staggered menu", async ({ page }) => {
 test("translates the current lap-one hero", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/");
+  await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
   await expect(page.getByText("Swim intelligence. Lap one.")).toBeVisible();
 
   await page.getByRole("button", { name: "KO" }).click();
@@ -72,6 +74,7 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await forceEnglish(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
+  await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
 
   await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
 
@@ -101,6 +104,7 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
 });
 
 test("protects account APIs when signed out", async ({ request }) => {
+  const testOrigin = "http://localhost:3100";
   const protectedReads = [
     "/api/me",
     "/api/me/prediction-profile",
@@ -121,14 +125,18 @@ test("protects account APIs when signed out", async ({ request }) => {
     "/api/admin/data-foundation",
     "/api/meets",
     "/api/predictions/performance",
+    "/api/race-lab",
     "/api/race-feedback",
     "/api/admin/model-governance",
     "/api/communities/fake-community/compare"
   ];
 
-  for (const endpoint of protectedReads) {
-    const response = await request.get(endpoint);
-    expect(response.status(), endpoint).toBe(401);
+  for (let index = 0; index < protectedReads.length; index += 5) {
+    const batch = protectedReads.slice(index, index + 5);
+    const responses = await Promise.all(batch.map((endpoint) => request.get(endpoint)));
+    responses.forEach((response, responseIndex) => {
+      expect(response.status(), batch[responseIndex]).toBe(401);
+    });
   }
 
   const writeResponse = await request.post("/api/swims", {
@@ -140,24 +148,25 @@ test("protects account APIs when signed out", async ({ request }) => {
       meetName: "Signed-out smoke test"
     },
     headers: {
-      origin: "http://localhost:3000"
+      origin: testOrigin
     }
   });
   expect(writeResponse.status()).toBe(401);
 
-  for (const endpoint of [
+  const protectedWrites = [
     "/api/import",
     "/api/coach/roster",
     "/api/pilots/enroll",
     "/api/product-events",
     "/api/admin/data-foundation"
-  ]) {
-    const response = await request.post(endpoint, {
+  ];
+  const writeResponses = await Promise.all(protectedWrites.map((endpoint) => request.post(endpoint, {
       data: {},
-      headers: { origin: "http://localhost:3000" }
-    });
-    expect(response.status(), endpoint).toBe(401);
-  }
+      headers: { origin: testOrigin }
+    })));
+  writeResponses.forEach((response, index) => {
+    expect(response.status(), protectedWrites[index]).toBe(401);
+  });
 
   const retentionResponse = await request.get("/api/cron/data-retention");
   expect(retentionResponse.status()).toBe(401);

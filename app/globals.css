@@ -1192,6 +1192,134 @@ textarea {
   width: calc(var(--confetti-size) * 1.8);
 }
 
+.race-lab-shell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(237, 249, 252, 0.86)),
+    #eef9fb;
+  color: #04111d;
+  isolation: isolate;
+  position: relative;
+}
+
+.race-lab-shell::before {
+  background-image:
+    linear-gradient(rgba(8, 174, 203, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 174, 203, 0.045) 1px, transparent 1px);
+  background-size: 54px 54px;
+  content: "";
+  inset: 0;
+  mask-image: linear-gradient(to bottom, black, transparent 76%);
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.race-pool {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(218, 246, 250, 0.68)),
+    repeating-linear-gradient(90deg, transparent 0 12%, rgba(4, 17, 29, 0.025) 12% 12.25%);
+}
+
+.race-lab-button {
+  align-items: center;
+  background: #04111d;
+  border: 1px solid rgba(4, 17, 29, 0.16);
+  border-radius: 6px;
+  color: white;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  gap: 0.45rem;
+  height: 2.5rem;
+  justify-content: center;
+  padding: 0 0.9rem;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.race-lab-button:hover:not(:disabled) {
+  background: #0b2b3c;
+  transform: translateY(-1px);
+}
+
+.race-lab-button:focus-visible,
+.race-lab-icon-button:focus-visible,
+.race-lab-input:focus-visible,
+.race-lab-select:focus-visible {
+  outline: 3px solid rgba(8, 174, 203, 0.28);
+  outline-offset: 2px;
+}
+
+.race-lab-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.race-lab-button-secondary {
+  background: rgba(255, 255, 255, 0.72);
+  color: #04111d;
+}
+
+.race-lab-button-secondary:hover:not(:disabled) {
+  background: white;
+}
+
+.race-lab-icon-button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(4, 17, 29, 0.12);
+  border-radius: 6px;
+  color: #04111d;
+  display: inline-flex;
+  height: 2.5rem;
+  justify-content: center;
+  transition: background-color 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 2.5rem;
+}
+
+.race-lab-icon-button:hover:not(:disabled) {
+  background: white;
+  transform: translateY(-1px);
+}
+
+.race-lab-icon-button:disabled {
+  opacity: 0.42;
+}
+
+.race-lab-input,
+.race-lab-select {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(4, 17, 29, 0.13);
+  border-radius: 6px;
+  color: #04111d;
+  font-size: 0.875rem;
+  height: 2.5rem;
+  outline: none;
+  padding: 0 0.7rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  width: 100%;
+}
+
+.race-lab-input:focus,
+.race-lab-select:focus {
+  border-color: #08aecb;
+  box-shadow: 0 0 0 4px rgba(8, 174, 203, 0.1);
+}
+
+.race-lab-input:disabled {
+  background: rgba(4, 17, 29, 0.045);
+  color: rgba(4, 17, 29, 0.52);
+}
+
+.race-read-badge {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.22rem 0.5rem;
+}
+
 @keyframes flip-text {
   0%,
   100% {

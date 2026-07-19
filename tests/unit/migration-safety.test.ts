@@ -6,6 +6,10 @@ const dataFoundationMigration = readFileSync(
   new URL("../../prisma/migrations/20260714090000_data_foundation_v1/migration.sql", import.meta.url),
   "utf8"
 );
+const raceLabMigration = readFileSync(
+  new URL("../../prisma/migrations/20260715110000_race_lab_v1/migration.sql", import.meta.url),
+  "utf8"
+);
 
 describe("production migration policy", () => {
   it("never permits a preview deployment to migrate even when it has a database URL", () => {
@@ -44,5 +48,12 @@ describe("production migration policy", () => {
     expect(dataFoundationMigration).toContain('CREATE TRIGGER "ResearchCohortManifest_immutable_metadata"');
     expect(dataFoundationMigration).toContain('CREATE TRIGGER "ResearchCohortRecord_immutable_rows"');
     expect(dataFoundationMigration).toContain('CREATE TRIGGER "PredictionSnapshot_immutable_input"');
+  });
+
+  it("keeps Race Lab expand-only and protects official provenance and saved snapshots", () => {
+    expect(containsDestructiveMigration(raceLabMigration)).toBe(false);
+    expect(raceLabMigration).toContain("Existing results, predictions, and goals remain unchanged.");
+    expect(raceLabMigration).toContain('CREATE TRIGGER "RaceSplit_source_immutable"');
+    expect(raceLabMigration).toContain('CREATE TRIGGER "RaceLabScenario_immutable_update"');
   });
 });
