@@ -20,7 +20,8 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
 
   await expect(page.getByRole("link", { name: "SwimSight", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "lap one" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toHaveCount(0);
   await expect.poll(async () => page.locator("#swimsight-intro").evaluate((intro) => {
     const predictor = document.querySelector("#predict");
     return predictor ? intro.compareDocumentPosition(predictor) & Node.DOCUMENT_POSITION_FOLLOWING : 0;
@@ -77,13 +78,13 @@ test("translates the current lap-one hero", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/");
   await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
-  await expect(page.getByText("Swim intelligence. Lap one.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "lap one" })).toBeVisible();
 
   await page.getByRole("button", { name: "KO" }).click();
-  await expect(page.getByText("수영 인텔리전스. 첫 랩부터.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "첫 랩" })).toBeVisible();
 
   await page.getByRole("button", { name: "베트남어" }).click();
-  await expect(page.getByText("Trí tuệ bơi lội. Từ vòng đầu tiên.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "vòng đầu tiên" })).toBeVisible();
 });
 
 test("shows the active page in the staggered menu", async ({ page }) => {
@@ -112,7 +113,7 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeInViewport();
+  await expect(page.getByRole("heading", { name: "lap one" })).toBeInViewport();
   await page.locator("#predict").scrollIntoViewIfNeeded();
   await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeInViewport();
   await expect(page.getByRole("button", { name: "Predict my time in one year" })).toBeInViewport();
