@@ -100,7 +100,7 @@ export function LapOneIntro() {
               <p className="mt-5 max-w-xl text-base leading-7 text-white/76 sm:text-xl">
                 {t("One result becomes the first signal. Then SwimSight turns the rest into progress, goals, and a clearer next move.")}
               </p>
-              <a className="ui-press mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white hover:text-black sm:hidden" href="#top">
+              <a className="ui-press mt-5 inline-flex h-10 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white hover:text-black sm:hidden" href="#predict">
                 {t("See SwimSight")} <ArrowRight aria-hidden className="h-4 w-4" />
               </a>
               <div className="mt-6 grid max-w-xl grid-cols-3 gap-2 sm:hidden">
@@ -125,7 +125,7 @@ export function LapOneIntro() {
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <UserActions hero />
-                <a className="ui-press inline-flex h-9 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white hover:text-black sm:h-11 sm:px-5" href="#top">
+                <a className="ui-press inline-flex h-9 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white hover:text-black sm:h-11 sm:px-5" href="#predict">
                   {t("See SwimSight")} <ArrowRight aria-hidden className="h-4 w-4" />
                 </a>
               </div>

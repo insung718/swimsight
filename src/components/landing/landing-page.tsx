@@ -93,12 +93,14 @@ export function LandingPage({ lead }: { lead?: ReactNode }) {
   return (
     <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav immersive />
-      {lead}
-      <div id="swimsight-story">
+      <div id="swimsight-intro">
         <LapOneIntro />
       </div>
+      {lead}
 
-      <KineticRibbon />
+      <div id="swimsight-story">
+        <KineticRibbon />
+      </div>
       <section id="top" className="race-proof-stage relative overflow-hidden bg-[#03070e] py-[4.5rem] text-white sm:py-32">
         <div aria-hidden className="absolute inset-0 bg-[url('/images/swimsight-pool-hero.jpg')] bg-cover bg-center opacity-[0.18]" />
         <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.98),rgba(3,7,14,0.82)_44%,rgba(3,7,14,0.96)),radial-gradient(circle_at_78%_34%,rgba(78,232,255,0.24),transparent_34%)]" />

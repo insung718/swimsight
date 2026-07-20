@@ -21,6 +21,14 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
   await expect(page.getByRole("link", { name: "SwimSight", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
+  await expect.poll(async () => page.locator("#swimsight-intro").evaluate((intro) => {
+    const predictor = document.querySelector("#predict");
+    return predictor ? intro.compareDocumentPosition(predictor) & Node.DOCUMENT_POSITION_FOLLOWING : 0;
+  })).toBeTruthy();
+  await expect.poll(async () => page.locator("#predict").evaluate((predictor) => {
+    const story = document.querySelector("#swimsight-story");
+    return story ? predictor.compareDocumentPosition(story) & Node.DOCUMENT_POSITION_FOLLOWING : 0;
+  })).toBeTruthy();
   await expect(page.getByRole("heading", { name: "Less dashboard. More direction." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Help make SwimSight sharper." })).toBeVisible();
   await expect(page.getByText("24", { exact: true })).toHaveCount(0);
@@ -104,9 +112,10 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeInViewport();
+  await page.locator("#predict").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeInViewport();
   await expect(page.getByRole("button", { name: "Predict my time in one year" })).toBeInViewport();
-  await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
 
   for (const scrollY of [0, 720, 1500, 2600, 3900, 5400, 7000]) {
     await page.evaluate((y) => window.scrollTo(0, y), scrollY);
