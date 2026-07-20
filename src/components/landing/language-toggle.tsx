@@ -34,7 +34,7 @@ export function LanguageToggle({ compact = false }: { compact?: boolean }) {
         <button
           aria-pressed={language === option.code}
           className={`h-8 rounded-full px-2.5 text-[11px] font-semibold tracking-[0.08em] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-3 sm:tracking-[0.12em] ${
-            language === option.code ? "bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.14)]" : "text-black/48 hover:text-black"
+            language === option.code ? "bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.14)]" : "text-black/68 hover:bg-black/[0.045] hover:text-black"
           }`}
           key={option.code}
           title={localizedLanguageNames[language][option.code]}

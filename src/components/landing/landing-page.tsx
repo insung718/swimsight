@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, Database, FileSpreadsheet, Flag, Instagram, LineChart, MessageSquareText, ShieldCheck, Star, Trophy, Users } from "lucide-react";
 import { UserActions } from "@/components/auth/user-actions";
 import { Reveal } from "@/components/landing/reveal";
@@ -86,13 +87,16 @@ const filmFrames = [
   ["Finish wall", "The next target appears without turning the dashboard into noise."]
 ] as const;
 
-export function LandingPage() {
+export function LandingPage({ lead }: { lead?: ReactNode }) {
   const { t } = useTranslator();
 
   return (
     <main className="landing-page min-h-screen select-none bg-[#f5f5f7] text-[#1d1d1f]">
       <SiteNav immersive />
-      <LapOneIntro />
+      {lead}
+      <div id="swimsight-story">
+        <LapOneIntro />
+      </div>
 
       <KineticRibbon />
       <section id="top" className="race-proof-stage relative overflow-hidden bg-[#03070e] py-[4.5rem] text-white sm:py-32">

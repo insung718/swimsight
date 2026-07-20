@@ -19,10 +19,30 @@ test("renders the signed-out SwimSight product page", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("link", { name: "SwimSight", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Less dashboard. More direction." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Help make SwimSight sharper." })).toBeVisible();
   await expect(page.getByText("24", { exact: true })).toHaveCount(0);
+});
+
+test("validates and prepares the signed-out 50 Free preview", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/");
+
+  const timeInput = page.getByLabel("Your 50 Free PB");
+  await timeInput.fill("18.50");
+  await page.getByRole("button", { name: "Predict my time in one year" }).click();
+  await expect(page.getByText("Enter a valid 50 Free time for the selected course.")).toBeVisible();
+
+  await timeInput.fill("25.56");
+  await page.getByRole("button", { name: "Predict my time in one year" }).click();
+  await expect(page.getByRole("heading", { name: "Your one-year time is ready." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Edit inputs" })).toBeVisible();
+
+  const stored = await page.evaluate(() => window.sessionStorage.getItem("swimsight:50-free-preview:v1"));
+  expect(stored).toContain('"currentTime":25.56');
+  expect(stored).toContain('"course":"LCM"');
 });
 
 test("opens and closes the signed-out staggered menu", async ({ page }) => {
@@ -84,6 +104,8 @@ test("does not horizontally overflow on mobile landing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('[data-language-ready="true"]')).toBeVisible();
 
+  await expect(page.getByRole("heading", { name: "Your next 50 starts here." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Predict my time in one year" })).toBeInViewport();
   await expect(page.getByRole("heading", { name: "Start the season you keep saying you will." })).toBeVisible();
 
   for (const scrollY of [0, 720, 1500, 2600, 3900, 5400, 7000]) {
@@ -129,6 +151,24 @@ test("keeps the signed-in dashboard focused while switching tools", async ({ pag
   await expect(page.getByRole("heading", { name: "Profile & community" })).toBeVisible();
   await chooseDashboardView(page, "Overview");
   await expect(page.getByRole("heading", { name: "Your season, lit up by the times you enter." })).toBeVisible();
+});
+
+test("carries the public 50 Free preview into editable result entry", async ({ page }) => {
+  await forceEnglish(page);
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem("swimsight:50-free-preview:v1", JSON.stringify({
+      course: "SCM",
+      currentTime: 24.88,
+      sessionsPerWeek: 6,
+      createdAt: Date.now()
+    }));
+  });
+  await page.goto("/e2e-dashboard");
+  await chooseDashboardView(page, "Results");
+
+  await expect(page.getByRole("combobox", { name: "Event" })).toHaveValue("50 Freestyle");
+  await expect(page.getByRole("combobox", { name: "Course" })).toHaveValue("SCM");
+  await expect(page.getByRole("textbox", { name: "Time", exact: true })).toHaveValue("24.88");
 });
 
 test("supports keyboard navigation in the dashboard option wheel", async ({ page }) => {

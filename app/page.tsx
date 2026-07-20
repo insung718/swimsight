@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { LandingPage } from "@/components/landing/landing-page";
+import { PredictionGateway } from "@/components/landing/prediction-gateway";
 import { CoachDashboard } from "@/components/coach-dashboard";
 import { RoleOnboarding } from "@/components/role-onboarding";
 import { PersonalAnalyticsConsent } from "@/components/personal-analytics-consent";
@@ -33,7 +34,7 @@ export default async function Home() {
   }
 
   if (!context) {
-    return <LandingPage />;
+    return <LandingPage lead={<PredictionGateway />} />;
   }
 
   if (!hasDatabaseConfig()) {

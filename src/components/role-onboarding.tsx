@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BarChart3, Dumbbell, ShieldCheck, UserRound, UsersRound, Waves } from "lucide-react";
@@ -9,6 +9,7 @@ import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import { supportedEvents } from "@/lib/events";
+import { isValidPublicPredictionSeed, publicPredictionSeedStorageKey } from "@/lib/public-prediction-preview";
 import type { AthleteSex, Course, SwimEvent, UserRole } from "@/types/swim";
 
 const countryOptions = [
@@ -51,6 +52,21 @@ export function RoleOnboarding() {
   const [personalAnalyticsConsent, setPersonalAnalyticsConsent] = useState(false);
   const [showSample, setShowSample] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(publicPredictionSeedStorageKey);
+      if (!stored) return;
+      const seed: unknown = JSON.parse(stored);
+      if (!isValidPublicPredictionSeed(seed)) return;
+
+      setPreferredCourse(seed.course);
+      setMainEvents(["50 Freestyle"]);
+      setSwimSessionsPerWeek(seed.sessionsPerWeek.toString());
+    } catch {
+      // Corrupt browser state is ignored; onboarding remains fully editable.
+    }
+  }, []);
 
   async function chooseRole(role: UserRole) {
     const parsedAge = Number.parseInt(age, 10);
@@ -114,10 +130,10 @@ export function RoleOnboarding() {
 
   return (
     <main className="dark dashboard-shell min-h-screen text-stitch-abyss">
-      <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
+      <header className="dashboard-topbar sticky top-0 z-40">
         <div className="mx-auto flex min-h-16 max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
+            <span className="dashboard-brand-mark inline-flex h-9 w-9 items-center justify-center rounded-md text-stitch-cyan">
               <Waves aria-hidden className="h-5 w-5" />
             </span>
             <div>

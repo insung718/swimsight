@@ -74,10 +74,10 @@ export function SwimSightDashboard({
 
   return (
     <main className="dark dashboard-shell min-h-screen w-full overflow-x-clip text-stitch-text">
-      <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
+      <header className="dashboard-topbar sticky top-0 z-40">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-3 py-2 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
           <button className="ui-press flex min-w-0 items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow"><Waves aria-hidden className="h-5 w-5" /></span>
+            <span className="dashboard-brand-mark inline-flex h-9 w-9 items-center justify-center rounded-md text-stitch-cyan"><Waves aria-hidden className="h-5 w-5" /></span>
             <span className="min-w-0"><span className="block truncate font-semibold text-stitch-abyss">{t("SwimSight")}</span><span className="block truncate text-xs text-stitch-abyss/55 max-[420px]:hidden">{t("Performance workspace")}</span></span>
           </button>
           <div className="flex w-full min-w-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end sm:gap-2">
@@ -88,9 +88,10 @@ export function SwimSightDashboard({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
+      <div className="dashboard-content mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
         {activeTab === "overview" && <section className="dashboard-hero dashboard-enter mb-5 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss sm:p-6 lg:p-7">
-          <div className="max-w-4xl">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-stretch">
+            <div className="max-w-4xl lg:py-2">
               <h1 className="text-balance text-3xl font-semibold tracking-normal sm:text-5xl">
                 {t("Your season, lit up by the times you enter.")}
               </h1>
@@ -99,6 +100,8 @@ export function SwimSightDashboard({
                 <QuickAction label="Log gym" onClick={() => setActiveTab("training")} secondary />
                 <QuickAction label="View predictions" onClick={() => setActiveTab("analytics")} secondary />
               </div>
+            </div>
+            <DashboardSignal prediction={primaryPrediction} hasResults={hasResults} />
           </div>
           <div className="mt-6 grid grid-cols-3 divide-x divide-stitch-abyss/10 border-t border-stitch-abyss/10 pt-2">
             <MiniStat label="Logged" value={overview.totalSwims.toString()} />
@@ -185,6 +188,36 @@ function MiniStat({ label, value }: { label: string; value: string }) {
           value
         )}
       </div>
+    </div>
+  );
+}
+
+function DashboardSignal({
+  hasResults,
+  prediction
+}: {
+  hasResults: boolean;
+  prediction?: DashboardAnalytics["predictions"][number];
+}) {
+  const { t } = useTranslator();
+
+  return (
+    <div className="dashboard-signal">
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-aqua-100/70">{t("Season signal")}</p>
+          <p className="mt-2 truncate text-sm font-semibold text-white">
+            {prediction ? `${t(prediction.event)} · ${prediction.course}` : t(hasResults ? "Forecast calibrating" : "Awaiting first result")}
+          </p>
+        </div>
+        <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${hasResults ? "bg-mint-300 shadow-[0_0_0_5px_rgba(110,231,183,0.12)]" : "bg-white/32"}`} />
+      </div>
+      <div className="relative z-10 mt-7 grid grid-cols-3 divide-x divide-white/12">
+        <PredictionMini label="Now" value={prediction ? formatTime(prediction.currentTime) : "--"} />
+        <PredictionMini label="365d" value={prediction ? formatTime(prediction.predictedTimes.days365) : "--"} />
+        <PredictionMini label="Confidence" value={prediction ? `${prediction.confidence}%` : "--"} />
+      </div>
+      <span aria-hidden className="dashboard-signal__line" />
     </div>
   );
 }

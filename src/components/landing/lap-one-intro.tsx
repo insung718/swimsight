@@ -10,16 +10,16 @@ export function LapOneIntro() {
   const sectionRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
   const { t } = useTranslator();
-  const { scrollY } = useScroll();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
   const ghostTitle = t("One Lap, One Signal");
   const [ghostLineOne, ...ghostRest] = ghostTitle.split(",");
   const ghostLineTwo = ghostRest.join(",").trim();
 
-  const introOpacity = useTransform(scrollY, [0, 320, 560], [1, 1, 0]);
-  const heroOpacity = useTransform(scrollY, [340, 720], [0, 1]);
-  const heroScale = useTransform(scrollY, [340, 1200], [1.06, 1]);
-  const ghostY = useTransform(scrollY, [380, 1500], ["7%", "-5%"]);
-  const contentY = useTransform(scrollY, [420, 980], ["18%", "0%"]);
+  const introOpacity = useTransform(scrollYProgress, [0, 0.18, 0.34], [1, 1, 0]);
+  const heroOpacity = useTransform(scrollYProgress, [0.2, 0.44], [0, 1]);
+  const heroScale = useTransform(scrollYProgress, [0.2, 0.82], [1.06, 1]);
+  const ghostY = useTransform(scrollYProgress, [0.22, 0.92], ["7%", "-5%"]);
+  const contentY = useTransform(scrollYProgress, [0.25, 0.6], ["18%", "0%"]);
 
   return (
     <section ref={sectionRef} className="relative h-[225svh] overflow-clip bg-[#050505] text-white">

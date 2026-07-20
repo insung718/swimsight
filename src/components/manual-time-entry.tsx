@@ -1,12 +1,13 @@
 "use client";
 
 import { Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Confetti } from "@/components/ui/confetti";
 import { useTranslator } from "@/components/i18n/use-language";
 import { supportedEvents } from "@/lib/events";
-import { parseTimeInput } from "@/lib/utils";
+import { isValidPublicPredictionSeed, publicPredictionSeedStorageKey } from "@/lib/public-prediction-preview";
+import { formatTime, parseTimeInput } from "@/lib/utils";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { Course, SwimEvent, SwimRaceType, SwimResult, SwimResultKind } from "@/types/swim";
 
@@ -25,6 +26,21 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
   const [status, setStatus] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(publicPredictionSeedStorageKey);
+      if (!stored) return;
+      const seed: unknown = JSON.parse(stored);
+      if (!isValidPublicPredictionSeed(seed)) return;
+
+      setEvent("50 Freestyle");
+      setCourse(seed.course);
+      setTime(formatTime(seed.currentTime));
+    } catch {
+      // Invalid browser state never blocks manual result entry.
+    }
+  }, []);
 
   async function submitTime() {
     const timeSeconds = parseTimeInput(time);
@@ -58,6 +74,7 @@ export function ManualTimeEntry({ swims = [] }: { swims?: SwimResult[] }) {
       const result = await response.json();
 
       if (response.ok) {
+        window.sessionStorage.removeItem(publicPredictionSeedStorageKey);
         setStatus(t(isPersonalBest ? "Official personal best saved." : resultKind === "TRAINING" ? "Training time saved." : "Official meet time saved."));
         if (isPersonalBest) {
           setShowConfetti(true);

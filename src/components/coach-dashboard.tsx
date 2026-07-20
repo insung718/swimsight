@@ -38,10 +38,10 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
 
   return (
     <main className="dark dashboard-shell min-h-screen w-full overflow-x-clip text-stitch-text">
-      <header className="sticky top-0 z-40 border-b border-white/45 bg-white/70 backdrop-blur-2xl">
+      <header className="dashboard-topbar sticky top-0 z-40">
         <div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-3 py-2 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-0 lg:px-8">
           <button className="ui-press flex min-w-0 items-center gap-3 rounded-lg text-left hover:opacity-80" type="button" onClick={() => setActiveTab("overview")}>
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
+            <span className="dashboard-brand-mark inline-flex h-9 w-9 items-center justify-center rounded-md text-stitch-cyan">
               <Waves aria-hidden className="h-5 w-5" />
             </span>
             <span className="min-w-0">
@@ -57,7 +57,7 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
+      <div className="dashboard-content mx-auto w-full max-w-[1440px] min-w-0 px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-7 lg:px-8">
         {activeTab === "overview" && <section className="dashboard-hero dashboard-enter mb-5 overflow-hidden rounded-lg border border-white/65 p-4 text-stitch-abyss sm:p-6 lg:p-7">
           <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
             <div className="max-w-3xl">
