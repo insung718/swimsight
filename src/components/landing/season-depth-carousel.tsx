@@ -157,7 +157,7 @@ export function SeasonDepthCarousel() {
                 </div>
                 <div className="mt-3 grid grid-cols-5 gap-2 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-black/48">
                   {timeline.map((item) => (
-                    <span key={item}>{item}</span>
+                    <span key={item}>{t(item)}</span>
                   ))}
                 </div>
               </div>

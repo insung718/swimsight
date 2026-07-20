@@ -78,7 +78,8 @@ const dashboard: CoachDashboardData = {
 export default async function CoachDashboardE2EPage() {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "";
-  if (process.env.ENABLE_E2E_ROUTES !== "true" || !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) notFound();
+  const isVercelDeployment = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+  if (isVercelDeployment || process.env.ENABLE_E2E_ROUTES !== "true" || !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) notFound();
 
   return <CoachDashboard dashboard={dashboard} viewMode="coach" />;
 }

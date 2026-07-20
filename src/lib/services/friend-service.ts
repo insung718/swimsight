@@ -51,29 +51,28 @@ export async function updateFriendship(input: {
   friendshipId: string;
   action: "accept" | "block" | "remove";
 }) {
-  const friendship = await prisma.friendship.findUnique({
-    where: { id: input.friendshipId }
-  });
-
-  if (!friendship) {
-    return null;
-  }
-
-  const isParticipant = friendship.requesterId === input.userId || friendship.addresseeId === input.userId;
-
   if (input.action === "remove") {
-    if (!isParticipant) return null;
-    await prisma.friendship.delete({ where: { id: input.friendshipId } });
-    return { ...friendship, status: "BLOCKED" as const };
+    const deleted = await prisma.friendship.deleteMany({
+      where: {
+        id: input.friendshipId,
+        OR: [{ requesterId: input.userId }, { addresseeId: input.userId }]
+      }
+    });
+    return deleted.count === 1 ? { id: input.friendshipId, status: "BLOCKED" as const } : null;
   }
 
-  if (input.action === "accept" && (friendship.addresseeId !== input.userId || friendship.status !== "PENDING")) return null;
-  if (input.action === "block" && !isParticipant) return null;
-
-  return prisma.friendship.update({
-    where: { id: input.friendshipId },
+  const updated = await prisma.friendship.updateMany({
+    where: input.action === "accept"
+      ? { id: input.friendshipId, addresseeId: input.userId, status: "PENDING" }
+      : {
+          id: input.friendshipId,
+          OR: [{ requesterId: input.userId }, { addresseeId: input.userId }]
+        },
     data: {
       status: input.action === "accept" ? "ACCEPTED" : "BLOCKED"
     }
   });
+  if (updated.count !== 1) return null;
+
+  return prisma.friendship.findUnique({ where: { id: input.friendshipId } });
 }

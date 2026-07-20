@@ -13,11 +13,12 @@ import {
   recordProductEvent
 } from "@/lib/services/product-analytics-service";
 
-function clientWithConsent(active: boolean) {
+function clientWithConsent(active: boolean, consentVersion = "analytics-v1") {
   return {
     user: {
       findUnique: vi.fn().mockResolvedValue({
         createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        personalAnalyticsConsentVersion: active ? consentVersion : null,
         personalAnalyticsConsentedAt: active ? new Date("2026-01-02T00:00:00.000Z") : null,
         personalAnalyticsWithdrawnAt: null
       })
@@ -37,6 +38,17 @@ describe("privacy-safe product analytics", () => {
 
   it("does not write any event without active personal analytics consent", async () => {
     const client = clientWithConsent(false);
+    await expect(recordProductEvent({
+      client: client as never,
+      userId: "user-1",
+      eventName: "PREDICTION_VIEWED",
+      properties: { course: "LCM" }
+    })).resolves.toBeNull();
+    expect(client.productAnalyticsEvent.create).not.toHaveBeenCalled();
+  });
+
+  it("does not write events under an outdated analytics consent policy", async () => {
+    const client = clientWithConsent(true, "analytics-v0");
     await expect(recordProductEvent({
       client: client as never,
       userId: "user-1",

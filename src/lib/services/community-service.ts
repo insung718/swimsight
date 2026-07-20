@@ -28,6 +28,7 @@ function communitySummary(community: {
   description?: string | null;
   joinCode: string;
   memberships?: unknown[];
+  _count?: { memberships: number };
 }): CommunitySummary {
   return {
     id: community.id,
@@ -35,7 +36,7 @@ function communitySummary(community: {
     slug: community.slug,
     description: community.description,
     joinCode: community.joinCode,
-    memberCount: community.memberships?.length ?? 0
+    memberCount: community._count?.memberships ?? community.memberships?.length ?? 0
   };
 }
 
@@ -60,7 +61,7 @@ export async function createCommunity(input: {
         }
       }
     },
-    include: { memberships: true }
+    include: { _count: { select: { memberships: true } } }
   });
 
   return communitySummary(community);
@@ -72,7 +73,7 @@ export async function listCommunitiesForUser(userId: string) {
     include: {
       community: {
         include: {
-          memberships: true
+          _count: { select: { memberships: true } }
         }
       }
     },
@@ -94,13 +95,19 @@ export async function joinCommunity(input: { userId: string; joinCode: string })
         mode: "insensitive"
       }
     },
-    include: { memberships: true }
+    include: {
+      memberships: {
+        where: { userId: input.userId },
+        select: { role: true },
+        take: 1
+      }
+    }
   });
 
   if (!community) {
     return null;
   }
-  const currentMembership = community.memberships.find((membership) => membership.userId === input.userId);
+  const currentMembership = community.memberships[0];
   if (community.ownerId === input.userId || currentMembership?.role === "OWNER") {
     throw new CannotJoinOwnedGroupError("community");
   }
@@ -121,7 +128,7 @@ export async function joinCommunity(input: { userId: string; joinCode: string })
 
   const updated = await prisma.community.findUniqueOrThrow({
     where: { id: community.id },
-    include: { memberships: true }
+    include: { _count: { select: { memberships: true } } }
   });
 
   return { ...communitySummary(updated), joinCode: "" };
@@ -186,6 +193,7 @@ export async function getCommunityComparison(communityId: string, userId: string
   const community = await prisma.community.findUnique({
     where: { id: communityId },
     include: {
+      _count: { select: { memberships: true } },
       memberships: {
         take: 200,
         include: {
@@ -196,6 +204,7 @@ export async function getCommunityComparison(communityId: string, userId: string
               imageUrl: true,
               age: true,
               swims: {
+                where: { resultKind: "OFFICIAL", raceType: "INDIVIDUAL" },
                 orderBy: [{ date: "asc" }, { createdAt: "asc" }],
                 take: 2_000
               }
@@ -270,6 +279,7 @@ export async function compareTwoMembers(input: {
       imageUrl: true,
       age: true,
       swims: {
+        where: { resultKind: "OFFICIAL", raceType: "INDIVIDUAL" },
         orderBy: [{ date: "asc" }, { createdAt: "asc" }],
         take: 2_000
       }

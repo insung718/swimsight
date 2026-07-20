@@ -3,6 +3,44 @@ import type { z } from "zod";
 
 const DEFAULT_MAX_BODY_BYTES = 32_768;
 
+async function readBoundedBody(request: Request, maxBytes: number) {
+  if (!request.body) return { ok: true as const, raw: "" };
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+
+  try {
+    let finished = false;
+    while (!finished) {
+      const { done, value } = await reader.read();
+      finished = done;
+      if (finished || !value) break;
+      byteLength += value.byteLength;
+      if (byteLength > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return { ok: false as const };
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return { ok: true as const, raw: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+  } catch {
+    return { ok: true as const, raw: "" };
+  }
+}
+
 function addAllowedOrigin(allowed: Set<string>, value?: string) {
   if (!value) return;
 
@@ -24,14 +62,14 @@ export async function parseSecureJson<T>(request: Request, schema: z.ZodType<T>,
     return { ok: false as const, response: NextResponse.json({ error: "Request body is too large." }, { status: 413 }) };
   }
 
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > maxBytes) {
+  const bodyRead = await readBoundedBody(request, maxBytes);
+  if (!bodyRead.ok) {
     return { ok: false as const, response: NextResponse.json({ error: "Request body is too large." }, { status: 413 }) };
   }
 
   let body: unknown;
   try {
-    body = JSON.parse(raw);
+    body = JSON.parse(bodyRead.raw);
   } catch {
     return { ok: false as const, response: NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 }) };
   }

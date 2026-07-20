@@ -11,7 +11,7 @@ import type { Course, Goal, GoalProjection, SwimEvent, SwimResult } from "@/type
 
 export function GoalTracker({ swims, initialGoal, initialProjection }: { swims: SwimResult[]; initialGoal?: Goal; initialProjection?: GoalProjection }) {
   const router = useRouter();
-  const { t } = useTranslator();
+  const { language, t } = useTranslator();
   const [event, setEvent] = useState<SwimEvent | "">(initialGoal?.event ?? "");
   const [course, setCourse] = useState<Course>(initialGoal?.course ?? "LCM");
   const [targetTime, setTargetTime] = useState(initialGoal ? formatTime(initialGoal.targetTime) : "");
@@ -52,7 +52,7 @@ export function GoalTracker({ swims, initialGoal, initialProjection }: { swims: 
         <label className="text-sm text-white/80">{t("Goal date")}<input className="mt-1 h-11 w-full rounded-md border border-white/10 bg-stitch-abyss px-3 text-white outline-none focus:border-stitch-cyan" type="date" min={new Date().toISOString().slice(0, 10)} value={targetDate} onChange={(e) => setTargetDate(e.target.value)} /></label>
       </div>
       <div className="mt-4 flex items-center gap-3"><button className="ui-press h-11 rounded-full bg-stitch-cyan px-5 text-sm font-semibold text-stitch-abyss hover:bg-white disabled:opacity-50" disabled={saving} type="button" onClick={saveGoal}>{saving ? t("Saving") : t("Save goal")}</button>{status && <p className="text-sm text-white/72">{status}</p>}</div>
-      {projection && <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{[["Current PB", formatTime(projection.currentTime)], ["Required / month", `${projection.requiredMonthlyImprovement.toFixed(2)}${t("s")}`], ["Current pace / month", `${projection.currentMonthlyPace.toFixed(2)}${t("s")}`], ["Goal probability", `${projection.goalProbability.probability.toFixed(1)}%`], [formatDate(projection.targetDate), formatTime(projection.predictedAtGoalDate)]].map(([label, value]) => <div className="rounded-lg border border-white/15 bg-white/10 p-3" key={label}><div className="text-xs text-white/82">{t(label)}</div><div className="mt-1 font-mono text-2xl font-semibold text-white">{value}</div></div>)}</div>}
+      {projection && <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{[["Current PB", formatTime(projection.currentTime)], ["Required / month", `${projection.requiredMonthlyImprovement.toFixed(2)}${t("s")}`], ["Current pace / month", `${projection.currentMonthlyPace.toFixed(2)}${t("s")}`], ["Goal probability", `${projection.goalProbability.probability.toFixed(1)}%`], [formatDate(projection.targetDate, language), formatTime(projection.predictedAtGoalDate)]].map(([label, value]) => <div className="rounded-lg border border-white/15 bg-white/10 p-3" key={label}><div className="text-xs text-white/82">{t(label)}</div><div className="mt-1 font-mono text-2xl font-semibold text-white">{value}</div></div>)}</div>}
       {projection && <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/66"><span className="rounded-full border border-white/12 bg-white/[0.07] px-3 py-1.5">{t(projection.feasibility)}</span><span>{t(projection.goalProbability.calibration)} · {t(projection.goalProbability.method)}</span>{projection.qualifyingProbability && <span>{t("Qualifying probability")}: {projection.qualifyingProbability.probability.toFixed(1)}%</span>}</div>}
     </section>
   );

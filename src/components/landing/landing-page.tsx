@@ -114,11 +114,11 @@ export function LandingPage() {
               {[
                 ["88", "SPI"],
                 ["365", "Forecast"],
-                ["AA", "Privacy"],
+                ["Private", "Privacy"],
                 ["Age", "Standards"]
               ].map(([value, label]) => (
                 <div className="rounded-lg border border-white/12 bg-white/[0.075] p-3 backdrop-blur-xl" key={label}>
-                  <div className="font-mono text-2xl font-semibold text-cyan-100">{value}</div>
+                  <div className="break-words font-mono text-xl font-semibold text-cyan-100 sm:text-2xl">{t(value)}</div>
                   <div className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/48">{t(label)}</div>
                 </div>
               ))}
@@ -208,7 +208,7 @@ export function LandingPage() {
           </video>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,7,14,0.96),rgba(3,7,14,0.66)_46%,rgba(3,7,14,0.94)),radial-gradient(circle_at_78%_42%,rgba(78,232,255,0.24),transparent_34%)]" />
         </div>
-        <div aria-hidden className="signal-film-word">RACE FILM</div>
+        <div aria-hidden className="signal-film-word">{t("RACE FILM")}</div>
         <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl gap-10 px-5 py-24 sm:py-32 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
           <Reveal>
             <div className="signal-film-copy">

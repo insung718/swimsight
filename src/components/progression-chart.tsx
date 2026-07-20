@@ -22,7 +22,7 @@ interface ProgressionChartProps {
 }
 
 export function ProgressionChart({ swims }: ProgressionChartProps) {
-  const { t } = useTranslator();
+  const { language, t } = useTranslator();
   const availableEvents = useMemo(
     () => supportedEvents.filter((event) => swims.some((swim) => swim.event === event)),
     [swims]
@@ -68,7 +68,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
       .forEach((swim) => {
         const row = rows.get(swim.date) ?? {
           date: swim.date,
-          dateLabel: formatShortDate(swim.date)
+          dateLabel: formatShortDate(swim.date, language)
         };
         const existing = row[swim.course];
         row[swim.course] = existing ? Math.min(existing, swim.timeSeconds) : swim.timeSeconds;
@@ -76,7 +76,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
       });
 
     return Array.from(rows.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [selectedCourse, selectedEvent, selectedYear, swims]);
+  }, [language, selectedCourse, selectedEvent, selectedYear, swims]);
 
   const visibleCourses = selectedCourse === "All" ? availableCourses : [selectedCourse];
   const courseColors: Record<Course, string> = {

@@ -3,6 +3,7 @@
 import { AlertTriangle, BarChart3, CheckCircle2, Database, Gauge, ShieldCheck } from "lucide-react";
 import { useTranslator } from "@/components/i18n/use-language";
 import { SiteNav } from "@/components/landing/site-nav";
+import { formatDate } from "@/lib/utils";
 
 type PublicStatus = {
   generatedAt: string;
@@ -31,7 +32,7 @@ type PublicStatus = {
 };
 
 export function PublicValidationPage({ status }: { status: PublicStatus }) {
-  const { t } = useTranslator();
+  const { language, t } = useTranslator();
   const untrained = status.productionStatus === "UNTRAINED";
   return (
     <main className="min-h-screen bg-[#f5f7f8] text-[#07121f]">
@@ -74,7 +75,7 @@ export function PublicValidationPage({ status }: { status: PublicStatus }) {
             ) : (
               <div className="mt-6 rounded-lg border border-dashed border-black/12 bg-[#f6fafb] p-5 text-sm leading-6 text-black/58">{t(status.metricSuppression ?? "Evaluation metrics are currently suppressed.")}</div>
             )}
-            <p className="mt-5 text-xs leading-5 text-black/44">{t("Last evaluation")}: {status.lastEvaluationDate ? new Date(status.lastEvaluationDate).toLocaleDateString() : t("No prospective evaluation yet")} · {t("Status generated")} {new Date(status.generatedAt).toLocaleDateString()}</p>
+            <p className="mt-5 text-xs leading-5 text-black/44">{t("Last evaluation")}: {status.lastEvaluationDate ? formatDate(status.lastEvaluationDate, language) : t("No prospective evaluation yet")} · {t("Status generated")} {formatDate(status.generatedAt, language)}</p>
           </section>
 
           <section className="rounded-lg border border-black/8 bg-white p-6">

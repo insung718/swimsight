@@ -73,6 +73,44 @@ describe("API security", () => {
     if (!parsed.ok) expect(parsed.response.status).toBe(413);
   });
 
+  it("stops oversized streamed JSON even without a content-length header", async () => {
+    const encoder = new TextEncoder();
+    const request = new Request("http://localhost/api/import", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(`{"value":"${"x".repeat(24)}"}`));
+          controller.close();
+        }
+      }),
+      duplex: "half"
+    } as RequestInit & { duplex: "half" });
+
+    const parsed = await parseSecureJson(request, manualSwimSchema, 16);
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.response.status).toBe(413);
+  });
+
+  it("sanitizes control characters before enforcing text bounds", () => {
+    expect(manualSwimSchema.safeParse({
+      date: "2026-06-19",
+      event: "50 Freestyle",
+      course: "LCM",
+      timeSeconds: 25.56,
+      meetName: "\u202E\u0001"
+    }).success).toBe(false);
+
+    const parsed = manualSwimSchema.parse({
+      date: "2026-06-19",
+      event: "50 Freestyle",
+      course: "LCM",
+      timeSeconds: 25.56,
+      meetName: "City\u202E Meet"
+    });
+    expect(parsed.meetName).toBe("City Meet");
+  });
+
   it("rejects malformed JSON and cross-origin writes", async () => {
     const malformed = await parseSecureJson(
       new Request("http://localhost/api/swims", {

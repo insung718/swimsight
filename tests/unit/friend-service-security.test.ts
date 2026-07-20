@@ -6,8 +6,8 @@ vi.mock("server-only", () => ({}));
 const prismaMock = vi.hoisted(() => ({
   friendship: {
     findUnique: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn()
+    updateMany: vi.fn(),
+    deleteMany: vi.fn()
   }
 }));
 
@@ -21,14 +21,7 @@ describe("friend service security", () => {
   });
 
   it("does not allow blocked relationships to be accepted later", async () => {
-    prismaMock.friendship.findUnique.mockResolvedValueOnce({
-      id: "friendship_1",
-      requesterId: "user_1",
-      addresseeId: "user_2",
-      status: "BLOCKED",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+    prismaMock.friendship.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const result = await updateFriendship({
       userId: "user_2",
@@ -37,6 +30,38 @@ describe("friend service security", () => {
     });
 
     expect(result).toBeNull();
-    expect(prismaMock.friendship.update).not.toHaveBeenCalled();
+    expect(prismaMock.friendship.updateMany).toHaveBeenCalledWith({
+      where: { id: "friendship_1", addresseeId: "user_2", status: "PENDING" },
+      data: { status: "ACCEPTED" }
+    });
+    expect(prismaMock.friendship.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("uses participant-scoped atomic predicates for blocks and removals", async () => {
+    prismaMock.friendship.updateMany.mockResolvedValueOnce({ count: 0 });
+    await expect(updateFriendship({
+      userId: "outsider",
+      friendshipId: "friendship_1",
+      action: "block"
+    })).resolves.toBeNull();
+    expect(prismaMock.friendship.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: "friendship_1",
+        OR: [{ requesterId: "outsider" }, { addresseeId: "outsider" }]
+      })
+    }));
+
+    prismaMock.friendship.deleteMany.mockResolvedValueOnce({ count: 0 });
+    await expect(updateFriendship({
+      userId: "outsider",
+      friendshipId: "friendship_1",
+      action: "remove"
+    })).resolves.toBeNull();
+    expect(prismaMock.friendship.deleteMany).toHaveBeenCalledWith({
+      where: {
+        id: "friendship_1",
+        OR: [{ requesterId: "outsider" }, { addresseeId: "outsider" }]
+      }
+    });
   });
 });

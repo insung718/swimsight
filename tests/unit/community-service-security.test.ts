@@ -73,6 +73,11 @@ describe("community comparison privacy", () => {
         gapSeconds: -0.6
       }
     ]);
+    expect(prismaMock.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        swims: expect.objectContaining({ where: { resultKind: "OFFICIAL", raceType: "INDIVIDUAL" } })
+      })
+    }));
   });
 
   it("does not compare swims across different course types", async () => {

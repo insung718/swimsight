@@ -25,6 +25,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://api.clerk.com https://*.upstash.io https://vitals.vercel-insights.com",
   `script-src ${scriptSources}`,
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://*.clerk.accounts.dev https://*.clerk.dev",
   "worker-src 'self' blob:",
@@ -33,15 +34,15 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
+  poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
+  // The build wrapper runs the flat-config ESLint gate before Next's legacy lint hook.
+  eslint: { ignoreDuringBuilds: true },
   env: {
     SWIMSIGHT_100_FREE_ARTIFACT_SHA256: predictionArtifactHash
   },
   images: {
     qualities: [75, 88]
-  },
-  eslint: {
-    ignoreDuringBuilds: true
   },
   async headers() {
     return [

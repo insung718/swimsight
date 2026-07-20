@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { POST } from "../../app/api/friends/route";
-import { createFriendRequest } from "@/lib/services/friend-service";
+import { GET, POST } from "../../app/api/friends/route";
+import { createFriendRequest, listFriendships } from "@/lib/services/friend-service";
 
 vi.mock("server-only", () => ({}));
 
@@ -31,6 +31,7 @@ vi.mock("@/lib/services/friend-service", () => ({
 }));
 
 const createFriendRequestMock = vi.mocked(createFriendRequest);
+const listFriendshipsMock = vi.mocked(listFriendships);
 
 describe("friend invite route", () => {
   beforeEach(() => {
@@ -55,5 +56,13 @@ describe("friend invite route", () => {
     expect(missing.status).toBe(202);
     await expect(existing.json()).resolves.toEqual({ message: "If that account exists, the request has been processed." });
     await expect(missing.json()).resolves.toEqual({ message: "If that account exists, the request has been processed." });
+  });
+
+  it("returns the current user id so only recipients render pending-request acceptance", async () => {
+    listFriendshipsMock.mockResolvedValueOnce([]);
+    const response = await GET();
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ currentUserId: "user_123", friendships: [] });
   });
 });

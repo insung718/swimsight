@@ -12,7 +12,10 @@ export async function GET() {
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
   try {
-    return NextResponse.json({ friendships: await listFriendships(account.context.userId) });
+    return NextResponse.json({
+      currentUserId: account.context.userId,
+      friendships: await listFriendships(account.context.userId)
+    });
   } catch (error) {
     logServerError("Could not load friendships", error);
     return databaseUnavailable();

@@ -1,5 +1,6 @@
 import "server-only";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { CONSENT_POLICY_VERSIONS } from "@/lib/consent-policy";
 import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 import { resolveTrustedRole } from "@/lib/security/admin";
 
@@ -127,7 +128,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     onboardingCompleted: user.onboardingCompleted,
     personalAnalyticsConsentActive: Boolean(
       user.personalAnalyticsConsentedAt
-      && user.personalAnalyticsConsentVersion === "analytics-v1"
+      && user.personalAnalyticsConsentVersion === CONSENT_POLICY_VERSIONS.PERSONAL_ANALYTICS
       && (!user.personalAnalyticsWithdrawnAt || user.personalAnalyticsConsentedAt > user.personalAnalyticsWithdrawnAt)
     )
   };

@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileLock2, NotebookPen, Save, ShieldAlert } from "lucide-react";
 import { useTranslator } from "@/components/i18n/use-language";
+import { formatDate } from "@/lib/utils";
 import type { CoachClubSummary } from "@/types/swim";
 
 type CoachNote = { id: string; content: string; createdAt: string };
 
 export function CoachOperationsPanel({ clubs }: { clubs: CoachClubSummary[] }) {
-  const { t } = useTranslator();
+  const { language, t } = useTranslator();
   const athletes = useMemo(() => clubs.flatMap((club) => club.swimmers.map((swimmer) => ({ club, swimmer }))), [clubs]);
   const [selection, setSelection] = useState(athletes[0] ? `${athletes[0].club.id}:${athletes[0].swimmer.id}` : "");
   const [content, setContent] = useState("");
@@ -72,7 +73,7 @@ export function CoachOperationsPanel({ clubs }: { clubs: CoachClubSummary[] }) {
             <div className="flex items-center gap-2"><NotebookPen aria-hidden className="h-4 w-4 text-stitch-cyan" /><h3 className="font-semibold text-white">{t("Private coach notes")}</h3></div>
             <textarea className="mt-3 min-h-24 w-full resize-y rounded-md border border-white/12 bg-black/20 p-3 text-sm text-white outline-none placeholder:text-white/36 focus:border-stitch-cyan" maxLength={2000} placeholder={t("Observation for the coaching workspace only") as string} value={content} onChange={(event) => setContent(event.target.value)} />
             <button className="ui-press mt-2 inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-xs font-semibold text-stitch-abyss disabled:opacity-45" disabled={!content.trim()} type="button" onClick={() => void saveNote()}><Save aria-hidden className="h-4 w-4" />{t("Save note")}</button>
-            <div className="mt-4 max-h-36 space-y-2 overflow-y-auto">{notes.map((note) => <div className="rounded-md bg-white/[0.06] p-3 text-sm leading-6 text-white/68" key={note.id}><p>{note.content}</p><p className="mt-1 text-xs text-white/38">{new Date(note.createdAt).toLocaleDateString()}</p></div>)}</div>
+            <div className="mt-4 max-h-36 space-y-2 overflow-y-auto">{notes.map((note) => <div className="rounded-md bg-white/[0.06] p-3 text-sm leading-6 text-white/68" key={note.id}><p>{note.content}</p><p className="mt-1 text-xs text-white/38">{formatDate(note.createdAt, language)}</p></div>)}</div>
           </div>
         </div>
       ) : (

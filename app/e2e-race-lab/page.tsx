@@ -48,7 +48,8 @@ const analytics = {
 export default async function RaceLabE2EPage() {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "";
-  if (process.env.ENABLE_E2E_ROUTES !== "true" || !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) notFound();
+  const isVercelDeployment = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+  if (isVercelDeployment || process.env.ENABLE_E2E_ROUTES !== "true" || !/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) notFound();
   return (
     <main className="dashboard-shell min-h-screen px-3 py-4 sm:px-6 sm:py-8">
       <div className="mx-auto mb-3 flex max-w-[1280px] justify-end"><LanguageToggle compact /></div>

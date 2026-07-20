@@ -1,18 +1,14 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import type { ConsentAction, ConsentPurpose, Prisma } from "@prisma/client";
+import { CONSENT_POLICY_VERSIONS } from "@/lib/consent-policy";
 import { prisma } from "@/lib/prisma";
 import { fromPrismaEvent } from "@/lib/prisma-mappers";
 import { assessPredictionDataQuality } from "@/lib/prediction-governance";
 import { recordProductEvent } from "@/lib/services/product-analytics-service";
 import type { SwimResult } from "@/types/swim";
 
-export const CONSENT_POLICY_VERSIONS: Record<ConsentPurpose, string> = {
-  PERSONAL_ANALYTICS: "analytics-v1",
-  MODEL_TRAINING: "training-v1",
-  PUBLIC_RESEARCH: "research-v1",
-  GUARDIAN: "guardian-v1"
-};
+export { CONSENT_POLICY_VERSIONS } from "@/lib/consent-policy";
 
 export const PUBLIC_RESEARCH_MINIMUM_COHORT = 25;
 

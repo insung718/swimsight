@@ -9,15 +9,21 @@ export const swimRaceTypeSchema = z.enum(["INDIVIDUAL", "RELAY_SPLIT", "TIME_TRI
 export const gymWorkoutTypeSchema = z.enum(["STRENGTH", "CORE", "MOBILITY", "DRYLAND", "CARDIO", "RECOVERY"]);
 export const athleteSexSchema = z.enum(["FEMALE", "MALE"]);
 
+function isUnsafeTextControl(character: string) {
+  const code = character.codePointAt(0) ?? 0;
+  return code <= 0x08
+    || code === 0x0b
+    || code === 0x0c
+    || (code >= 0x0e && code <= 0x1f)
+    || code === 0x7f
+    || (code >= 0x202a && code <= 0x202e)
+    || (code >= 0x2066 && code <= 0x2069);
+}
+
 const cleanText = (min: number, max: number) => z
   .string()
-  .trim()
-  .min(min)
-  .max(max)
-  .transform((value) => Array.from(value.normalize("NFKC")).filter((character) => {
-    const code = character.charCodeAt(0);
-    return code === 9 || code === 10 || code === 13 || (code >= 32 && code !== 127);
-  }).join(""));
+  .transform((value) => Array.from(value.normalize("NFKC")).filter((character) => !isUnsafeTextControl(character)).join("").trim())
+  .pipe(z.string().min(min).max(max));
 
 const dateSchema = z
   .string()

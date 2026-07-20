@@ -12,6 +12,7 @@ function run(command, args) {
 }
 
 run("npx", ["prisma", "generate"]);
+run("npm", ["run", "lint"]);
 
 const migration = migrationDecision(process.env);
 process.stdout.write(`${migration.message}\n`);

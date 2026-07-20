@@ -1,5 +1,6 @@
 import { badRequest, created, forbidden, ok } from "@/lib/api";
 import { databaseUnavailable, requireApiAccount } from "@/lib/security/api-auth";
+import { isTrustedAdminEmail } from "@/lib/security/admin";
 import { logServerError } from "@/lib/security/logging";
 import { enforceSameOrigin, parseSecureJson } from "@/lib/security/request";
 import { buildDatasetReadiness, createResearchCohortManifest, listResearchCohortManifests } from "@/lib/services/data-foundation-service";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  if (account.context.role !== "ADMIN") return forbidden("Administrator access is required.");
+  if (account.context.role !== "ADMIN" || !isTrustedAdminEmail(account.context.email)) return forbidden("Administrator access is required.");
   try {
     const [readiness, manifests, pilots] = await Promise.all([buildDatasetReadiness(), listResearchCohortManifests(), listActivePilotCohorts(true)]);
     return ok({ readiness, manifests, pilots });
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   if (originError) return originError;
   const account = await requireApiAccount();
   if (!account.ok) return account.response;
-  if (account.context.role !== "ADMIN") return forbidden("Administrator access is required.");
+  if (account.context.role !== "ADMIN" || !isTrustedAdminEmail(account.context.email)) return forbidden("Administrator access is required.");
   const parsed = await parseSecureJson(request, researchCohortBuildSchema);
   if (!parsed.ok) return parsed.response;
   try {

@@ -147,13 +147,14 @@ function clubSummary(team: {
   description?: string | null;
   joinCode: string;
   memberships?: unknown[];
+  _count?: { memberships: number };
 }): CoachClubSummary {
   return {
     id: team.id,
     name: team.name,
     description: team.description,
     joinCode: team.joinCode,
-    memberCount: team.memberships?.length ?? 0,
+    memberCount: team._count?.memberships ?? team.memberships?.length ?? 0,
     permissionPendingCount: 0,
     dataReadyCount: 0,
     swimmers: []
@@ -302,7 +303,11 @@ export async function listCoachClubsForSwimmer(userId: string) {
     include: {
       team: {
         include: {
-          memberships: true,
+          _count: {
+            select: {
+              memberships: { where: { role: "SWIMMER" } }
+            }
+          },
           shareGrants: { where: { athleteId: userId }, select: { status: true }, take: 1 }
         }
       }
@@ -326,11 +331,17 @@ export async function joinCoachClub(input: { userId: string; joinCode: string })
         mode: "insensitive"
       }
     },
-    include: { memberships: true }
+    include: {
+      memberships: {
+        where: { userId: input.userId },
+        select: { role: true },
+        take: 1
+      }
+    }
   });
 
   if (!team) return null;
-  const currentMembership = team.memberships.find((membership) => membership.userId === input.userId);
+  const currentMembership = team.memberships[0];
   if (team.ownerId === input.userId || currentMembership?.role === "OWNER" || currentMembership?.role === "COACH") {
     throw new CannotJoinOwnedGroupError("coach club");
   }
@@ -374,7 +385,13 @@ export async function joinCoachClub(input: { userId: string; joinCode: string })
 
   const updated = await prisma.team.findUniqueOrThrow({
     where: { id: team.id },
-    include: { memberships: true }
+    include: {
+      _count: {
+        select: {
+          memberships: { where: { role: "SWIMMER" } }
+        }
+      }
+    }
   });
 
   return {

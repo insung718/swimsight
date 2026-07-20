@@ -30,6 +30,7 @@ export function CommunityHub() {
   const [coachClubCode, setCoachClubCode] = useState("");
   const [friendEmail, setFriendEmail] = useState("");
   const [friendships, setFriendships] = useState<FriendshipRecord[]>([]);
+  const [currentUserId, setCurrentUserId] = useState("");
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export function CommunityHub() {
         setCommunities(communityData.communities ?? []);
         setCoachClubs(clubData.clubs ?? []);
         setFriendships(friendData.friendships ?? []);
+        setCurrentUserId(friendData.currentUserId ?? "");
         setStatus("");
       })
       .catch(() => setStatus(t("Could not load communities.")));
@@ -57,6 +59,7 @@ export function CommunityHub() {
 
     if (response.ok) {
       setCommunities((current) => [result.community, ...current]);
+      setName("");
       setStatus(t("Community created."));
       return;
     }
@@ -73,7 +76,8 @@ export function CommunityHub() {
     const result = await response.json();
 
     if (response.ok) {
-      setCommunities((current) => [result.community, ...current]);
+      setCommunities((current) => [result.community, ...current.filter((community) => community.id !== result.community.id)]);
+      setJoinCode("");
       setStatus(t("Joined community."));
       return;
     }
@@ -123,6 +127,7 @@ export function CommunityHub() {
       body: JSON.stringify({ email: friendEmail })
     });
     const result = await response.json();
+    if (response.ok) setFriendEmail("");
     setStatus(response.ok ? t("Friend request sent.") : result.error ? t(result.error) : t("Could not send request."));
   }
 
@@ -161,7 +166,9 @@ export function CommunityHub() {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
           <input
+            aria-label={t("Community name")}
             className="h-10 w-full rounded-md border border-white/15 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
+            maxLength={80}
             placeholder={t("Community name")}
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -177,7 +184,10 @@ export function CommunityHub() {
         </div>
         <div className="space-y-2">
           <input
+            aria-label={t("Coach club code")}
+            autoCapitalize="characters"
             className="h-10 w-full rounded-md border border-white/15 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
+            maxLength={24}
             placeholder={t("Coach club code")}
             value={coachClubCode}
             onChange={(event) => setCoachClubCode(event.target.value)}
@@ -193,7 +203,10 @@ export function CommunityHub() {
         </div>
         <div className="space-y-2">
           <input
+            aria-label={t("Join code")}
+            autoCapitalize="characters"
             className="h-10 w-full rounded-md border border-white/15 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
+            maxLength={24}
             placeholder={t("Join code")}
             value={joinCode}
             onChange={(event) => setJoinCode(event.target.value)}
@@ -208,8 +221,12 @@ export function CommunityHub() {
         </div>
         <div className="space-y-2">
           <input
+            aria-label={t("Friend email")}
+            autoComplete="email"
             className="h-10 w-full rounded-md border border-white/15 bg-stitch-abyss px-3 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-stitch-cyan"
+            maxLength={254}
             placeholder="friend@email.com"
+            type="email"
             value={friendEmail}
             onChange={(event) => setFriendEmail(event.target.value)}
           />
@@ -293,7 +310,7 @@ export function CommunityHub() {
                   <p className="text-xs text-white/50">{friendship.status === "ACCEPTED" ? t("Accepted") : friendship.status === "PENDING" ? t("Pending") : t("Blocked")}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {friendship.status === "PENDING" && <button className="h-8 rounded-md bg-stitch-cyan px-3 text-xs font-semibold text-stitch-abyss" type="button" onClick={() => updateFriendship(friendship.id, "accept")}>{t("Accept")}</button>}
+                  {friendship.status === "PENDING" && friendship.addresseeId === currentUserId && <button className="h-8 rounded-md bg-stitch-cyan px-3 text-xs font-semibold text-stitch-abyss" type="button" onClick={() => updateFriendship(friendship.id, "accept")}>{t("Accept")}</button>}
                   <button className="ui-press h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white hover:border-stitch-cyan" type="button" onClick={() => updateFriendship(friendship.id, "remove")}>{t("Remove")}</button>
                   {friendship.status !== "BLOCKED" && <button className="ui-press h-8 rounded-md border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white hover:border-rose-300" type="button" onClick={() => updateFriendship(friendship.id, "block")}>{t("Block")}</button>}
                 </div>

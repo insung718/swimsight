@@ -1,5 +1,6 @@
 import "server-only";
 import type { Prisma } from "@prisma/client";
+import { CONSENT_POLICY_VERSIONS } from "@/lib/consent-policy";
 import { prisma } from "@/lib/prisma";
 
 export const PRODUCT_ANALYTICS_RETENTION_DAYS = 90;
@@ -40,10 +41,12 @@ const allowedProperties: Record<ProductEventName, ReadonlySet<string>> = {
 };
 
 function activePersonalAnalytics(user: {
+  personalAnalyticsConsentVersion: string | null;
   personalAnalyticsConsentedAt: Date | null;
   personalAnalyticsWithdrawnAt: Date | null;
 }) {
   return Boolean(user.personalAnalyticsConsentedAt
+    && user.personalAnalyticsConsentVersion === CONSENT_POLICY_VERSIONS.PERSONAL_ANALYTICS
     && (!user.personalAnalyticsWithdrawnAt || user.personalAnalyticsConsentedAt > user.personalAnalyticsWithdrawnAt));
 }
 
@@ -84,7 +87,12 @@ export async function recordProductEvent(input: {
   if (!input.consentKnownActive) {
     const user = await client.user.findUnique({
       where: { id: input.userId },
-      select: { createdAt: true, personalAnalyticsConsentedAt: true, personalAnalyticsWithdrawnAt: true }
+      select: {
+        createdAt: true,
+        personalAnalyticsConsentVersion: true,
+        personalAnalyticsConsentedAt: true,
+        personalAnalyticsWithdrawnAt: true
+      }
     });
     if (!user || !activePersonalAnalytics(user)) return null;
     if (input.eventName === "RETURN_VISIT") {
@@ -124,6 +132,7 @@ export async function markFirstInsight(
     select: {
       firstInsightAt: true,
       onboardingStartedAt: true,
+      personalAnalyticsConsentVersion: true,
       personalAnalyticsConsentedAt: true,
       personalAnalyticsWithdrawnAt: true
     }
