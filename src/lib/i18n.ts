@@ -3054,6 +3054,78 @@ Object.assign(vi, {
   "Awaiting first result": "Đang chờ thành tích đầu tiên"
 });
 
+Object.assign(ko, {
+  "Navigation": "내비게이션",
+  "Menu": "메뉴",
+  "Performance, without the noise.": "복잡함 없이 선명한 경기력 분석.",
+  "Forecast coverage": "예측 지원 범위",
+  "Predictions & analytics": "예측 및 분석",
+  "Every supported event and course lives in one prediction workspace.": "지원하는 모든 종목과 코스의 예측을 한 화면에서 확인할 수 있습니다.",
+  "active": "활성",
+  "Events": "종목",
+  "Courses": "코스",
+  "Strokes": "영법",
+  "History": "경기 기록",
+  "All event forecasts": "모든 종목 예측",
+  "Course-aware conservative ensemble, calibrated from your own official history.": "본인의 공식 경기 기록을 바탕으로 코스별 특성을 반영해 보수적으로 보정한 앙상블 모델입니다.",
+  "100 Freestyle research model": "100 자유형 연구 모델",
+  "Validated XGBoost challenger is used only when eligibility and governance checks pass.": "검증된 엑스지부스트 후보 모델은 적용 조건과 모델 관리 검사를 모두 통과한 경우에만 사용됩니다.",
+  "Model evidence & validation": "모델 근거 및 검증",
+  "Evaluation, error, calibration, and model-version history.": "평가 결과, 오차, 보정 상태, 모델 버전 이력을 확인합니다.",
+  "Every event you log appears here with its own course-aware forecast.": "기록한 모든 종목이 코스별 예측과 함께 이곳에 표시됩니다.",
+  "Prediction inputs for every event": "모든 종목의 예측 입력값",
+  "Age, category, taper, and training frequency inform every forecast; each event uses up to 20 matching official races.": "나이, 경기 분류, 테이퍼 기간, 훈련 빈도는 모든 예측에 반영되며 종목별로 일치하는 공식 경기 기록을 최대 20개까지 사용합니다.",
+  "Display range": "표시 기간",
+  "Progression date range": "기록 추이 기간",
+  "All time": "전체 기간",
+  "Competitive swimmer profile": "경쟁 수영 선수 프로필",
+  "Athlete": "선수",
+  "Build your strongest event": "강점 종목을 만들어 가세요",
+  "Official races": "공식 경기",
+  "Season card": "시즌 카드",
+  "Strongest result": "최고 경기 기록",
+  "Primary goal": "주요 목표",
+  "No official result yet": "아직 공식 경기 기록이 없습니다",
+  "Keep logging to unlock season memories.": "계속 기록하면 시즌 추억이 열립니다.",
+  "Training entries": "훈련 기록"
+});
+
+Object.assign(vi, {
+  "Navigation": "Điều hướng",
+  "Menu": "Trình đơn",
+  "Performance, without the noise.": "Hiệu suất rõ ràng, không rối mắt.",
+  "Forecast coverage": "Phạm vi dự báo",
+  "Predictions & analytics": "Dự báo và phân tích",
+  "Every supported event and course lives in one prediction workspace.": "Mọi nội dung và loại bể được hỗ trợ đều nằm trong một không gian dự báo.",
+  "active": "đang hoạt động",
+  "Events": "Nội dung",
+  "Courses": "Loại bể",
+  "Strokes": "Kiểu bơi",
+  "History": "Lịch sử thi đấu",
+  "All event forecasts": "Dự báo cho mọi nội dung",
+  "Course-aware conservative ensemble, calibrated from your own official history.": "Mô hình tổ hợp thận trọng có xét loại bể, được hiệu chỉnh từ lịch sử thi đấu chính thức của chính bạn.",
+  "100 Freestyle research model": "Mô hình nghiên cứu 100 m tự do",
+  "Validated XGBoost challenger is used only when eligibility and governance checks pass.": "Mô hình XGBoost thử nghiệm đã kiểm định chỉ được dùng khi vượt qua đầy đủ điều kiện áp dụng và kiểm soát mô hình.",
+  "Model evidence & validation": "Bằng chứng và kiểm định mô hình",
+  "Evaluation, error, calibration, and model-version history.": "Xem kết quả đánh giá, sai số, độ hiệu chỉnh và lịch sử phiên bản mô hình.",
+  "Every event you log appears here with its own course-aware forecast.": "Mọi nội dung bạn ghi sẽ xuất hiện tại đây cùng dự báo riêng theo loại bể.",
+  "Prediction inputs for every event": "Dữ liệu dự báo cho mọi nội dung",
+  "Age, category, taper, and training frequency inform every forecast; each event uses up to 20 matching official races.": "Tuổi, nhóm thành tích, thời gian giảm tải và tần suất tập được dùng cho mọi dự báo; mỗi nội dung sử dụng tối đa 20 cuộc đua chính thức phù hợp.",
+  "Display range": "Khoảng hiển thị",
+  "Progression date range": "Khoảng thời gian tiến bộ",
+  "All time": "Toàn bộ thời gian",
+  "Competitive swimmer profile": "Hồ sơ vận động viên bơi thi đấu",
+  "Athlete": "Vận động viên",
+  "Build your strongest event": "Xây dựng nội dung sở trường của bạn",
+  "Official races": "Cuộc đua chính thức",
+  "Season card": "Thẻ mùa giải",
+  "Strongest result": "Thành tích tốt nhất",
+  "Primary goal": "Mục tiêu chính",
+  "No official result yet": "Chưa có thành tích chính thức",
+  "Keep logging to unlock season memories.": "Tiếp tục ghi thành tích để mở lại những dấu mốc của mùa giải.",
+  "Training entries": "Buổi tập đã ghi"
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {

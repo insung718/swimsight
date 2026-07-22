@@ -1,173 +1,248 @@
 "use client";
 
-import { Menu, X, Waves } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import type { Route } from "next";
+import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Plus, Waves } from "lucide-react";
 import { useTranslator } from "@/components/i18n/use-language";
 import { cn } from "@/lib/utils";
 
-interface StaggeredMenuItem {
+export interface StaggeredMenuItem {
   label: string;
   href?: string;
   link?: string;
   ariaLabel?: string;
+  icon?: ReactNode;
+  active?: boolean;
+  onSelect?: () => void;
 }
 
 interface StaggeredMenuProps {
-  items: StaggeredMenuItem[];
+  items: readonly StaggeredMenuItem[];
   className?: string;
   position?: "left" | "right";
+  triggerVariant?: "header" | "floating";
+  triggerLabel?: string;
+  closeLabel?: string;
+  dialogLabel?: string;
+  navLabel?: string;
+  eyebrow?: string;
+  activeLabel?: string;
+  onMenuOpen?: () => void;
+  onMenuClose?: () => void;
 }
 
-export function StaggeredMenu({ items, className, position = "right" }: StaggeredMenuProps) {
+export function StaggeredMenu({
+  items,
+  className,
+  position = "right",
+  triggerVariant = "header",
+  triggerLabel = "Open navigation menu",
+  closeLabel = "Close navigation menu",
+  dialogLabel = "SwimSight navigation menu",
+  navLabel = "Main navigation",
+  eyebrow = "Navigation",
+  activeLabel,
+  onMenuOpen,
+  onMenuClose
+}: StaggeredMenuProps) {
   const { t } = useTranslator();
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const panelId = "swimsight-navigation-menu";
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const panelId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
-
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMenu();
+        return;
+      }
+      if (event.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
+        "button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])"
+      )).filter((element) => !element.hasAttribute("hidden"));
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open]);
 
-  const panelSide = position === "right" ? "right-4" : "left-4";
-  return (
-    <div className={cn("relative", className)}>
-      <button
-        aria-controls={panelId}
-        aria-expanded={open}
-        aria-label={open ? t("Close navigation menu") : t("Open navigation menu")}
-        className="ui-press inline-flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-white/80 text-black shadow-sm backdrop-blur-xl hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-600"
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-      >
-        {open ? <X aria-hidden className="h-4 w-4" /> : <Menu aria-hidden className="h-4 w-4" />}
-      </button>
+  function openMenu() {
+    setOpen(true);
+    onMenuOpen?.();
+  }
 
-      <div
-        aria-hidden={!open}
-        className={cn(
-          "fixed inset-0 z-[80] bg-black/35 backdrop-blur-sm transition-opacity duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        )}
-        onClick={() => setOpen(false)}
-      />
-      <div
+  function closeMenu(restoreFocus = true) {
+    setOpen(false);
+    onMenuClose?.();
+    if (restoreFocus) window.setTimeout(() => triggerRef.current?.focus(), 180);
+  }
+
+  function selectItem(item: StaggeredMenuItem) {
+    item.onSelect?.();
+    closeMenu(false);
+    if (item.onSelect) window.scrollTo({ behavior: "smooth", top: 0 });
+  }
+
+  const trigger = (
+    <button
+      aria-controls={panelId}
+      aria-expanded={open}
+      aria-haspopup="dialog"
+      aria-label={t(triggerLabel)}
+      className={cn(
+        triggerVariant === "floating" ? "staggered-menu-trigger staggered-menu-trigger--floating" : "staggered-menu-trigger",
+        className
+      )}
+      ref={triggerRef}
+      type="button"
+      onClick={open ? () => closeMenu() : openMenu}
+    >
+      {triggerVariant === "floating" && (
+        <span aria-hidden className="staggered-menu-trigger__active-icon">
+          {items.find((item) => item.active)?.icon ?? <Waves className="h-4 w-4" />}
+        </span>
+      )}
+      <span className="staggered-menu-trigger__text">
+        {triggerVariant === "floating" ? t(activeLabel ?? items.find((item) => item.active)?.label ?? "Menu") : t(open ? "Close" : "Menu")}
+      </span>
+      <span aria-hidden className={cn("staggered-menu-trigger__glyph", open && "staggered-menu-trigger__glyph--open")}>
+        <Plus className="h-4 w-4" />
+      </span>
+    </button>
+  );
+
+  const menu = mounted ? createPortal(
+    <div className={cn("staggered-menu-layer", open && "staggered-menu-layer--open", `staggered-menu-layer--${position}`)}>
+      <button
         aria-hidden
-        className={cn(
-          "fixed top-4 z-[85] h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-white/15 bg-cyan-200/55 shadow-stitch backdrop-blur-2xl transition-[opacity,transform,visibility] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-          panelSide,
-          open ? "visible translate-x-0 scale-100 opacity-100 delay-75" : "invisible translate-x-0 scale-95 opacity-0"
-        )}
+        className="staggered-menu-backdrop"
+        tabIndex={-1}
+        type="button"
+        onClick={() => closeMenu()}
       />
+      <div aria-hidden className="staggered-menu-prelayers">
+        <span className="staggered-menu-prelayer staggered-menu-prelayer--mint" />
+        <span className="staggered-menu-prelayer staggered-menu-prelayer--cyan" />
+      </div>
       <aside
-        aria-hidden={!open}
-        aria-label={t("SwimSight navigation menu")}
+        aria-label={t(dialogLabel)}
         aria-modal="true"
-        className={cn(
-          "fixed top-4 z-[90] flex h-[calc(100dvh-2rem)] w-[min(360px,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-white/25 bg-stitch-abyss/[0.94] p-5 text-white shadow-stitch backdrop-blur-2xl transition-[opacity,transform,visibility] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-          panelSide,
-          open ? "visible pointer-events-auto translate-x-0 scale-100 opacity-100 delay-100" : "invisible pointer-events-none translate-x-0 scale-95 opacity-0"
-        )}
+        className="staggered-menu-panel"
         id={panelId}
+        ref={panelRef}
         role="dialog"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-stitch-cyan text-stitch-abyss">
-              <Waves aria-hidden className="h-4 w-4" />
-            </span>
-            {t("SwimSight")}
+        <header className="staggered-menu-panel__header">
+          <div className="staggered-menu-brand">
+            <span className="staggered-menu-brand__mark"><Waves aria-hidden className="h-5 w-5" /></span>
+            <span>{t("SwimSight")}</span>
           </div>
           <button
-            aria-label={t("Close navigation menu")}
-            className="ui-press inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan"
+            aria-label={t(closeLabel)}
+            className="staggered-menu-close"
             ref={closeButtonRef}
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => closeMenu()}
           >
-            <X aria-hidden className="h-4 w-4" />
+            <span>{t("Close")}</span>
+            <span aria-hidden className="staggered-menu-close__glyph"><Plus className="h-4 w-4" /></span>
           </button>
+        </header>
+
+        <div className="staggered-menu-panel__body">
+          <p className="staggered-menu-eyebrow">{t(eyebrow)}</p>
+          <nav aria-label={t(navLabel)}>
+            <ol className="staggered-menu-list">
+              {items.map((item, index) => {
+                const href = item.href ?? item.link;
+                const isPathActive = Boolean(href?.startsWith("/") && (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`))));
+                const isActive = item.active ?? isPathActive;
+                const itemStyle = { "--stagger-index": index } as CSSProperties;
+                const content = (
+                  <>
+                    <span className="staggered-menu-item__number">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="staggered-menu-item__label">{t(item.label)}</span>
+                    <span aria-hidden className="staggered-menu-item__icon">{item.icon ?? <Plus className="h-5 w-5" />}</span>
+                  </>
+                );
+
+                return (
+                  <li className="staggered-menu-list__item" key={`${href ?? item.label}-${index}`} style={itemStyle}>
+                    {href?.startsWith("/") ? (
+                      <Link
+                        aria-current={isActive ? "page" : undefined}
+                        aria-label={t(item.ariaLabel ?? item.label)}
+                        className={cn("staggered-menu-item", isActive && "staggered-menu-item--active")}
+                        href={href as Route}
+                        onClick={() => selectItem(item)}
+                      >
+                        {content}
+                      </Link>
+                    ) : href ? (
+                      <a
+                        aria-current={isActive ? "page" : undefined}
+                        aria-label={t(item.ariaLabel ?? item.label)}
+                        className={cn("staggered-menu-item", isActive && "staggered-menu-item--active")}
+                        href={href}
+                        onClick={() => selectItem(item)}
+                      >
+                        {content}
+                      </a>
+                    ) : (
+                      <button
+                        aria-current={isActive ? "page" : undefined}
+                        aria-label={t(item.ariaLabel ?? item.label)}
+                        className={cn("staggered-menu-item", isActive && "staggered-menu-item--active")}
+                        type="button"
+                        onClick={() => selectItem(item)}
+                      >
+                        {content}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
         </div>
 
-        <nav aria-label={t("Main navigation")} className="mt-12 space-y-2">
-          {items.map((item, index) => {
-            const href = item.href ?? item.link ?? "#";
-            const isActive = href.startsWith("/") && (pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)));
-            const className = cn(
-              "group ui-press flex items-center justify-between rounded-lg border px-4 py-4 text-lg font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-stitch-cyan",
-              isActive
-                ? "border-stitch-cyan/70 bg-stitch-cyan/18 text-stitch-cyan"
-                : "border-white/10 bg-white/12 text-white hover:border-stitch-cyan/60 hover:bg-white/18"
-            );
-            const style = {
-              transform: open ? "translateY(0)" : "translateY(18px)",
-              opacity: open ? 1 : 0,
-              transition: `opacity 240ms cubic-bezier(0.22,1,0.36,1) ${index * 45 + 90}ms, transform 240ms cubic-bezier(0.22,1,0.36,1) ${index * 45 + 90}ms`
-            };
-            const content = (
-              <>
-                <span>{t(item.label)}</span>
-                <span aria-hidden className="font-mono text-xs text-white/70">{String(index + 1).padStart(2, "0")}</span>
-              </>
-            );
-
-            if (href.startsWith("/")) {
-              return (
-                <Link
-                  aria-label={t(item.ariaLabel ?? item.label)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={className}
-                  href={href as Route}
-                  key={`${href}-${item.label}`}
-                  onClick={() => setOpen(false)}
-                  style={style}
-                >
-                  {content}
-                </Link>
-              );
-            }
-
-            return (
-              <a
-                aria-label={t(item.ariaLabel ?? item.label)}
-                aria-current={isActive ? "page" : undefined}
-                className={className}
-                href={href}
-                key={`${href}-${item.label}`}
-                onClick={() => setOpen(false)}
-                style={style}
-              >
-                {content}
-              </a>
-            );
-          })}
-        </nav>
-
-        <div className="mt-auto rounded-lg border border-white/10 bg-white/10 p-4">
-          <p className="text-sm font-semibold text-stitch-cyan">{t("Built for race-day clarity.")}</p>
-          <p className="mt-2 text-sm leading-6 text-white/74">
-            {t("Every section stays connected to one product system: clean glass, strong contrast, and fast movement.")}
-          </p>
-        </div>
+        <footer className="staggered-menu-panel__footer">
+          <span>{t("Performance, without the noise.")}</span>
+          <a href="https://instagram.com/swim.sight" rel="noreferrer" target="_blank">@swim.sight</a>
+        </footer>
       </aside>
-    </div>
-  );
+    </div>,
+    document.body
+  ) : null;
+
+  return <>{trigger}{menu}</>;
 }

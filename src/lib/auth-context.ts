@@ -8,6 +8,8 @@ export interface AuthContext {
   userId: string;
   clerkId: string;
   email: string;
+  name: string;
+  imageUrl?: string | null;
   age?: number | null;
   sex?: "FEMALE" | "MALE" | null;
   taperDays?: number | null;
@@ -56,6 +58,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       userId: authResult.userId,
       clerkId: authResult.userId,
       email,
+      name,
+      imageUrl: clerkUser?.imageUrl,
       age: null,
       sex: null,
       taperDays: null,
@@ -120,6 +124,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     userId: user.id,
     clerkId: user.clerkId,
     email: user.email,
+    name: user.name,
+    imageUrl: user.imageUrl,
     age: user.age,
     sex: user.sex,
     taperDays: user.taperDays,

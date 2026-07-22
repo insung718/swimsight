@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Activity, AlertTriangle, ArrowRight, BarChart3, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TimerReset, TrendingUp, UserRound, Waves } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BarChart3, BrainCircuit, ChevronDown, Dumbbell, Gauge, LayoutDashboard, ListPlus, Medal, Sparkles, Target, TimerReset, TrendingUp, UserRound, Waves } from "lucide-react";
 import { AthleteProfilePanel } from "@/components/athlete-profile-panel";
 import { CommunityHub } from "@/components/community-hub";
 import { CsvImporter } from "@/components/csv-importer";
@@ -26,21 +26,21 @@ import { UpcomingMeetPanel } from "@/components/upcoming-meet-panel";
 import { UserActions } from "@/components/auth/user-actions";
 import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { Counter } from "@/components/ui/counter";
-import { DashboardOptionWheel } from "@/components/ui/dashboard-option-wheel";
+import { StaggeredMenu } from "@/components/ui/staggered-menu";
 import { useProductEvent } from "@/hooks/use-product-event";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { isOfficialResult } from "@/lib/analytics";
+import { supportedEvents } from "@/lib/events";
 import { formatTime } from "@/lib/utils";
 import type { DashboardAnalytics, Goal, GymWorkout, ModelPerformanceDashboard, PredictionProfile, SwimResult } from "@/types/swim";
 
-type DashboardTab = "overview" | "results" | "analytics" | "raceLab" | "model" | "training" | "goals" | "profile";
+type DashboardTab = "overview" | "results" | "analytics" | "raceLab" | "training" | "goals" | "profile";
 
 const tabs = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "results", label: "Results", icon: ListPlus },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "analytics", label: "Predictions", icon: BarChart3 },
   { id: "raceLab", label: "Race Lab", icon: TimerReset },
-  { id: "model", label: "Model", icon: Gauge },
   { id: "training", label: "Training", icon: Dumbbell },
   { id: "goals", label: "Goals & Meets", icon: Target },
   { id: "profile", label: "Profile", icon: UserRound }
@@ -53,7 +53,9 @@ export function SwimSightDashboard({
   modelPerformance,
   predictionProfile,
   swims,
-  viewMode
+  viewMode,
+  athleteName = "SwimSight Athlete",
+  athleteImageUrl
 }: {
   analytics: DashboardAnalytics;
   gymWorkouts: GymWorkout[];
@@ -62,6 +64,8 @@ export function SwimSightDashboard({
   predictionProfile: PredictionProfile;
   swims: SwimResult[];
   viewMode: DashboardViewMode;
+  athleteName?: string;
+  athleteImageUrl?: string | null;
 }) {
   const { t } = useTranslator();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
@@ -116,11 +120,11 @@ export function SwimSightDashboard({
               <EmptyState title="Your dashboard is ready." body="Add your first result to unlock personal bests, trends, predictions, and your Swim Power Index." action="Add a result" onAction={() => setActiveTab("results")} />
             ) : (
               <>
+                <ProgressionChart swims={officialSwims} />
                 <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
                   <SwimPowerIndexPanel spi={analytics.swimPowerIndex} />
                   <SeasonSnapshot overview={overview} prediction={primaryPrediction} trainingLoad={analytics.trainingLoad} onViewPredictions={() => setActiveTab("analytics")} />
                 </section>
-                <ProgressionChart swims={officialSwims} />
               </>
             )}
             <MotivationPanel />
@@ -129,26 +133,30 @@ export function SwimSightDashboard({
 
         {activeTab === "results" && <DashboardPanel><SectionHeading title="Results" /><ResultSplitSummary officialCount={officialSwims.length} trainingCount={trainingSwims.length} /><ManualTimeEntry swims={swims} /><CsvImporter /><MeetDatabasePanel swims={swims} />{analytics.personalBests.length > 0 && <PersonalBestTable personalBests={analytics.personalBests} />}</DashboardPanel>}
 
-        {activeTab === "analytics" && <DashboardPanel><SectionHeading title="Analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-3"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><ProgressionChart swims={officialSwims} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
+        {activeTab === "analytics" && <DashboardPanel><SectionHeading title="Predictions & analytics" />{hasResults ? <><section className="grid gap-4 lg:grid-cols-2"><SpiExplainer analytics={analytics} /><DataQualityPanel swims={officialSwims} /><EventIntelligencePanel analytics={analytics} /><ForecastCoveragePanel predictionCount={analytics.predictions.length} /></section><PredictionGrid predictions={analytics.predictions} profile={predictionProfile} /><ModelEvidence performance={modelPerformance} /><StrokeSpecialtyPentagon profile={analytics.specialtyProfile} /><EventRankings strongestEvents={analytics.strongestEvents} weakestEvents={analytics.weakestEvents} /><ProgressionChart swims={officialSwims} /></> : <EmptyState title="No official meet results yet." body="Training times are saved separately. Add an official meet result to unlock PBs, SPI, predictions, and awards." action="Add official result" onAction={() => setActiveTab("results")} />}</DashboardPanel>}
 
         {activeTab === "raceLab" && <DashboardPanel><RaceLab analytics={analytics} goals={goals} swims={swims} /></DashboardPanel>}
-
-        {activeTab === "model" && <DashboardPanel><SectionHeading title="Model performance" /><ModelPerformancePanel performance={modelPerformance} /></DashboardPanel>}
 
         {activeTab === "training" && <DashboardPanel><SectionHeading title="Training" /><GymWorkoutPanel trainingLoad={analytics.trainingLoad} workouts={gymWorkouts} /></DashboardPanel>}
 
         {activeTab === "goals" && <DashboardPanel><SectionHeading title="Goals & meets" /><GoalTracker initialGoal={goals[0]} initialProjection={analytics.goalProjection} swims={swims} /><UpcomingMeetPanel /></DashboardPanel>}
 
-        {activeTab === "profile" && <DashboardPanel><SectionHeading title="Profile & community" /><AthleteProfilePanel analytics={analytics} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
+        {activeTab === "profile" && <DashboardPanel><SectionHeading title="Profile & community" /><AthleteProfilePanel analytics={analytics} athleteAge={predictionProfile.age} athleteImageUrl={athleteImageUrl} athleteName={athleteName} goals={goals} swims={swims} workouts={gymWorkouts} /><CommunityHub /><DataPrivacyPanel /></DashboardPanel>}
       </div>
-      <DashboardOptionWheel
-        activeId={activeTab}
+      <StaggeredMenu
+        activeLabel={tabs.find((tab) => tab.id === activeTab)?.label}
+        dialogLabel="Dashboard navigation"
+        eyebrow="Performance workspace"
         items={tabs.map(({ id, label, icon: Icon }) => ({
-          id,
+          active: id === activeTab,
           icon: <Icon aria-hidden className="h-5 w-5" />,
-          label
+          label,
+          onSelect: () => setActiveTab(id)
         }))}
-        onChange={setActiveTab}
+        navLabel="Dashboard views"
+        triggerLabel="Open dashboard navigation"
+        closeLabel="Close dashboard navigation"
+        triggerVariant="floating"
       />
     </main>
   );
@@ -422,6 +430,78 @@ function DataQualityPanel({ swims }: { swims: SwimResult[] }) {
         ))}
       </div>
     </section>
+  );
+}
+
+function ForecastCoveragePanel({ predictionCount }: { predictionCount: number }) {
+  const { t } = useTranslator();
+
+  return (
+    <section className="dashboard-glass premium-hover overflow-hidden p-5 text-white">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-mint-300/12 text-mint-100">
+            <BrainCircuit aria-hidden className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold">{t("Forecast coverage")}</h2>
+            <p className="mt-1 text-sm text-white/66">{t("Every supported event and course lives in one prediction workspace.")}</p>
+          </div>
+        </div>
+        <span className="rounded-full border border-mint-300/20 bg-mint-300/10 px-3 py-1 font-mono text-xs font-semibold text-mint-100">
+          {predictionCount} {t("active")}
+        </span>
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <CoverageMetric label="Events" value={supportedEvents.length.toString()} />
+        <CoverageMetric label="Courses" value="3" />
+        <CoverageMetric label="Strokes" value="5" />
+        <CoverageMetric label="History" value="20" />
+      </div>
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        <div className="rounded-md border border-aqua-200/15 bg-aqua-200/[0.08] p-3">
+          <p className="text-xs font-semibold text-aqua-100">{t("All event forecasts")}</p>
+          <p className="mt-1 text-sm leading-5 text-white/64">{t("Course-aware conservative ensemble, calibrated from your own official history.")}</p>
+        </div>
+        <div className="rounded-md border border-mint-300/15 bg-mint-300/[0.08] p-3">
+          <p className="text-xs font-semibold text-mint-100">{t("100 Freestyle research model")}</p>
+          <p className="mt-1 text-sm leading-5 text-white/64">{t("Validated XGBoost challenger is used only when eligibility and governance checks pass.")}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CoverageMetric({ label, value }: { label: string; value: string }) {
+  const { t } = useTranslator();
+  return (
+    <div className="rounded-md border border-white/10 bg-white/[0.07] p-3">
+      <div className="font-mono text-2xl font-semibold text-white">{value}</div>
+      <div className="mt-1 text-xs font-semibold text-white/50">{t(label)}</div>
+    </div>
+  );
+}
+
+function ModelEvidence({ performance }: { performance: ModelPerformanceDashboard }) {
+  const { t } = useTranslator();
+  return (
+    <details className="group overflow-hidden rounded-lg border border-stitch-abyss/10 bg-white/72 shadow-[0_14px_36px_rgba(4,17,29,0.08)] backdrop-blur-2xl">
+      <summary className="ui-press flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-4 text-stitch-abyss sm:px-5 [&::-webkit-details-marker]:hidden">
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan">
+            <BrainCircuit aria-hidden className="h-5 w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">{t("Model evidence & validation")}</span>
+            <span className="mt-1 block truncate text-xs text-stitch-abyss/58">{t("Evaluation, error, calibration, and model-version history.")}</span>
+          </span>
+        </span>
+        <ChevronDown aria-hidden className="h-5 w-5 shrink-0 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <div className="border-t border-stitch-abyss/8 bg-[#eaf3f4] p-3 sm:p-4">
+        <ModelPerformancePanel performance={performance} />
+      </div>
+    </details>
   );
 }
 

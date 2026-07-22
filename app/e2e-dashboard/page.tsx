@@ -75,6 +75,7 @@ export default async function DashboardE2EPage() {
       predictionProfile={predictionProfile}
       swims={swims}
       viewMode="swimmer"
+      athleteName="InSung Kim"
     />
   );
 }

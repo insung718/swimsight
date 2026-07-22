@@ -82,7 +82,7 @@ export function StrokeSpecialtyPentagon({ profile }: { profile: StrokeSpecialty[
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {profile.map((item) => (
-            <div className="rounded-lg border border-white/12 bg-white/[0.08] p-3" key={item.stroke}>
+            <div className="rounded-lg border border-white/12 bg-white/[0.08] p-3 sm:last:col-span-2" key={item.stroke}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-semibold text-white">{t(item.stroke)}</span>
                 <span className="font-mono text-sm text-aqua-100">{item.score}</span>

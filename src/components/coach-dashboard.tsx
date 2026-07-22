@@ -12,7 +12,7 @@ import { DashboardViewToggle } from "@/components/dashboard-view-toggle";
 import { useTranslator } from "@/components/i18n/use-language";
 import { LanguageToggle } from "@/components/landing/language-toggle";
 import { Counter } from "@/components/ui/counter";
-import { DashboardOptionWheel } from "@/components/ui/dashboard-option-wheel";
+import { StaggeredMenu } from "@/components/ui/staggered-menu";
 import { KineticLoader } from "@/components/ui/kinetic-loader";
 import type { DashboardViewMode } from "@/lib/dashboard-view-mode";
 import { formatDate, formatShortDate, formatTime } from "@/lib/utils";
@@ -121,14 +121,20 @@ export function CoachDashboard({ dashboard, viewMode }: { dashboard: CoachDashbo
         )}
       </div>
 
-      <DashboardOptionWheel
-        activeId={activeTab}
+      <StaggeredMenu
+        activeLabel={tabs.find((tab) => tab.id === activeTab)?.label}
+        dialogLabel="Dashboard navigation"
+        eyebrow="Team performance workspace"
         items={tabs.map(({ id, label, icon: Icon }) => ({
-          id,
+          active: id === activeTab,
           icon: <Icon aria-hidden className="h-5 w-5" />,
-          label
+          label,
+          onSelect: () => setActiveTab(id)
         }))}
-        onChange={setActiveTab}
+        navLabel="Dashboard views"
+        triggerLabel="Open dashboard navigation"
+        closeLabel="Close dashboard navigation"
+        triggerVariant="floating"
       />
     </main>
   );

@@ -93,6 +93,8 @@ export default async function Home() {
         modelPerformance={modelPerformance}
         swims={swims}
         viewMode="swimmer"
+        athleteName={context.name}
+        athleteImageUrl={context.imageUrl}
       />
     );
   } catch (error) {

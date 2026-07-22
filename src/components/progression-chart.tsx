@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Brush,
   CartesianGrid,
   Legend,
   Line,
@@ -11,6 +10,7 @@ import {
   XAxis,
   YAxis
 } from "recharts";
+import { useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslator } from "@/components/i18n/use-language";
 import { supportedEvents } from "@/lib/events";
@@ -23,6 +23,7 @@ interface ProgressionChartProps {
 
 export function ProgressionChart({ swims }: ProgressionChartProps) {
   const { language, t } = useTranslator();
+  const reducedMotion = useReducedMotion();
   const availableEvents = useMemo(
     () => supportedEvents.filter((event) => swims.some((swim) => swim.event === event)),
     [swims]
@@ -33,6 +34,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     [swims]
   );
   const [selectedYear, setSelectedYear] = useState("All");
+  const [selectedRange, setSelectedRange] = useState<"90d" | "180d" | "365d" | "All">("All");
   const availableCourses = useMemo(
     () => Array.from(new Set(swims.filter((swim) => swim.event === selectedEvent).map((swim) => swim.course))).sort() as Course[],
     [selectedEvent, swims]
@@ -78,6 +80,14 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
     return Array.from(rows.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [language, selectedCourse, selectedEvent, selectedYear, swims]);
 
+  const visibleChartData = useMemo(() => {
+    if (selectedRange === "All" || chartData.length < 2) return chartData;
+    const latest = Math.max(...chartData.map((row) => new Date(row.date).getTime()));
+    const days = Number.parseInt(selectedRange, 10);
+    const cutoff = latest - days * 24 * 60 * 60 * 1000;
+    return chartData.filter((row) => new Date(row.date).getTime() >= cutoff);
+  }, [chartData, selectedRange]);
+
   const visibleCourses = selectedCourse === "All" ? availableCourses : [selectedCourse];
   const courseColors: Record<Course, string> = {
     LCM: "#4ee8ff",
@@ -98,7 +108,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </label>
           <select
             id="event-filter"
-            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
+            className="h-10 rounded-md border border-white/15 bg-[#0a2537] px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
             value={selectedEvent}
             onChange={(event) => setSelectedEvent(event.target.value as SwimEvent)}
           >
@@ -113,7 +123,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </label>
           <select
             id="course-filter"
-            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
+            className="h-10 rounded-md border border-white/15 bg-[#0a2537] px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
             value={selectedCourse}
             onChange={(event) => setSelectedCourse(event.target.value as Course | "All")}
           >
@@ -129,7 +139,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           </label>
           <select
             id="year-filter"
-            className="h-10 rounded-md border border-white/20 bg-white/20 px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
+            className="h-10 rounded-md border border-white/15 bg-[#0a2537] px-3 text-sm font-medium text-white outline-none transition focus:border-stitch-cyan"
             value={selectedYear}
             onChange={(event) => setSelectedYear(event.target.value)}
           >
@@ -143,10 +153,10 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
         </div>
       </div>
 
-      <div className="mt-5 h-[320px] min-h-[320px]">
-        {chartData.length ? (
+      <div className="mt-5 h-[300px] min-h-[300px] text-white/62 sm:h-[340px] sm:min-h-[340px]">
+        {visibleChartData.length ? (
           <ResponsiveContainer height="100%" width="100%">
-          <LineChart data={chartData} margin={{ top: 12, right: 12, bottom: 8, left: 4 }}>
+          <LineChart data={visibleChartData} margin={{ top: 12, right: 12, bottom: 8, left: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.12} />
             <XAxis
               dataKey="dateLabel"
@@ -181,12 +191,12 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
                 dot={{ r: 4, strokeWidth: 2 }}
                 key={course}
                 name={course}
+                isAnimationActive={!reducedMotion}
                 stroke={courseColors[course]}
                 strokeWidth={3}
                 type="monotone"
               />
             ))}
-            <Brush dataKey="dateLabel" height={24} stroke="#09aeca" travellerWidth={10} />
           </LineChart>
           </ResponsiveContainer>
         ) : (
@@ -194,6 +204,22 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
             {t("No swims match this filter yet.")}
           </div>
         )}
+      </div>
+      <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pr-12 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pr-36">
+        <span className="text-xs font-semibold text-white/52">{t("Display range")}</span>
+        <div aria-label={t("Progression date range")} className="grid grid-cols-4 rounded-md border border-white/12 bg-[#04111d] p-1" role="group">
+          {(["90d", "180d", "365d", "All"] as const).map((range) => (
+            <button
+              aria-pressed={selectedRange === range}
+              className={`ui-press min-h-9 rounded px-3 font-mono text-xs font-semibold transition-colors ${selectedRange === range ? "bg-stitch-cyan text-stitch-abyss shadow-[0_4px_14px_rgba(78,232,255,0.18)]" : "text-white/58 hover:text-white"}`}
+              key={range}
+              type="button"
+              onClick={() => setSelectedRange(range)}
+            >
+              {t(range === "All" ? "All time" : range)}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

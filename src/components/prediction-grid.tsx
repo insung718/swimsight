@@ -81,7 +81,7 @@ export function PredictionGrid({ predictions, profile }: { predictions: Predicti
           </span>
           <div>
             <h2 className="text-lg font-semibold text-white">{t("Predictions")}</h2>
-            <p className="text-sm text-white/74">{t("Tap an event to open its forecast.")}</p>
+            <p className="text-sm text-white/74">{t("Every event you log appears here with its own course-aware forecast.")}</p>
           </div>
         </div>
         {bestForecast && bestForecast.improvement > 0 && (
@@ -418,8 +418,8 @@ function PredictionProfileEditor({ profile, t }: { profile: PredictionProfile; t
         <span className="flex items-center gap-3">
           <Settings2 aria-hidden className="h-5 w-5 text-aqua-100" />
           <span>
-            <span className="block text-sm font-semibold text-white">{t("100 Free prediction inputs")}</span>
-            <span className="mt-1 block text-xs text-white/62">{t("Age, category, taper, training frequency, and up to 20 prior official races.")}</span>
+            <span className="block text-sm font-semibold text-white">{t("Prediction inputs for every event")}</span>
+            <span className="mt-1 block text-xs text-white/62">{t("Age, category, taper, and training frequency inform every forecast; each event uses up to 20 matching official races.")}</span>
           </span>
         </span>
         <span className="rounded-full border border-white/12 px-3 py-1 text-xs font-semibold text-aqua-100">{t("Edit")}</span>

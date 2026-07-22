@@ -10,7 +10,7 @@ async function chooseDashboardView(page: Page, label: string) {
   await page.getByRole("button", { name: "Open dashboard navigation" }).click();
   const navigator = page.getByRole("dialog", { name: "Dashboard navigation" });
   await expect(navigator).toBeVisible();
-  await navigator.getByRole("option", { name: label, exact: true }).click();
+  await navigator.getByRole("button", { name: label, exact: true }).click();
   await expect(navigator).toBeHidden();
 }
 
@@ -181,30 +181,28 @@ test("carries the public 50 Free preview into editable result entry", async ({ p
   await expect(page.getByRole("textbox", { name: "Time", exact: true })).toHaveValue("24.88");
 });
 
-test("supports keyboard navigation in the dashboard option wheel", async ({ page }) => {
+test("supports keyboard navigation in the dashboard staggered menu", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/e2e-dashboard");
 
   await page.getByRole("button", { name: "Open dashboard navigation" }).click();
   const navigator = page.getByRole("dialog", { name: "Dashboard navigation" });
-  const wheel = navigator.getByRole("listbox", { name: "Dashboard views" });
-  await wheel.focus();
-  await wheel.press("End");
-  await expect(navigator.getByRole("option", { name: "Profile", exact: true })).toHaveAttribute("aria-selected", "true");
-  await wheel.press("Enter");
+  const profile = navigator.getByRole("button", { name: "Profile", exact: true });
+  await profile.focus();
+  await profile.press("Enter");
   await expect(page.getByRole("heading", { name: "Profile & community" })).toBeVisible();
   await expect(navigator).toBeHidden();
 });
 
-test("translates the dashboard option wheel", async ({ page }) => {
+test("translates the dashboard staggered menu", async ({ page }) => {
   await forceEnglish(page);
   await page.goto("/e2e-dashboard");
 
   await page.getByRole("button", { name: "KO" }).click();
   await page.getByRole("button", { name: "대시보드 내비게이션 열기" }).click();
   const navigator = page.getByRole("dialog", { name: "대시보드 내비게이션" });
-  await expect(navigator.getByRole("heading", { name: "화면 선택" })).toBeVisible();
-  await expect(navigator.getByRole("option", { name: "레이스 랩", exact: true })).toBeVisible();
+  await expect(navigator.getByText("경기력 작업 공간", { exact: true })).toBeVisible();
+  await expect(navigator.getByRole("button", { name: "레이스 랩", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "대시보드 내비게이션 닫기" }).click();
   await expect(navigator).toBeHidden();
 });
@@ -214,7 +212,7 @@ test("keeps every primary dashboard surface inside a mobile viewport", async ({ 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/e2e-dashboard");
 
-  for (const tab of ["Overview", "Results", "Analytics", "Race Lab", "Training", "Goals & Meets", "Profile"]) {
+  for (const tab of ["Overview", "Results", "Predictions", "Race Lab", "Training", "Goals & Meets", "Profile"]) {
     await chooseDashboardView(page, tab);
     await page.waitForTimeout(80);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

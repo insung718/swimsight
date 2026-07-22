@@ -65,7 +65,7 @@ export function EventRankings({ strongestEvents, weakestEvents }: EventRankingsP
 
   return (
     <section className="grid gap-4 lg:grid-cols-2">
-      <div className="dashboard-glass p-4 text-white">
+      <div className="dashboard-glass p-4 text-white lg:col-span-2">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-stitch-abyss text-stitch-cyan shadow-glow">
             <Activity aria-hidden className="h-5 w-5" />
