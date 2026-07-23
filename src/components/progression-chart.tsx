@@ -211,7 +211,7 @@ export function ProgressionChart({ swims }: ProgressionChartProps) {
           {(["90d", "180d", "365d", "All"] as const).map((range) => (
             <button
               aria-pressed={selectedRange === range}
-              className={`ui-press min-h-9 rounded px-3 font-mono text-xs font-semibold transition-colors ${selectedRange === range ? "bg-stitch-cyan text-stitch-abyss shadow-[0_4px_14px_rgba(78,232,255,0.18)]" : "text-white/58 hover:text-white"}`}
+              className={`ui-press min-h-9 whitespace-nowrap rounded px-2 font-mono text-[11px] font-semibold transition-colors sm:px-3 sm:text-xs ${selectedRange === range ? "bg-stitch-cyan text-stitch-abyss shadow-[0_4px_14px_rgba(78,232,255,0.18)]" : "text-white/68 hover:text-white"}`}
               key={range}
               type="button"
               onClick={() => setSelectedRange(range)}

@@ -31,7 +31,7 @@ export function UserActions({
         <SignInButton fallbackRedirectUrl={redirectUrl} forceRedirectUrl={redirectUrl} mode="modal" signUpFallbackRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl}>
           <button className={cn(
             "inline-flex items-center gap-2 text-sm font-medium transition",
-            compact && "h-8 rounded-full bg-black px-4 text-white hover:bg-black/75",
+            compact && "h-10 rounded-full bg-black px-4 text-white hover:bg-black/75",
             hero && !light && "h-11 rounded-full bg-white px-5 text-black hover:bg-white/85",
             hero && light && "h-11 rounded-full bg-black px-5 text-white hover:bg-black/80",
             !compact && !hero && "h-10 rounded-md bg-navy-900 px-3 text-white hover:bg-navy-700 dark:bg-aqua-400 dark:text-navy-950"

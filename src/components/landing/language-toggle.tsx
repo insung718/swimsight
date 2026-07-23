@@ -35,12 +35,13 @@ export function LanguageToggle({ compact = false }: { compact?: boolean }) {
   useEffect(() => setReady(true), []);
 
   return (
-    <div className="flex shrink-0 items-center rounded-full border border-black/10 bg-white/76 p-0.5 shadow-[0_14px_40px_rgba(4,17,29,0.12)] backdrop-blur-xl" aria-label={localizedMenuLabel[language]} data-language-ready={ready} data-no-translate>
+    <div className="flex shrink-0 items-center rounded-full border border-black/10 bg-white/[0.88] p-0.5 shadow-[0_14px_40px_rgba(4,17,29,0.12)] backdrop-blur-xl" aria-label={localizedMenuLabel[language]} data-language-ready={ready} data-no-translate>
       {languageOptions.map((option) => (
         <button
+          aria-label={localizedLanguageNames[language][option.code]}
           aria-pressed={language === option.code}
-          className={`h-8 rounded-full px-2.5 text-[11px] font-semibold tracking-[0.08em] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-3 sm:tracking-[0.12em] ${
-            language === option.code ? "bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.14)]" : "text-black/68 hover:bg-black/[0.045] hover:text-black"
+          className={`min-h-10 rounded-full px-2.5 text-[11px] font-semibold tracking-[0.08em] transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 sm:px-3 sm:tracking-[0.12em] ${
+            language === option.code ? "bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.14)]" : "text-black/[0.78] hover:bg-black/[0.06] hover:text-black"
           }`}
           key={option.code}
           title={localizedLanguageNames[language][option.code]}

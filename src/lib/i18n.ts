@@ -3229,6 +3229,28 @@ Object.assign(vi, {
   "Yearly": "Mỗi năm"
 });
 
+Object.assign(ko, {
+  "Signed in successfully": "로그인되었습니다",
+  "The dashboard connection needs one last backend step.": "대시보드 연결을 위한 마지막 백엔드 설정이 필요합니다.",
+  "Your account data has been removed. Identity deletion is still being finalized, so this session cannot recreate the account.": "계정 데이터가 삭제되었습니다. 로그인 정보 삭제가 마무리되는 동안에는 이 세션에서 계정을 다시 만들 수 없습니다.",
+  "Sign-in worked, but your account record could not be created in the database yet.": "로그인은 완료되었지만 데이터베이스에 계정 정보를 아직 만들지 못했습니다.",
+  "A production database is required before accounts can save data.": "계정에 데이터를 저장하려면 운영 데이터베이스가 필요합니다.",
+  "You are signed in, but the dashboard database cannot be reached right now.": "로그인되었지만 현재 대시보드 데이터베이스에 연결할 수 없습니다.",
+  "Add the production database variable in Vercel, then redeploy so database migrations run.": "버셀에 운영 데이터베이스 환경 변수를 추가한 뒤, 데이터베이스 마이그레이션이 실행되도록 다시 배포하세요.",
+  "When the database is ready, your empty personal dashboard will open with results, imports, goals, meets, communities, and analytics.": "데이터베이스가 준비되면 기록, 가져오기, 목표, 대회, 커뮤니티, 분석 기능이 있는 빈 개인 대시보드가 열립니다."
+});
+
+Object.assign(vi, {
+  "Signed in successfully": "Đăng nhập thành công",
+  "The dashboard connection needs one last backend step.": "Cần hoàn tất một bước máy chủ cuối cùng để kết nối bảng điều khiển.",
+  "Your account data has been removed. Identity deletion is still being finalized, so this session cannot recreate the account.": "Dữ liệu tài khoản của bạn đã được xóa. Quá trình xóa thông tin đăng nhập vẫn đang hoàn tất, vì vậy phiên này không thể tạo lại tài khoản.",
+  "Sign-in worked, but your account record could not be created in the database yet.": "Bạn đã đăng nhập, nhưng hệ thống chưa thể tạo hồ sơ tài khoản trong cơ sở dữ liệu.",
+  "A production database is required before accounts can save data.": "Cần có cơ sở dữ liệu vận hành trước khi tài khoản có thể lưu dữ liệu.",
+  "You are signed in, but the dashboard database cannot be reached right now.": "Bạn đã đăng nhập, nhưng hiện không thể kết nối với cơ sở dữ liệu của bảng điều khiển.",
+  "Add the production database variable in Vercel, then redeploy so database migrations run.": "Thêm biến cơ sở dữ liệu vận hành trong Vercel, rồi triển khai lại để chạy quá trình cập nhật cơ sở dữ liệu.",
+  "When the database is ready, your empty personal dashboard will open with results, imports, goals, meets, communities, and analytics.": "Khi cơ sở dữ liệu sẵn sàng, bảng điều khiển cá nhân trống sẽ mở với kết quả, nhập dữ liệu, mục tiêu, giải đấu, cộng đồng và phân tích."
+});
+
 export const translations: Record<Exclude<LanguageCode, "en">, TranslationMap> = { ko, vi };
 
 export const wordTranslations: Record<Exclude<LanguageCode, "en">, TranslationMap> = {

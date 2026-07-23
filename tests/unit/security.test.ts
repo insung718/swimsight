@@ -130,6 +130,28 @@ describe("API security", () => {
     expect(blocked?.status).toBe(403);
   });
 
+  it("accepts configured deployment origins and ignores malformed origin configuration", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://swimsight.example");
+    vi.stubEnv("VERCEL_URL", "swimsight-preview.vercel.app");
+
+    expect(enforceSameOrigin(new Request("https://swimsight.vercel.app/api/swims", {
+      method: "POST",
+      headers: { origin: "https://swimsight.example" }
+    }))).toBeNull();
+    expect(enforceSameOrigin(new Request("https://swimsight.vercel.app/api/swims", {
+      method: "POST",
+      headers: { origin: "https://swimsight-preview.vercel.app" }
+    }))).toBeNull();
+
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "javascript:alert(1)");
+    vi.stubEnv("VERCEL_URL", "not a valid host");
+
+    expect(enforceSameOrigin(new Request("https://swimsight.vercel.app/api/swims", {
+      method: "POST",
+      headers: { origin: "javascript://alert(1)" }
+    }))?.status).toBe(403);
+  });
+
   it("detects middleware bypass header attempts", () => {
     expect(isMiddlewareBypassAttempt(new Request("https://swimsight.vercel.app/api/swims", {
       headers: { "x-middleware-subrequest": "middleware" }

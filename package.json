@@ -28,10 +28,11 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.19",
+    "next": "15.5.21",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "recharts": "^2.15.4",
+    "sharp": "0.35.3",
     "tailwind-merge": "^2.5.5",
     "zod": "^4.4.3"
   },
@@ -60,10 +61,11 @@
     "fsevents@2.3.2": true,
     "fsevents@2.3.3": true,
     "prisma@6.19.3": true,
-    "sharp@0.34.5": true,
+    "sharp@0.35.3": true,
     "unrs-resolver@1.12.2": true
   },
   "overrides": {
-    "postcss": "$postcss"
+    "postcss": "$postcss",
+    "sharp": "$sharp"
   }
 }

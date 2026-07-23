@@ -541,7 +541,7 @@ body {
     min-height: clamp(4rem, 9vh, 5.5rem);
     padding: 0.4rem 0;
     text-align: left;
-    transition: color 180ms var(--ease-ui-out), padding 220ms var(--ease-ui-out);
+    transition: color 180ms var(--ease-ui-out), transform 220ms var(--ease-ui-out);
     width: 100%;
   }
 
@@ -571,7 +571,7 @@ body {
 
   .staggered-menu-item--active {
     color: #4ee8ff;
-    padding-left: 0.35rem;
+    transform: translate3d(0.35rem, 0, 0);
   }
 
   .staggered-menu-item--active .staggered-menu-item__number,
@@ -722,7 +722,7 @@ body {
 
   .staggered-menu-item:hover {
     color: #4ee8ff;
-    padding-left: 0.35rem;
+    transform: translate3d(0.35rem, 0, 0);
   }
 
   .staggered-menu-item:hover .staggered-menu-item__icon {

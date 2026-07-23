@@ -45,9 +45,12 @@ function addAllowedOrigin(allowed: Set<string>, value?: string) {
   if (!value) return;
 
   try {
-    allowed.add(new URL(value).origin);
+    const candidate = new URL(value.includes("://") ? value : `https://${value}`);
+    if (candidate.protocol === "http:" || candidate.protocol === "https:") {
+      allowed.add(candidate.origin);
+    }
   } catch {
-    allowed.add(`https://${value}`);
+    // Ignore malformed deployment configuration instead of trusting it.
   }
 }
 

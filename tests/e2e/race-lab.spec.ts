@@ -145,7 +145,7 @@ test("keeps 50, 100, 200, and 400 distance replays synchronized", async ({ page 
 });
 
 test("translates the Race Lab surface into Korean and Vietnamese", async ({ page }) => {
-  await page.getByRole("button", { name: "KO" }).click();
+  await page.getByRole("button", { name: "Korean", exact: true }).click();
   await expect(page.getByRole("heading", { name: "경기를 되짚고 계획을 바꿔 보세요." })).toBeVisible();
   await expect(page.getByRole("tab", { name: "구간 분석" })).toBeVisible();
   await page.getByRole("tab", { name: "경기 설계" }).click();
@@ -156,7 +156,7 @@ test("translates the Race Lab surface into Korean and Vietnamese", async ({ page
   await expect(page.locator('[data-race-track="Actual"]')).toContainText("구간 1/8");
   await expect(page.locator("[data-replay-clock]")).not.toHaveText("0.00");
 
-  await page.getByRole("button", { name: "베" }).click();
+  await page.getByRole("button", { name: "베트남어", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Xem lại cuộc đua. Điều chỉnh kế hoạch." })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Phân tích chặng" })).toBeVisible();
   await expect(page.locator('[data-race-track="Actual"]')).toContainText("Chặng 1/8");

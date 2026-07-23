@@ -43,7 +43,7 @@ export function SiteNav({ immersive = false }: { immersive?: boolean }) {
           SwimSight
         </a>
         <div className="flex items-center gap-2">
-          <LanguageToggle />
+          <LanguageToggle compact />
           <div className="hidden sm:block">
             <UserActions compact />
           </div>
