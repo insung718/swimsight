@@ -1,4 +1,5 @@
 export const MIGRATION_LOCK_ID = 741_913_207;
+export const MIGRATION_CONNECTION_ATTEMPTS = 5;
 
 export function containsDestructiveMigration(sql) {
   return /\b(DROP\s+(TABLE|COLUMN|TYPE)|TRUNCATE\s+TABLE|ALTER\s+COLUMN|RENAME\s+(COLUMN|TABLE))\b/i.test(sql);
@@ -6,6 +7,14 @@ export function containsDestructiveMigration(sql) {
 
 export function assertMigrationSucceeded(status) {
   if (status !== 0) throw new Error(`Prisma migration failed with exit code ${status ?? "unknown"}.`);
+}
+
+export function isRetryableMigrationConnectionError(error) {
+  if (!error || typeof error !== "object") return false;
+  if (error.code === "P1001" || error.code === "P1002") return true;
+
+  const message = "message" in error && typeof error.message === "string" ? error.message : "";
+  return /\bP100[12]\b|can't reach database server|timed out while connecting/i.test(message);
 }
 
 export function migrationDecision(environment) {

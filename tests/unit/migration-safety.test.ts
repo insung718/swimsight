@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { MIGRATION_LOCK_ID, assertMigrationSucceeded, containsDestructiveMigration, migrationDecision } from "../../scripts/migration-policy.mjs";
+import {
+  MIGRATION_CONNECTION_ATTEMPTS,
+  MIGRATION_LOCK_ID,
+  assertMigrationSucceeded,
+  containsDestructiveMigration,
+  isRetryableMigrationConnectionError,
+  migrationDecision
+} from "../../scripts/migration-policy.mjs";
 
 const dataFoundationMigration = readFileSync(
   new URL("../../prisma/migrations/20260714090000_data_foundation_v1/migration.sql", import.meta.url),
@@ -26,7 +33,15 @@ describe("production migration policy", () => {
 
   it("uses one stable advisory lock identifier across concurrent production attempts", () => {
     expect(MIGRATION_LOCK_ID).toBe(741_913_207);
+    expect(MIGRATION_CONNECTION_ATTEMPTS).toBe(5);
     expect(migrationDecision({ VERCEL_ENV: "production", DATABASE_URL: "postgres://database" }).action).toBe("RUN");
+  });
+
+  it("retries only transient database connection failures", () => {
+    expect(isRetryableMigrationConnectionError({ code: "P1001" })).toBe(true);
+    expect(isRetryableMigrationConnectionError(new Error("P1002: timed out while connecting"))).toBe(true);
+    expect(isRetryableMigrationConnectionError(new Error("Migration failed to apply cleanly"))).toBe(false);
+    expect(isRetryableMigrationConnectionError(null)).toBe(false);
   });
 
   it("detects contract-phase migration statements", () => {

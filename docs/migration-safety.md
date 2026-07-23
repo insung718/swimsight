@@ -7,6 +7,7 @@
 - A production build without `DATABASE_URL` fails closed.
 - `scripts/check-migration-safety.mjs` rejects drop, truncate, rename, and incompatible alter operations unless the exact migration directory receives an explicit reviewed approval.
 - `scripts/migrate-production.mjs` holds a PostgreSQL transaction-scoped advisory lock while `prisma migrate deploy` runs. Concurrent deployments wait on the same lock.
+- Production migration setup retries transient Prisma database connection failures with bounded exponential backoff. Schema, migration, and other non-connection failures still stop immediately.
 - Prisma migration deployment is idempotent, and a non-zero migration exit stops the build before `next build`.
 - Prediction Intelligence v3 is expand-only: it creates nullable columns, tables, enums, indexes, and foreign keys without dropping or renaming existing schema.
 
