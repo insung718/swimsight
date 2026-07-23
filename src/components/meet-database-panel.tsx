@@ -72,7 +72,7 @@ export function MeetDatabasePanel({ swims }: { swims: SwimResult[] }) {
           <article className="ui-lift rounded-lg border border-white/10 bg-white/[0.07] p-4 hover:border-stitch-cyan/45 hover:bg-white/[0.10]" key={`${meet.name}-${meet.firstDate}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="truncate font-semibold text-white">{meet.name}</h3>
+                <h3 className="truncate font-semibold text-white" data-no-translate>{meet.name}</h3>
                 <p className="mt-1 text-xs text-white/48">{meet.firstDate === meet.lastDate ? meet.firstDate : `${meet.firstDate} - ${meet.lastDate}`}</p>
               </div>
               <span className="rounded-full border border-white/15 bg-white/10 px-2 py-1 font-mono text-xs text-aqua-100">{meet.results.length}</span>

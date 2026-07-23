@@ -10,6 +10,12 @@ const localizedLanguageLabels: Record<LanguageCode, Record<LanguageCode, string>
   vi: { en: "Anh", ko: "Hàn", vi: "Việt" }
 };
 
+const localizedCompactLabels: Record<LanguageCode, Record<LanguageCode, string>> = {
+  en: { en: "EN", ko: "KO", vi: "VI" },
+  ko: { en: "영", ko: "한", vi: "베" },
+  vi: { en: "Anh", ko: "Hàn", vi: "Việt" }
+};
+
 const localizedLanguageNames: Record<LanguageCode, Record<LanguageCode, string>> = {
   en: { en: "English", ko: "Korean", vi: "Vietnamese" },
   ko: { en: "영어", ko: "한국어", vi: "베트남어" },
@@ -41,7 +47,7 @@ export function LanguageToggle({ compact = false }: { compact?: boolean }) {
           type="button"
           onClick={() => setLanguage(option.code)}
         >
-          {compact ? option.code.toUpperCase() : localizedLanguageLabels[language][option.code]}
+          {compact ? localizedCompactLabels[language][option.code] : localizedLanguageLabels[language][option.code]}
         </button>
       ))}
     </div>

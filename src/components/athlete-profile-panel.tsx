@@ -133,7 +133,7 @@ export function AthleteProfilePanel({
               )}
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-white/58">{athleteAge ? `${t("Age")} ${athleteAge}` : t("Athlete")}</p>
-                <h2 className="mt-1 break-words text-4xl font-semibold leading-none text-white sm:text-6xl">{athleteName}</h2>
+                <h2 className="mt-1 break-words text-4xl font-semibold leading-none text-white sm:text-6xl" data-no-translate>{athleteName}</h2>
                 <p className="mt-3 text-sm font-semibold text-aqua-100">{analytics.overview.bestEvent ? t(analytics.overview.bestEvent) : t("Build your strongest event")}</p>
               </div>
             </div>

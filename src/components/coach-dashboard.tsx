@@ -221,7 +221,7 @@ function CoachSpotlight({ swimmer }: { swimmer?: CoachSwimmerAnalytics }) {
 function CoachMini({ label, value }: { label: string; value: string }) {
   const { t } = useTranslator();
 
-  return <div className="min-w-0 px-2 first:pl-0 last:pr-0 sm:px-3"><div className="truncate text-[0.68rem] font-semibold text-stitch-abyss/52">{t(label)}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss">{value}</div></div>;
+  return <div className="min-w-0 px-2 first:pl-0 last:pr-0 sm:px-3"><div className="truncate text-[0.68rem] font-semibold text-stitch-abyss/52">{t(label)}</div><div className="mt-1 truncate font-mono text-base font-semibold text-stitch-abyss" data-no-translate>{value}</div></div>;
 }
 
 function EmptyCoachState({ onCreate }: { onCreate: () => void }) {
@@ -250,7 +250,7 @@ function ClubGrid({ clubs }: { clubs: CoachClubSummary[] }) {
           <div className="border-t border-white/12 py-4 first:border-t-0 first:pt-0 last:pb-0" key={club.id}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate font-semibold text-white">{club.name}</div>
+                <div className="truncate font-semibold text-white" data-no-translate>{club.name}</div>
                 <div className="mt-1 text-sm leading-5 text-white/62">{club.memberCount} {t("swimmers")} · {club.dataReadyCount} {t("data ready")} · {club.permissionPendingCount} {t("permission pending")}</div>
               </div>
               <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-xs text-aqua-100">{club.joinCode}</span>
@@ -276,7 +276,7 @@ function CoachPulse({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
           <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-white/12 py-3 first:border-t-0 first:pt-0 last:pb-0" key={swimmer.id}>
             <span className="font-mono text-xs font-semibold text-aqua-100">{String(index + 1).padStart(2, "0")}</span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">{swimmer.name}</p>
+              <p className="truncate text-sm font-semibold text-white" data-no-translate>{swimmer.name}</p>
               <p className="mt-0.5 truncate text-xs text-white/52">{swimmer.strongestEvent ? t(swimmer.strongestEvent) : t("No event yet")}</p>
             </div>
             <div className="text-right">
@@ -330,7 +330,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
             {saving ? <KineticLoader className="h-4 text-stitch-abyss" label={t("Creating club")} /> : <Plus aria-hidden className="h-4 w-4" />}
             {saving ? t("Creating") : t("Create club")}
           </button>
-          {status && <p className="mt-3 text-sm text-white/72">{status}</p>}
+          {status && <p className="mt-3 text-sm text-white/72" data-no-translate>{status}</p>}
         </div>
         <div>
           {clubs.length === 0 && <div className="rounded-lg border border-dashed border-white/12 p-6 text-center text-sm text-white/72">{t("No clubs yet.")}</div>}
@@ -338,7 +338,7 @@ function ClubManager({ clubs }: { clubs: CoachClubSummary[] }) {
             <div className="border-t border-white/12 py-4 first:border-t-0 first:pt-0 last:pb-0" key={club.id}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="font-semibold text-white">{club.name}</div>
+                  <div className="font-semibold text-white" data-no-translate>{club.name}</div>
                   <div className="mt-1 text-sm text-white/58">{club.memberCount} {t("swimmers")} · {t("share code")} {club.joinCode}</div>
                 </div>
                 <button
@@ -388,7 +388,7 @@ function AthleteRoster({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }) {
             <tbody>
               {swimmers.map((swimmer) => (
                 <tr className="border-b border-white/10 last:border-0" key={swimmer.id}>
-                  <td className="py-3 pr-3"><div className="font-semibold text-white">{swimmer.name}</div><div className="text-xs text-white/54">{t("Joined")} {formatDate(swimmer.joinedAt, language)}</div></td>
+                  <td className="py-3 pr-3"><div className="font-semibold text-white" data-no-translate>{swimmer.name}</div><div className="text-xs text-white/54">{t("Joined")} {formatDate(swimmer.joinedAt, language)}</div></td>
                   <td className="px-3 py-3 text-white/72">{swimmer.strongestEvent ? t(swimmer.strongestEvent) : t("No event yet")}</td>
                   <td className="px-3 py-3 font-mono font-semibold text-stitch-cyan">{swimmer.swimPowerIndex}</td>
                   <td className="px-3 py-3 text-white/72">{Math.round(swimmer.consistencyScore)}</td>
@@ -423,7 +423,7 @@ function SwimmerRankingBoard({ swimmers }: { swimmers: CoachSwimmerAnalytics[] }
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-mono text-xs font-semibold text-aqua-100">#{index + 1}</p>
-                <h3 className="mt-2 font-semibold text-white">{swimmer.name}</h3>
+                <h3 className="mt-2 font-semibold text-white" data-no-translate>{swimmer.name}</h3>
                 <p className="mt-1 text-sm text-white/58">{swimmer.strongestEvent ? t(swimmer.strongestEvent) : t("No strongest event yet")}</p>
               </div>
               <div className="text-right">
@@ -466,12 +466,12 @@ function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimm
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">{t("Development graph")}</h2>
-          <p className="mt-1 text-sm text-white/64">{selected ? `${selected.name} · ${t("filtered logged results")}` : t("Add swimmers with results to populate this graph.")}</p>
+          <p className="mt-1 text-sm text-white/64">{selected ? <><span data-no-translate>{selected.name}</span> · {t("filtered logged results")}</> : t("Add swimmers with results to populate this graph.")}</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <CoachSelect label="Swimmer" value={selectedSwimmerId} onChange={setSelectedSwimmerId}>
             <option value="all">{t("Most active")}</option>
-            {swimmers.map((swimmer) => <option key={swimmer.id} value={swimmer.id}>{swimmer.name}</option>)}
+            {swimmers.map((swimmer) => <option data-no-translate key={swimmer.id} value={swimmer.id}>{swimmer.name}</option>)}
           </CoachSelect>
           <CoachSelect label="Event" value={selectedEvent} onChange={(value) => setSelectedEvent(value as SwimEvent | "all")}>
             <option value="all">{t("All events")}</option>
@@ -502,8 +502,8 @@ function DevelopmentPanel({ swimmers, expanded = false }: { swimmers: CoachSwimm
               </defs>
               <XAxis dataKey="label" stroke="rgba(255,255,255,0.45)" tickLine={false} />
               <YAxis domain={["dataMin - 1", "dataMax + 1"]} stroke="rgba(255,255,255,0.45)" tickFormatter={(value) => formatTime(Number(value))} tickLine={false} />
-              <Tooltip formatter={(value) => formatTime(Number(value))} labelStyle={{ color: "#04111d" }} />
-              <Area dataKey="timeSeconds" fill="url(#coachDevelopment)" stroke="#4ee8ff" strokeWidth={3} type="monotone" />
+              <Tooltip formatter={(value) => [formatTime(Number(value)), t("Time")]} labelStyle={{ color: "#04111d" }} />
+              <Area dataKey="timeSeconds" fill="url(#coachDevelopment)" name={t("Time")} stroke="#4ee8ff" strokeWidth={3} type="monotone" />
             </AreaChart>
           </ResponsiveContainer>
         ) : (

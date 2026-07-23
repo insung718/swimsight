@@ -97,14 +97,14 @@ export function UpcomingMeetPanel() {
         </button>
       </div>
 
-      <p className="mt-3 text-sm text-white/72">{status}</p>
+      <p className="mt-3 text-sm text-white/72" data-no-translate>{status}</p>
       <div className="mt-3 space-y-2">
         {meets.length === 0 && <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-white/80">{t("No upcoming meets added.")}</div>}
         {meets.slice(0, 3).map((meet) => (
           <div className="rounded-lg bg-white/10 p-3" key={meet.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="font-semibold text-white">{meet.name}</div>
+                <div className="font-semibold text-white" data-no-translate>{meet.name}</div>
                 <div className="mt-1 text-sm text-white/72">
                   {meet.targetEvents.map((event) => t(event)).join(", ")}
                 </div>

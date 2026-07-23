@@ -60,7 +60,7 @@ export function CoachOperationsPanel({ clubs }: { clubs: CoachClubSummary[] }) {
           <div className="rounded-lg border border-white/12 bg-white/[0.07] p-4">
             <label className="text-xs font-semibold uppercase text-white/48" htmlFor="coach-athlete">{t("Athlete")}</label>
             <select id="coach-athlete" className="mt-2 h-10 w-full rounded-md border border-white/12 bg-[#0b1725] px-3 text-sm text-white" value={selection} onChange={(event) => setSelection(event.target.value)}>
-              {athletes.map(({ club, swimmer }) => <option key={`${club.id}:${swimmer.id}`} value={`${club.id}:${swimmer.id}`}>{swimmer.name} · {club.name}</option>)}
+              {athletes.map(({ club, swimmer }) => <option data-no-translate key={`${club.id}:${swimmer.id}`} value={`${club.id}:${swimmer.id}`}>{swimmer.name} · {club.name}</option>)}
             </select>
             <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
               <ReadinessMetric label="Data quality" value={t(selected.swimmer.dataQualityStatus)} />
@@ -73,7 +73,7 @@ export function CoachOperationsPanel({ clubs }: { clubs: CoachClubSummary[] }) {
             <div className="flex items-center gap-2"><NotebookPen aria-hidden className="h-4 w-4 text-stitch-cyan" /><h3 className="font-semibold text-white">{t("Private coach notes")}</h3></div>
             <textarea className="mt-3 min-h-24 w-full resize-y rounded-md border border-white/12 bg-black/20 p-3 text-sm text-white outline-none placeholder:text-white/36 focus:border-stitch-cyan" maxLength={2000} placeholder={t("Observation for the coaching workspace only") as string} value={content} onChange={(event) => setContent(event.target.value)} />
             <button className="ui-press mt-2 inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-xs font-semibold text-stitch-abyss disabled:opacity-45" disabled={!content.trim()} type="button" onClick={() => void saveNote()}><Save aria-hidden className="h-4 w-4" />{t("Save note")}</button>
-            <div className="mt-4 max-h-36 space-y-2 overflow-y-auto">{notes.map((note) => <div className="rounded-md bg-white/[0.06] p-3 text-sm leading-6 text-white/68" key={note.id}><p>{note.content}</p><p className="mt-1 text-xs text-white/38">{formatDate(note.createdAt, language)}</p></div>)}</div>
+            <div className="mt-4 max-h-36 space-y-2 overflow-y-auto">{notes.map((note) => <div className="rounded-md bg-white/[0.06] p-3 text-sm leading-6 text-white/68" key={note.id}><p data-no-translate>{note.content}</p><p className="mt-1 text-xs text-white/38">{formatDate(note.createdAt, language)}</p></div>)}</div>
           </div>
         </div>
       ) : (

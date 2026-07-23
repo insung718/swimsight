@@ -241,7 +241,7 @@ export function CommunityHub() {
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-white/72">{status}</p>
+      <p className="mt-3 text-sm text-white/72" data-no-translate>{status}</p>
       <div className="mt-5 rounded-lg border border-white/12 bg-white/[0.07] p-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -266,7 +266,7 @@ export function CommunityHub() {
         {communities.length === 0 && coachClubs.length === 0 && <div className="rounded-lg border border-dashed border-white/20 bg-white/5 p-6 text-center text-sm text-white/72 sm:col-span-2">{t("No communities or coach clubs yet.")}</div>}
         {communities.slice(0, 4).map((community) => (
           <div className="rounded-lg border border-white/15 bg-white/10 p-3" key={community.id}>
-            <div className="font-semibold text-white">{community.name}</div>
+            <div className="font-semibold text-white" data-no-translate>{community.name}</div>
             <div className="mt-1 text-sm text-white/72">
               {community.memberCount} {t("members")}{community.joinCode ? ` · ${t("code")} ${community.joinCode}` : ""}
             </div>
@@ -276,7 +276,7 @@ export function CommunityHub() {
           <div className="rounded-lg border border-aqua-200/20 bg-aqua-300/10 p-3" key={club.id}>
             <div className="flex items-center gap-2 font-semibold text-white">
               <Building2 aria-hidden className="h-4 w-4 text-aqua-100" />
-              {club.name}
+              <span data-no-translate>{club.name}</span>
             </div>
             <div className="mt-1 text-sm text-white/72">{club.memberCount} {t("swimmers")} · {t("coach club")}</div>
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3">

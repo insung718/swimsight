@@ -76,7 +76,7 @@ const trustSignals = [
   {
     icon: FileSpreadsheet,
     title: "Spreadsheet format guide",
-    body: "Upload a CSV with Date, Event, and Time columns, or type results manually when you only have one race to add."
+    body: "Upload a spreadsheet file with Date, Event, and Time columns, or enter a race manually when you only have one result to add."
   }
 ] as const;
 

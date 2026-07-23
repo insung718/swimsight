@@ -199,12 +199,43 @@ test("translates the dashboard staggered menu", async ({ page }) => {
   await page.goto("/e2e-dashboard");
 
   await page.getByRole("button", { name: "KO" }).click();
+  await expect(page.getByRole("button", { name: "영", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "한", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "베", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "EN", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "대시보드 내비게이션 열기" }).click();
   const navigator = page.getByRole("dialog", { name: "대시보드 내비게이션" });
-  await expect(navigator.getByText("경기력 작업 공간", { exact: true })).toBeVisible();
+  await expect(navigator.getByText("경기력 분석 공간", { exact: true })).toBeVisible();
   await expect(navigator.getByRole("button", { name: "레이스 랩", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "대시보드 내비게이션 닫기" }).click();
   await expect(navigator).toBeHidden();
+});
+
+test("keeps account data literal while fully localizing athlete and coach controls", async ({ page }) => {
+  await forceEnglish(page);
+  await page.goto("/e2e-dashboard");
+  await page.getByRole("button", { name: "KO" }).click();
+
+  await page.getByRole("button", { name: "대시보드 내비게이션 열기" }).click();
+  let navigator = page.getByRole("dialog", { name: "대시보드 내비게이션" });
+  await navigator.getByRole("button", { name: "프로필", exact: true }).click();
+  await expect(page.getByText("로그인이 필요합니다.", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "베", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Anh", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hàn", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Việt", exact: true })).toBeVisible();
+  await expect(page.getByText("Bạn cần đăng nhập.", { exact: true })).toBeVisible();
+
+  await page.goto("/e2e-coach-dashboard");
+  await page.getByRole("button", { name: "KO", exact: true }).click();
+  await page.getByRole("button", { name: "대시보드 내비게이션 열기" }).click();
+  navigator = page.getByRole("dialog", { name: "대시보드 내비게이션" });
+  await navigator.getByRole("button", { name: "선수", exact: true }).click();
+  await expect(page.getByText("준비 완료", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("완료", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("대회 후 리뷰", { exact: true }).first()).toBeVisible();
+  await expect(page.locator("option[data-no-translate]").filter({ hasText: "Ellis Crisci · SwimSight Performance" })).toHaveCount(1);
 });
 
 test("keeps every primary dashboard surface inside a mobile viewport", async ({ page }) => {
